@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23种设计模式 · 动手搭建指南</title>
+<meta property="og:title" content="23种设计模式 · 一张图看懂">
+<meta property="og:description" content="5种创建型 + 7种结构型 + 11种行为型，动手搭建指南，代码可运行">
+<meta property="og:image" content="https://via.placeholder.com/1200x630/667eea/ffffff?text=23%E7%A7%8D%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F">
+<meta property="og:type" content="website">
+<meta name="description" content="23种设计模式交互式学习指南，包含记忆锚点、关键部件、搭建步骤和可运行代码">
+<meta name="keywords" content="设计模式, 单例, 工厂, 观察者, 策略, 代理, 装饰器, 编程">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+:root { --c-creational: #ff6b6b; --c-structural: #4ecdc4; --c-behavioral: #45b7d1; --bg: #f0f2f5; --card: #ffffff; --text: #2d3436; --muted: #636e72; --shadow: 0 4px 20px rgba(0,0,0,0.08); --radius: 16px; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 50px 20px 30px; text-align: center; position: relative; overflow: hidden; }
+header::before { content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.3; }
+header h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 10px; position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; position: relative; z-index: 1; }
+.roadmap { max-width: 900px; margin: 30px auto; padding: 0 20px; text-align: center; }
+.roadmap h2 { font-size: 1.3rem; margin-bottom: 20px; color: var(--text); }
+.roadmap-flow { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.roadmap-step { background: white; padding: 14px 20px; border-radius: 12px; box-shadow: var(--shadow); font-weight: 600; font-size: 0.9rem; position: relative; }
+.roadmap-step::after { content: '→'; position: absolute; right: -18px; top: 50%; transform: translateY(-50%); color: #b0b0b0; font-size: 1.1rem; }
+.roadmap-step:last-child::after { display: none; }
+.roadmap-step .step-num { display: block; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+.quick-tip { background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 12px; padding: 16px; max-width: 800px; margin: 0 auto 20px; text-align: center; }
+.quick-tip h3 { color: #e65100; margin-bottom: 6px; font-size: 1rem; }
+.quick-tip p { color: #666; font-size: 0.9rem; }
+.filter-bar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 20px 16px; max-width: 1000px; margin: 0 auto; }
+.filter-btn { padding: 10px 24px; border: none; border-radius: 30px; background: white; color: var(--text); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.filter-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+.filter-btn.active { color: white; }
+.filter-btn[data-cat="all"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
+.filter-btn[data-cat="creational"].active { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+.filter-btn[data-cat="structural"].active { background: linear-gradient(135deg, #4ecdc4, #26b0a1); }
+.filter-btn[data-cat="behavioral"].active { background: linear-gradient(135deg, #45b7d1, #2980b9); }
+.search-box { max-width: 500px; margin: 0 auto 16px; padding: 0 16px; }
+.search-box input { width: 100%; padding: 14px 24px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; outline: none; transition: all 0.3s; background: white; }
+.search-box input:focus { border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.15); }
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+.card { background: var(--card); border-radius: var(--radius); padding: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: var(--shadow); position: relative; overflow: hidden; border: 1px solid #f0f0f0; }
+.card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: #667eea; }
+.card.hidden { display: none !important; }
+.card-badge { position: absolute; top: 12px; right: 12px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: white; }
+.card-badge.creational { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+.card-badge.structural { background: linear-gradient(135deg, #4ecdc4, #26b0a1); }
+.card-badge.behavioral { background: linear-gradient(135deg, #45b7d1, #2980b9); }
+.card-emoji { font-size: 2.8rem; margin-bottom: 12px; }
+.card h3 { font-size: 1.3rem; margin-bottom: 8px; color: var(--text); }
+.card .analogy { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+.card .memory { margin-top: 12px; padding: 10px 14px; background: #f8f9fa; border-radius: 8px; font-size: 0.85rem; color: #555; border-left: 3px solid #667eea; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal { background: white; border-radius: 20px; max-width: 700px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.3s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+.modal-header { padding: 30px 30px 20px; border-bottom: 1px solid #eee; }
+.modal-header h2 { display: flex; align-items: center; gap: 10px; font-size: 1.5rem; }
+.modal-body { padding: 24px 30px 30px; }
+.modal-body h4 { margin: 20px 0 10px; font-size: 1.05rem; color: #333; }
+.modal-body p { line-height: 1.7; color: #555; }
+.modal-body .scene-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.modal-body .scene-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: #666; }
+.modal-body .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.modal-body .pros-cons h5 { margin-bottom: 8px; font-size: 0.95rem; }
+.modal-body .pros-cons ul { padding-left: 18px; font-size: 0.9rem; color: #555; }
+.modal-body .pros-cons li { margin-bottom: 4px; }
+.modal-body code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: 'Consolas', monospace; }
+.modal-body pre { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 12px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5; margin: 12px 0; }
+.modal-body pre code { background: none; padding: 0; color: inherit; }
+.modal-close { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.5rem; color: #999; cursor: pointer; }
+.modal-close:hover { color: #333; }
+.story-box { background: linear-gradient(135deg, #f8f9fa, #e9ecef); padding: 16px 20px; border-radius: 12px; margin: 16px 0; border-left: 4px solid #667eea; }
+.story-box .story-label { font-weight: 700; color: #667eea; display: block; margin-bottom: 6px; }
+.story-box p { color: #555; margin: 0; }
+.memory-section { background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+.memory-section h4 { margin-top: 0; }
+.memory-section .link-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.memory-section .link-box { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; flex: 1; min-width: 120px; }
+.memory-section .link-box.name { background: #e3f2fd; }
+.memory-section .link-box.analogy { background: #fff3e0; }
+.memory-section .link-box.core { background: #e8f5e9; }
+.memory-section .label { display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+.memory-section .label-name { color: #1976d2; }
+.memory-section .label-analogy { color: #e65100; }
+.memory-section .label-core { color: #388e3c; }
+.memory-section .arrow { font-size: 1.2rem; color: #999; }
+.memory-tip { background: #fff8e1; padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; color: #5d4037; margin-top: 12px; }
+.parts-section { background: #fff; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.parts-section h4 { margin-top: 0; color: #333; }
+.parts-list { list-style: none; padding: 0; }
+.parts-list li { padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.92rem; }
+.parts-list li:last-child { border-bottom: none; }
+.parts-list li strong { color: #667eea; }
+.parts-intro { color: #666; font-size: 0.9rem; margin-bottom: 12px; }
+.steps-section { background: linear-gradient(135deg, #fafafa, #f5f5f5); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.steps-section h4 { margin-top: 0; color: #333; }
+.steps-list { padding-left: 0; list-style: none; counter-reset: step; }
+.steps-list li { padding: 10px 0 10px 36px; position: relative; font-size: 0.92rem; border-bottom: 1px dashed #e0e0e0; }
+.steps-list li:last-child { border-bottom: none; }
+.steps-list li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 10px; width: 24px; height: 24px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+.steps-intro { color: #666; font-size: 0.9rem; margin-bottom: 12px; }
+.when-to-use { background: #e8f5e9; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+.when-to-use h4 { margin-top: 0; color: #2e7d32; }
+.when-to-use p { color: #555; margin: 0; }
+.trigger { display: inline-block; background: #c8e6c9; color: #2e7d32; padding: 4px 12px; border-radius: 16px; font-size: 0.85rem; margin: 4px 4px 0 0; }
+.code-section { margin: 16px 0; }
+.code-section h4 { margin-bottom: 8px; }
+.pattern-id { font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.share-banner { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 14px 20px; text-align: center; font-size: 0.95rem; z-index: 9999; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+.share-banner.show { display: block; }
+.share-banner .close-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1rem; }
+#share-btn { position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; font-size: 1.5rem; box-shadow: 0 4px 16px rgba(102,126,234,0.4); cursor: pointer; z-index: 9998; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+#share-btn:hover { transform: scale(1.1); }
+#share-btn:active { transform: scale(0.95); }
+@media (max-width: 600px) {
+  header h1 { font-size: 1.8rem; }
+  .cards-grid { grid-template-columns: 1fr; padding: 0 12px 40px; }
+  .modal-body .pros-cons { grid-template-columns: 1fr; }
+  .modal { max-height: 90vh; }
+  .memory-section .link-row { flex-direction: column; }
+  .memory-section .arrow { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>23 种设计模式</h1>
+  <p>动手搭建指南 · 一张卡片 = 一个记忆锚点 + 关键部件 + 搭建步骤</p>
+</header>
+
+<div class="roadmap">
+  <h2>学习路径</h2>
+  <div class="roadmap-flow">
+    <div class="roadmap-step"><span class="step-num">Step 1</span>创建型<br>5个模式</div>
+    <div class="roadmap-step"><span class="step-num">Step 2</span>结构型<br>7个模式</div>
+    <div class="roadmap-step"><span class="step-num">Step 3</span>行为型<br>11个模式</div>
+    <div class="roadmap-step"><span class="step-num">Step 4</span>实战项目<br>综合运用</div>
+  </div>
+</div>
+
+<div class="quick-tip">
+  <h3>💡 新手提示</h3>
+  <p>点击任意卡片查看详细说明。搜索框支持关键词过滤。</p>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-cat="all">全部模式</button>
+  <button class="filter-btn" data-cat="creational">创建型（5个）</button>
+  <button class="filter-btn" data-cat="structural">结构型（7个）</button>
+  <button class="filter-btn" data-cat="behavioral">行为型（11个）</button>
+</div>
+
+<div class="search-box">
+  <input type="text" placeholder="搜索模式名称、关键词..." id="searchInput">
+</div>
+
+<div class="cards-grid" id="cardsGrid"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<button id="share-btn" title="分享">&#128279;</button>
+<div class="share-banner" id="shareBanner">
+  <span>&#128161; 点击右上角「…」&#8594; 发送给朋友 或 分享到朋友圈</span>
+  <button class="close-btn" onclick="document.getElementById('shareBanner').classList.remove('show')">&#10005;</button>
+</div>
+
+<script>
+const patterns = [
+{ id: 1, cat: 'creational', name: '单例模式', emoji: '&#127984;', analogy: '一个国家只有一个国王，所有人见的是同一个人。', memory: '单例 = 唯一 &#8594; 一个国王 &#8594; 所有人见的都是同一个', scene: '数据库连接池、配置管理、日志对象、线程池' },
+{ id: 2, cat: 'creational', name: '工厂方法', emoji: '&#127981;', analogy: '汽车工厂：你告诉工厂要生产宝马或奔驰，工厂给你造出来。', memory: '工厂 = 造车 &#8594; 你提需求 &#8594; 工厂造出来 &#8594; 不用管怎么造', scene: '框架扩展、跨平台UI创建、文档解析器' },
+{ id: 3, cat: 'creational', name: '抽象工厂', emoji: '&#127981;&#127981;', analogy: '家具工厂：现代风工厂生产现代沙发+桌子，古典风工厂生产古典沙发+桌子。', memory: '抽象工厂 = 一整套风格 &#8594; 现代/古典 &#8594; 配套产品一起产出', scene: 'UI主题切换、跨平台组件库、数据库访问层' },
+{ id: 4, cat: 'creational', name: '建造者', emoji: '&#129521;', analogy: '汉堡套餐：选面包&#8594;选肉饼&#8594;选酱料，一步一步组合。', memory: '建造者 = 一步步组装 &#8594; 汉堡套餐 &#8594; 可以自由组合', scene: '复杂对象构建、SQL构造器、测试数据构建' },
+{ id: 5, cat: 'creational', name: '原型模式', emoji: '&#128017;', analogy: '复印机：放一张纸，按下复印，出来一张一模一样的。', memory: '原型 = 复制 &#8594; 复印机 &#8594; 一模一样的新对象', scene: '对象克隆、缓存复制、模板复用' },
+{ id: 6, cat: 'structural', name: '适配器', emoji: '&#128268;', analogy: '转换插头：中国插头插不进欧洲插座，加一个转换头就能用了。', memory: '适配器 = 转换插头 &#8594; 不兼容的东西 &#8594; 中间加适配层 &#8594; 就能用了', scene: '第三方库兼容、API接口适配、数据格式转换' },
+{ id: 7, cat: 'structural', name: '装饰器', emoji: '&#127872;', analogy: '穿衣服：先穿T恤，再穿外套，再加围巾。每一件都是叠加。', memory: '装饰器 = 穿衣服 &#8594; 层层叠加 &#8594; 不改动原衣服 &#8594; 功能增强', scene: '中间件、缓存、日志、权限校验' },
+{ id: 8, cat: 'structural', name: '代理模式', emoji: '&#128373;', analogy: '明星助理：粉丝想见明星，先找助理，助理决定要不要转达。', memory: '代理 = 助理 &#8594; 控制访问 &#8594; 前后加逻辑 &#8594; 保护真实对象', scene: '权限控制、缓存代理、远程代理、虚拟代理' },
+{ id: 9, cat: 'structural', name: '外观模式', emoji: '&#127919;', analogy: '汽车一键启动：隐藏引擎、电路、油路的复杂启动。', memory: '外观 = 一键启动 &#8594; 隐藏内部复杂 &#8594; 只暴露一个简单按钮', scene: '复杂系统封装、SDK设计、启动流程简化' },
+{ id: 10, cat: 'structural', name: '桥接模式', emoji: '&#127753;', analogy: '遥控器和电视：可以换遥控器，也可以换电视，两者独立变化。', memory: '桥 = 连接两岸 &#8594; 遥控器和电视是独立维度 &#8594; 可随意组合', scene: '跨平台渲染、设备驱动、UI主题分离' },
+{ id: 11, cat: 'structural', name: '组合模式', emoji: '&#127795;', analogy: '文件夹里可以放文件，也可以放子文件夹，统一对待。', memory: '组合 = 树 &#8594; 文件+文件夹 &#8594; 统一对待 &#8594; 递归结构', scene: 'UI组件树、菜单系统、组织架构' },
+{ id: 12, cat: 'structural', name: '享元模式', emoji: '&#9851;', analogy: '共享单车：一百个人骑，但车只有100辆，大家共享。', memory: '享元 = 共享单元 &#8594; 共享单车 &#8594; 共享对象 &#8594; 池化复用', scene: '游戏对象池、字符串常量池、缓存' },
+{ id: 13, cat: 'behavioral', name: '策略模式', emoji: '&#127919;', analogy: '去机场：可以打车、坐地铁、骑车，目的相同，方式不同。', memory: '策略 = 多种方案选一 &#8594; 去机场方式不同 &#8594; 目的相同，策略不同', scene: '支付方式、排序算法、压缩策略' },
+{ id: 14, cat: 'behavioral', name: '观察者模式', emoji: '&#128064;', analogy: '关注公众号后，公众号发文章，所有粉丝自动收到推送。', memory: '观察 = 关注公众号 &#8594; 一有更新 &#8594; 自动推送 &#8594; 被动接收', scene: '事件系统、消息队列、数据绑定' },
+{ id: 15, cat: 'behavioral', name: '模板方法', emoji: '&#128203;', analogy: '泡茶流程：烧水&#8594;放茶叶&#8594;倒水&#8594;等待。绿茶红茶步骤一样，茶叶不同。', memory: '模板 = 固定流程 &#8594; 骨架不变 &#8594; 某些步骤子类填 &#8594; 泡茶流程', scene: '框架设计、算法骨架、测试流程' },
+{ id: 16, cat: 'behavioral', name: '命令模式', emoji: '&#127918;', analogy: '遥控器按钮：每个按钮封装一个命令，按下去就执行。', memory: '命令 = 遥控器按钮 &#8594; 封装一个动作 &#8594; 可执行、可撤销、可记录', scene: '撤销重做、任务队列、宏命令' },
+{ id: 17, cat: 'behavioral', name: '状态模式', emoji: '&#128260;', analogy: '手机：响铃模式&#8594;静音模式&#8594;振动模式，按电源键切换。', memory: '状态 = 不同状态不同行为 &#8594; 手机模式切换 &#8594; 状态变了，行为跟着变', scene: '订单状态、游戏状态、播放器状态' },
+{ id: 18, cat: 'behavioral', name: '职责链', emoji: '&#9939;', analogy: '请假审批：组长批3天&#8594;经理批7天&#8594;总监批15天&#8594;更长找CEO。', memory: '职责链 = 请假审批链 &#8594; 一级一级往上走 &#8594; 直到有人处理 &#8594; 责任链', scene: '审批流程、日志过滤、中间件' },
+{ id: 19, cat: 'behavioral', name: '中介者模式', emoji: '&#127968;', analogy: '房产中介：买卖双方不直接联系，都通过中介沟通，避免混乱。', memory: '中介者 = 房产中介 &#8594; 所有人找中介 &#8594; 中介统一协调 &#8594; 降低混乱', scene: '聊天室、MVC控制器、事件总线' },
+{ id: 20, cat: 'behavioral', name: '迭代器模式', emoji: '&#128251;', analogy: '电视遥控器：按下一台就切下一台，不用知道电视台怎么排列。', memory: '迭代器 = 遥控器下一台 &#8594; 不关心内部结构 &#8594; 只管按顺序访问', scene: '遍历集合、分页器、树形遍历' },
+{ id: 21, cat: 'behavioral', name: '访问者模式', emoji: '&#128657;', analogy: '医生查房：对不同病人（老人、小孩、孕妇）做不同检查。', memory: '访问者 = 医生查房 &#8594; 同一操作 &#8594; 不同对象不同处理 &#8594; 不改变病人', scene: 'AST遍历、报表生成、数据导出' },
+{ id: 22, cat: 'behavioral', name: '备忘录模式', emoji: '&#128426;', analogy: '游戏存档：打不过BOSS就读档，回到之前状态重新挑战。', memory: '备忘录 = 游戏存档 &#8594; 保存状态 &#8594; 随时恢复 &#8594; 快照', scene: '撤销重做、游戏存档、版本回滚' },
+{ id: 23, cat: 'behavioral', name: '解释器模式', emoji: '&#128483;', analogy: '翻译器：把你好翻译成英文Hello，把规则转换成可执行动作。', memory: '解释器 = 翻译 &#8594; 把规则文本变成可执行代码 &#8594; 如正则表达式引擎', scene: '规则引擎、表达式求值、配置文件解析' },
+];
+
+const grid = document.getElementById('cardsGrid');
+patterns.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'card card-' + p.cat;
+  card.dataset.cat = p.cat;
+  card.dataset.id = p.id;
+  card.innerHTML = '<span class="card-badge ' + p.cat + '">' + (p.cat === 'creational' ? '创建型' : p.cat === 'structural' ? '结构型' : '行为型') + '</span><div class="card-emoji">' + p.emoji + '</div><h3>' + p.name + '</h3><p class="analogy">' + p.analogy + '</p><div class="memory">&#128161; ' + p.memory + '</div>';
+  card.addEventListener('click', () => openModal(p.id));
+  grid.appendChild(card);
+});
+
+function openModal(id) {
+  const p = patterns.find(x => x.id === id);
+  if (!p) return;
+  const content = document.getElementById('modalContent');
+  content.innerHTML = '<div class="modal-header"><div class="pattern-id">' + (p.cat === 'creational' ? 'CREATIONAL' : p.cat === 'structural' ? 'STRUCTURAL' : 'BEHAVIORAL') + ' · 第 ' + p.id + ' 个设计模式</div><h2><span style="font-size:2.2rem">' + p.emoji + '</span> ' + p.name + '</h2></div><div class="modal-body"><div class="memory-section"><h4>&#128279; 记忆锚点</h4><p>' + p.memory + '</p></div><div class="story-box"><span class="story-label">&#127909; 生活故事</span><p>' + p.analogy + '</p></div><h4>&#127919; 典型应用场景</h4><div class="scene-tags">' + p.scene.split('、').map(s => '<span class="scene-tag">' + s + '</span>').join('') + '</div></div>';
+  document.getElementById('modalOverlay').classList.add('active');
+}
+
+document.getElementById('modalClose').addEventListener('click', () => {
+  document.getElementById('modalOverlay').classList.remove('active');
+});
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalOverlay')) document.getElementById('modalOverlay').classList.remove('active');
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.toggle('hidden', cat !== 'all' && card.dataset.cat !== cat);
+    });
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(card => {
+    const p = patterns.find(x => x.id == card.dataset.id);
+    card.classList.toggle('hidden', !p.name.includes(q) && !p.analogy.includes(q) && !p.memory.includes(q) && !p.scene.includes(q));
+  });
+});
+
+document.getElementById('share-btn').addEventListener('click', () => {
+  document.getElementById('shareBanner').classList.add('show');
+  setTimeout(() => document.getElementById('shareBanner').classList.remove('show'), 5000);
+});
+</script>
+
+</body>
+</html>

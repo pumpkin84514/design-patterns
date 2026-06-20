@@ -756,24 +756,27 @@ Compensate 1: 取消订单
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class SagaOrchestrator:
+    # 协调器负责按顺序执行 Saga 的每个步骤
     def execute(self, steps):
-        completed = []
+        completed = []  # 记录已成功执行的步骤，用于失败时补偿
         for step in steps:
             try:
-                step.execute()
-                completed.append(step)
+                step.execute()      # 执行正向操作（如创建订单、扣库存）
+                completed.append(step)  # 记录成功，以便失败时反向补偿
             except Exception:
+                # 某步失败，从最后一步往前逐个执行补偿（undo）
                 for done in reversed(completed):
-                    done.compensate()
-                return False
-        return True
+                    done.compensate()   # 补偿：撤销已完成的操作
+                return False            # Saga 执行失败，但数据已回滚
+        return True                     # 所有步骤成功，事务完成
 
+# 定义 3 个步骤：每个步骤包含正向操作和补偿操作
 steps = [
     Step("创建订单", execute=create_order, compensate=cancel_order),
-    Step("扣库存", execute=deduct_stock, compensate=restore_stock),
-    Step("扣款", execute=charge_payment, compensate=refund_payment),
+    Step("扣库存",   execute=deduct_stock, compensate=restore_stock),
+    Step("扣款",     execute=charge_payment, compensate=refund_payment),
 ]
-result = SagaOrchestrator().execute(steps)</code></pre>
+result = SagaOrchestrator().execute(steps)  # 执行整个 Saga 事务</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -860,29 +863,35 @@ result = SagaOrchestrator().execute(steps)</code></pre>
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">@dataclass
 class OrderCreated:
-    order_id: str
-    amount: float
+    # 领域事件：记录"发生了什么事"，不存当前状态
+    order_id: str   # 订单唯一标识
+    amount: float   # 订单金额
 
 class EventStore:
+    # 事件库：只追加（Append-only），不修改历史记录
     def append(self, event):
+        # 将事件序列化为 JSON 存入数据库，只 INSERT 不 UPDATE
         db.execute("INSERT INTO events (type, data) VALUES (?, ?)",
                    event.__class__.__name__, json.dumps(asdict(event)))
     
     def get_events(self, order_id):
+        # 按时间顺序读取某个订单的所有事件，用于重放计算状态
         return db.query("SELECT * FROM events WHERE order_id = ? ORDER BY time", order_id)
 
 class OrderProjector:
+    # 状态投影器：通过重放事件计算当前状态
     def project(self, events):
-        state = OrderState()
+        state = OrderState()    # 初始状态为空
         for event in events:
             if isinstance(event, OrderCreated):
-                state.status = "created"
-        return state
+                state.status = "created"  # 根据事件类型更新状态
+        return state              # 返回计算出的当前状态
 
+# 使用：生成事件并存储，需要状态时重放计算
 store = EventStore()
-store.append(OrderCreated("1001", 199))
-events = store.get_events("1001")
-state = OrderProjector().project(events)</code></pre>
+store.append(OrderCreated("1001", 199))    # 存储"订单已创建"事件
+events = store.get_events("1001")           # 读取该订单的所有事件
+state = OrderProjector().project(events)    # 重放事件，算出当前状态</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -966,19 +975,22 @@ CQRS 读写分离
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CommandHandler:
+    # 命令处理器：处理写操作（如创建订单），验证业务规则
     def handle(self, cmd):
-        order = Order.create(cmd.user_id, cmd.items)
-        event = OrderCreated(order.id, order.items)
-        event_store.append(event)
-        return order.id
+        order = Order.create(cmd.user_id, cmd.items)  # 验证并创建订单
+        event = OrderCreated(order.id, order.items)   # 生成领域事件
+        event_store.append(event)                      # 事件存入 Event Store
+        return order.id                                # 返回订单号
 
 class QueryHandler:
+    # 查询处理器：处理读操作，直接查优化过的读模型（如 Elasticsearch）
     def get_order(self, order_id):
-        return read_model.find(order_id)
+        return read_model.find(order_id)  # 毫秒级查询，无需 JOIN
 
-cmd = CreateOrderCommand(user_id="U001", items=[...])
-order_id = CommandHandler().handle(cmd)
-order = QueryHandler().get_order(order_id)  # 毫秒级</code></pre>
+# 使用：写操作和读操作分开处理
+cmd = CreateOrderCommand(user_id="U001", items=[...])  # 创建命令
+order_id = CommandHandler().handle(cmd)                  # 写：经过命令模型
+order = QueryHandler().get_order(order_id)              # 读：直接查读模型</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1063,20 +1075,23 @@ API 网关
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ApiGateway:
+    # API 网关：所有请求的单一入口，统一处理横切逻辑
     def handle(self, request):
-        if not self.authenticate(request):
-            return 401
-        if not self.rate_limit(request):
-            return 429
-        service = self.route(request.path)
-        return service.forward(request)
+        if not self.authenticate(request):   # ① 认证：验证 JWT Token
+            return 401                         #    认证失败返回 401
+        if not self.rate_limit(request):       # ② 限流：检查是否超过阈值
+            return 429                         #    超限返回 429 Too Many Requests
+        service = self.route(request.path)     # ③ 路由：按 URL 找到后端服务
+        return service.forward(request)        # ④ 转发：将请求发到目标服务
 
     def aggregate(self, requests):
-        results = await asyncio.gather(*requests)
-        return merge(results)
+        # 响应聚合：一个请求需要多个服务数据时，并行调用后合并
+        results = await asyncio.gather(*requests)  # 并行调用，等待全部返回
+        return merge(results)                       # 合并多个结果为一个响应
 
+# 使用：客户端只和网关打交道
 gateway = ApiGateway()
-response = gateway.handle(request)</code></pre>
+response = gateway.handle(request)  # 网关处理认证、限流、路由、转发</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1162,21 +1177,25 @@ response = gateway.handle(request)</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class EventBus:
+    # 事件总线：发布-订阅模式，服务间不直接调用，通过事件通信
     def publish(self, event):
+        # 发布事件到消息队列（如 Kafka），所有订阅者都能收到
         kafka.send(event.topic, event.to_json())
 
     def subscribe(self, topic, handler):
-        consumer = kafka.subscribe(topic)
-        for msg in consumer:
-            handler(Event.from_json(msg))
+        # 订阅感兴趣的事件类型，收到后异步处理
+        consumer = kafka.subscribe(topic)     # 注册消费者
+        for msg in consumer:                    # 持续监听消息
+            handler(Event.from_json(msg))       # 收到事件后调用处理函数
 
-# 发布
-event_bus.publish(OrderCreated(order_id="1001"))
+# 使用：发布者和订阅者解耦
+event_bus.publish(OrderCreated(order_id="1001"))  # 订单服务发布事件
 
-# 订阅（在支付服务中）
+# 支付服务订阅事件（不需要订单服务知道支付服务的存在）
 event_bus.subscribe("OrderCreated", on_order_created)
 
 def on_order_created(event):
+    # 收到 OrderCreated 事件后，创建待支付订单
     payment_service.create_pending_payment(event.order_id)</code></pre>
 
   <div class="parts-section">
@@ -1261,17 +1280,19 @@ def on_order_created(event):
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class UserService:
+    # 用户服务：只访问自己的 user_db，不跨服务读数据库
     def get_user(self, user_id):
-        return self.user_db.query(user_id)  # 只访问自己的数据库
+        return self.user_db.query(user_id)  # 查自己的数据库
 
 class OrderService:
+    # 订单服务：只访问自己的 order_db
     def create_order(self, user_id, items):
-        # 不直接读 user_db，而是调用 UserService API
-        user = user_service_client.get_user(user_id)
+        # 需要用户数据？不直接读 user_db，而是调用 UserService 的 API
+        user = user_service_client.get_user(user_id)  # 通过 API 获取
         return self.order_db.insert(Order(user_id=user_id, items=items))
 
-# 禁止：order_service 直接读 user_db
-# 正确：通过 API 获取数据</code></pre>
+# 原则：禁止跨服务直接访问数据库，必须通过 API 或事件通信
+# 这样每个服务的数据库可以独立演进，互不干扰</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1357,18 +1378,20 @@ class OrderService:
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ShardRouter:
+    # 分片路由器：根据分片键计算数据应该在哪个节点
     def route(self, user_id):
-        shard = user_id % 4  # 哈希取模
-        return f"db_node_{shard}"
+        shard = user_id % 4  # 哈希取模：将用户均匀分布到 4 个节点
+        return f"db_node_{shard}"  # 返回目标数据库节点名称
 
     def query(self, user_id, sql):
-        db = self.route(user_id)
-        return db.execute(sql)
+        db = self.route(user_id)  # 先计算目标节点
+        return db.execute(sql)     # 再发送到对应节点执行
 
-# 查询
+# 使用：查询和写入都按 user_id 路由
 router = ShardRouter()
+# 自动路由到 db_node_1（因为 10001 % 4 = 1）
 result = router.query(user_id=10001, "SELECT * FROM orders WHERE user_id = 10001")
-# 自动路由到 db_node_1</code></pre>
+# 每个节点只处理 1/4 的数据，查询速度提升 4 倍</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1452,35 +1475,38 @@ result = router.query(user_id=10001, "SELECT * FROM orders WHERE user_id = 10001
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LayeredCache:
+    # 分层缓存：L1（本地）→ L2（Redis）→ L3（CDN）→ 数据库，逐层回源
     def __init__(self):
-        self.l1 = CaffeineCache()  # 本地内存
-        self.l2 = RedisCache()      # 分布式缓存
-        self.l3 = CDNCache()        # 边缘缓存
+        self.l1 = CaffeineCache()   # L1：本地内存，最快但容量小，单机有效
+        self.l2 = RedisCache()      # L2：Redis，多机共享，走网络
+        self.l3 = CDNCache()        # L3：CDN，最接近用户，缓存静态资源
 
     def get(self, key):
-        # L1
+        # 先查 L1（本地缓存）
         value = self.l1.get(key)
-        if value: return value
-        # L2
+        if value: return value        # L1 命中，直接返回（1ms）
+        # L1 未命中，查 L2（Redis）
         value = self.l2.get(key)
         if value:
-            self.l1.set(key, value, ttl=60)
-            return value
-        # L3
+            self.l1.set(key, value, ttl=60)  # 回填 L1，下次更快
+            return value                        # L2 命中（5ms）
+        # L2 未命中，查 L3（CDN）
         value = self.l3.get(key)
         if value:
-            self.l2.set(key, value, ttl=300)
-            self.l1.set(key, value, ttl=60)
-            return value
-        # 数据库
+            self.l2.set(key, value, ttl=300)  # 回填 L2
+            self.l1.set(key, value, ttl=60)   # 回填 L1
+            return value                        # L3 命中（20ms）
+        # 都未命中，查数据库（最慢，100ms）
         value = db.query(key)
+        # 回填所有缓存层，下次命中
         self.l3.set(key, value, ttl=3600)
         self.l2.set(key, value, ttl=300)
         self.l1.set(key, value, ttl=60)
         return value
 
+# 使用：自动处理分层缓存逻辑
 cache = LayeredCache()
-product = cache.get("product:12345")</code></pre>
+product = cache.get("product:12345")  # 自动逐层查找并回填</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1565,40 +1591,43 @@ product = cache.get("product:12345")</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CircuitBreaker:
+    # 熔断器：防止故障扩散，保护系统不被拖垮
     def __init__(self):
-        self.state = "CLOSED"  # 关闭=正常
-        self.failure_count = 0
-        self.threshold = 5
-        self.timeout = 30
+        self.state = "CLOSED"      # 初始状态：关闭（正常放行）
+        self.failure_count = 0     # 连续失败次数计数器
+        self.threshold = 5         # 失败阈值：超过 5 次触发熔断
+        self.timeout = 30          # 熔断后等待 30 秒再试探恢复
 
     def call(self, func):
-        if self.state == "OPEN":
+        # 检查当前状态
+        if self.state == "OPEN":   # 熔断器已打开（拒绝请求）
             if time.now() - self.last_failure_time > self.timeout:
-                self.state = "HALF_OPEN"
+                self.state = "HALF_OPEN"  # 超时后转为半开状态（试探）
             else:
-                return fallback()  # 直接返回降级
+                return fallback()  # 仍在熔断期，直接返回降级响应
 
         try:
-            result = func()
-            self.on_success()
+            result = func()        # 尝试调用远程服务
+            self.on_success()      # 成功，重置失败计数
             return result
         except Exception:
-            self.on_failure()
-            return fallback()
+            self.on_failure()      # 失败，记录并检查是否触发熔断
+            return fallback()      # 返回降级响应
 
     def on_failure(self):
-        self.failure_count += 1
+        self.failure_count += 1    # 记录一次失败
         if self.failure_count >= self.threshold:
-            self.state = "OPEN"
-            self.last_failure_time = time.now()
+            self.state = "OPEN"               # 触发熔断
+            self.last_failure_time = time.now()  # 记录熔断时间
 
     def on_success(self):
         if self.state == "HALF_OPEN":
-            self.state = "CLOSED"
-        self.failure_count = 0
+            self.state = "CLOSED"  # 试探成功，关闭熔断器
+        self.failure_count = 0     # 重置失败计数
 
+# 使用：熔断器保护支付服务调用
 cb = CircuitBreaker()
-result = cb.call(lambda: payment_service.charge())</code></pre>
+result = cb.call(lambda: payment_service.charge())  # 失败自动熔断</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1683,29 +1712,32 @@ result = cb.call(lambda: payment_service.charge())</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class RateLimiter:
+    # 限流器：控制请求速率，防止系统被突发流量压垮
     def __init__(self, limit=1000, window=1):
-        self.limit = limit
-        self.window = window
-        self.counter = 0
-        self.reset_time = time.now() + window
+        self.limit = limit         # 每个时间窗口允许的最大请求数
+        self.window = window       # 时间窗口大小（秒）
+        self.counter = 0           # 当前窗口内的请求计数
+        self.reset_time = time.now() + window  # 计数器重置时间
 
     def allow(self, request):
         now = time.now()
+        # 如果时间窗口已过，重置计数器
         if now >= self.reset_time:
             self.counter = 0
             self.reset_time = now + self.window
         
-        self.counter += 1
+        self.counter += 1          # 记录本次请求
         if self.counter <= self.limit:
-            return True  # 放行
+            return True              # 未超限，放行请求
         else:
-            return False  # 拒绝
+            return False             # 已超限，拒绝请求
 
-limiter = RateLimiter(limit=1000, window=1)  # 每秒 1000 请求
+# 使用：每秒限制 1000 请求
+limiter = RateLimiter(limit=1000, window=1)
 if limiter.allow(request):
-    process(request)
+    process(request)          # 正常处理
 else:
-    return 429  # Too Many Requests</code></pre>
+    return 429  # Too Many Requests（请求太多）</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1793,25 +1825,28 @@ else:
 import random
 
 def retry(max_attempts=3, backoff=1):
+    # 重试装饰器：失败时自动重试，支持指数退避
     def decorator(func):
         def wrapper(*args, **kwargs):
             for attempt in range(max_attempts):
                 try:
-                    return func(*args, **kwargs)
+                    return func(*args, **kwargs)  # 尝试执行
                 except Exception as e:
                     if attempt == max_attempts - 1:
-                        raise e
-                    # 指数退避 + 随机抖动
+                        raise e  # 最后一次也失败，抛出异常
+                    # 指数退避：等待时间翻倍（1s, 2s, 4s...）+ 随机抖动
                     sleep_time = backoff * (2 ** attempt) + random.uniform(0, 1)
-                    time.sleep(sleep_time)
+                    time.sleep(sleep_time)  # 等待后重试
         return wrapper
     return decorator
 
 @retry(max_attempts=3, backoff=1)
 def call_payment_service():
+    # 如果失败，会自动重试 3 次，每次等待时间翻倍
     return payment_api.charge()
 
-result = call_payment_service()  # 失败自动重试</code></pre>
+# 使用：调用失败时自动重试，用户无感知
+result = call_payment_service()</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1897,17 +1932,18 @@ result = call_payment_service()  # 失败自动重试</code></pre>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import requests
 
 def call_service_with_timeout(url, timeout=2):
+    # 为远程调用设置超时时间，防止无限等待
     try:
-        response = requests.get(url, timeout=timeout)
-        return response.json()
+        response = requests.get(url, timeout=timeout)  # 设置 2 秒上限
+        return response.json()                           # 正常返回
     except requests.Timeout:
-        # 超时，返回降级响应
+        # 超时后记录日志，并返回降级响应（不阻塞线程）
         logger.warning(f"Timeout calling {url}")
-        return fallback_response()
+        return fallback_response()  # 返回缓存数据或默认值
 
-# 使用
+# 使用：2 秒内不返回就超时，返回降级数据
 result = call_service_with_timeout("http://inventory-service/check", timeout=2)
-# 2 秒内不返回 → 超时 → 返回降级数据</code></pre>
+# 如果库存服务挂了，不会无限等待，而是返回"默认有货"</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -1990,27 +2026,29 @@ result = call_service_with_timeout("http://inventory-service/check", timeout=2)
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Bulkhead:
+    # 舱壁隔离：给每个服务分配独立资源池，故障互不影响
     def __init__(self, pool_size):
-        self.semaphore = Semaphore(pool_size)
+        self.semaphore = Semaphore(pool_size)  # 信号量控制并发数
 
     def execute(self, func):
+        # 尝试获取资源，如果池满则拒绝（不阻塞其他服务）
         if not self.semaphore.acquire(timeout=1):
             raise BulkheadFullException("线程池已满，拒绝请求")
         try:
-            return func()
+            return func()  # 执行目标操作
         finally:
-            self.semaphore.release()
+            self.semaphore.release()  # 释放资源，供后续请求使用
 
 # 为每个服务创建独立线程池
-order_pool = Bulkhead(pool_size=30)
-payment_pool = Bulkhead(pool_size=30)
-product_pool = Bulkhead(pool_size=20)
+order_pool = Bulkhead(pool_size=30)    # 订单服务：30 线程
+payment_pool = Bulkhead(pool_size=30)   # 支付服务：30 线程
+product_pool = Bulkhead(pool_size=20) # 商品服务：20 线程
 
-# 使用
+# 使用：各服务独立运行，一个服务耗尽不影响其他
 order_pool.execute(lambda: order_service.create())
 payment_pool.execute(lambda: payment_service.charge())
 product_pool.execute(lambda: product_service.get_detail())
-# product_pool 满了 → 只影响商品服务</code></pre>
+# 如果商品服务死循环占满 20 线程，订单和支付服务仍然正常</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2095,27 +2133,31 @@ product_pool.execute(lambda: product_service.get_detail())
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class DegradationService:
+    # 降级服务：系统过载时关闭非核心功能，保证核心功能可用
     def __init__(self):
-        self.health = HealthMonitor()
+        self.health = HealthMonitor()  # 监控 CPU、内存、延迟
 
     def get_recommendations(self, user_id):
-        if self.health.is_overloaded():
-            # 降级：返回空列表，不查推荐服务
-            return []
+        # 推荐功能：非核心，过载时关闭
+        if self.health.is_overloaded():  # CPU > 90% 触发降级
+            return []  # 降级：返回空列表，不查推荐服务
         return recommendation_service.get(user_id)
 
     def get_comments(self, product_id):
+        # 评论功能：非核心，过载时关闭
         if self.health.is_overloaded():
-            # 降级：返回静态数据
-            return {"comments": "暂无评论"}
+            return {"comments": "暂无评论"}  # 降级：返回静态数据
         return comment_service.get(product_id)
 
     def checkout(self, order):
-        # 核心功能，永不降级
+        # 下单功能：核心，永不降级
         return order_service.create(order)
 
     def is_overloaded(self):
-        return cpu_usage > 90 or memory_usage > 85</code></pre>
+        # 判断系统是否过载：CPU 或内存超过阈值
+        return cpu_usage > 90 or memory_usage > 85
+
+# 使用：系统过载时自动关闭非核心功能，保证核心功能可用</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2203,26 +2245,27 @@ product_pool.execute(lambda: product_service.get_detail())
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class IdempotencyService:
+    # 幂等性保证：重复执行结果一样，防止重试导致重复操作
     def __init__(self, redis):
-        self.redis = redis
+        self.redis = redis  # 使用 Redis 存储已处理请求的标识
 
     def process(self, idempotency_key, func):
-        # 检查是否已经处理过
+        # 检查该请求是否已经处理过（防重复）
         cached = self.redis.get(f"idem:{idempotency_key}")
         if cached:
-            return json.loads(cached)  # 直接返回上次结果
+            return json.loads(cached)  # 已处理过，直接返回上次结果
 
-        # 执行操作
+        # 首次执行：执行业务操作
         result = func()
         
-        # 存储结果，设置过期时间（如 24 小时）
+        # 存储结果，设置过期时间（如 24 小时），防止存储无限增长
         self.redis.setex(f"idem:{idempotency_key}", 86400, json.dumps(result))
         return result
 
-# 使用
+# 使用：生成唯一幂等键（如 UUID），确保重复请求不会重复扣款
 service = IdempotencyService(redis)
 result = service.process("pay-uuid-123", lambda: payment_service.charge(5000))
-# 第二次调用（重试）→ 直接返回缓存结果，不扣款</code></pre>
+# 如果网络超时重试，第二次调用会直接返回第一次的结果，不会重复扣款</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2312,34 +2355,35 @@ result = service.process("pay-uuid-123", lambda: payment_service.charge(5000))
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import redis
 
 class DistributedLock:
+    # 分布式锁：保证同一时间只有一个进程操作共享资源（如库存）
     def __init__(self, redis_client, key, expire=10):
         self.redis = redis_client
-        self.key = f"lock:{key}"
-        self.expire = expire
-        self.identifier = str(uuid.uuid4())
+        self.key = f"lock:{key}"      # 锁的唯一标识（如 lock:stock:sku123）
+        self.expire = expire            # 锁过期时间（防止死锁）
+        self.identifier = str(uuid.uuid4())  # 唯一标识，防止误释放别人的锁
 
     def acquire(self):
-        # SETNX: 只有 key 不存在时才设置（原子操作）
+        # SETNX：只有 key 不存在时才设置（原子操作，避免竞态）
         acquired = self.redis.set(
             self.key, self.identifier,
-            nx=True, ex=self.expire
+            nx=True, ex=self.expire       # nx=True: 不存在才设置；ex: 过期时间
         )
-        return acquired
+        return acquired  # True = 获取成功，False = 锁已被占用
 
     def release(self):
-        # 只有锁的持有者的才能释放（防止误释放别人的锁）
+        # 释放锁前检查：只有锁的持有者才能释放（防止误释放）
         if self.redis.get(self.key) == self.identifier:
-            self.redis.delete(self.key)
+            self.redis.delete(self.key)   # 删除锁，允许其他进程获取
 
-# 使用
+# 使用：秒杀库存扣减，防止超卖
 lock = DistributedLock(redis, "stock:sku123", expire=10)
-if lock.acquire():
+if lock.acquire():  # 尝试获取锁
     try:
-        stock_service.deduct("sku123", 1)
+        stock_service.deduct("sku123", 1)  # 扣减库存（线程安全）
     finally:
-        lock.release()
+        lock.release()  # 无论成功失败，都要释放锁
 else:
-    return "系统繁忙，请重试"</code></pre>
+    return "系统繁忙，请重试"  # 锁被占用，返回友好提示</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2426,31 +2470,38 @@ else:
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ServiceRegistry:
+    # 服务注册中心：记录所有服务实例的位置（IP + 端口）
     def __init__(self):
-        self.services = {}
+        self.services = {}  # 服务名 → 实例列表的映射
 
     def register(self, service_name, instance):
+        # 服务启动时注册自己（IP:端口）
         self.services.setdefault(service_name, []).append(instance)
 
     def discover(self, service_name):
+        # 客户端查询：获取某个服务的所有可用实例
         return self.services.get(service_name, [])
 
 class ServiceClient:
+    # 服务客户端：通过服务名调用，不硬编码 IP
     def __init__(self, registry):
-        self.registry = registry
-        self.load_balancer = RoundRobin()
+        self.registry = registry           # 注册中心
+        self.load_balancer = RoundRobin()  # 轮询负载均衡
 
     def call(self, service_name, method, **kwargs):
+        # 1. 查询注册中心获取实例列表
         instances = self.registry.discover(service_name)
+        # 2. 负载均衡选择一个实例
         instance = self.load_balancer.pick(instances)
+        # 3. 向选中的实例发起请求
         return requests.post(f"http://{instance}/{method}", **kwargs)
 
-# 使用
+# 使用：支付服务注册，订单服务通过名称调用
 registry = ServiceRegistry()
 registry.register("payment-service", "192.168.1.100:8080")
 
 client = ServiceClient(registry)
-client.call("payment-service", "charge", amount=5000)</code></pre>
+client.call("payment-service", "charge", amount=5000)  # 自动发现和负载均衡</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2535,31 +2586,33 @@ client.call("payment-service", "charge", amount=5000)</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LoadBalancer:
+    # 负载均衡器：均匀分配请求到多个后端实例
     def __init__(self, instances):
-        self.instances = instances
-        self.index = 0
-        self.healthy = set(instances)
+        self.instances = instances        # 所有后端实例列表
+        self.index = 0                   # 轮询索引
+        self.healthy = set(instances)     # 健康实例集合（剔除死节点）
 
     def pick(self):
-        # 轮询算法
+        # 轮询算法：依次选择每个实例，确保均匀分配
         for _ in range(len(self.instances)):
             instance = self.instances[self.index % len(self.instances)]
             self.index += 1
-            if instance in self.healthy:
+            if instance in self.healthy:  # 只选择健康实例
                 return instance
-        raise NoHealthyInstance()
+        raise NoHealthyInstance()  # 没有健康实例，报错
 
     def health_check(self):
+        # 定期健康检查：剔除不健康的实例
         for instance in self.instances:
             if not self.check_health(instance):
-                self.healthy.discard(instance)
+                self.healthy.discard(instance)  # 剔除死节点
             else:
-                self.healthy.add(instance)
+                self.healthy.add(instance)        # 恢复后加入
 
-# 使用
+# 使用：3 个实例均匀分配，自动剔除死节点
 lb = LoadBalancer(["A", "B", "C"])
 for request in requests:
-    instance = lb.pick()
+    instance = lb.pick()  # 轮询选择健康实例
     instance.process(request)</code></pre>
 
   <div class="parts-section">
@@ -2649,17 +2702,32 @@ app = Flask(__name__)
 
 @app.route('/health')
 def health():
+    # 健康探针端点：K8s 定期调用，判断服务状态
     if app.is_ready and app.is_alive:
+        # 进程在运行且已完成启动，可以接收流量
         return jsonify({"status": "healthy"}), 200
     elif app.is_alive and not app.is_ready:
+        # 进程在运行但还没准备好（如正在加载数据），不接收流量
         return jsonify({"status": "not ready"}), 503
     else:
+        # 进程已死，K8s 会重启容器
         return jsonify({"status": "unhealthy"}), 500
 
-# K8s 配置
-# livenessProbe: 进程是否运行（未运行则重启）
-# readinessProbe: 是否可接收流量（未就绪则摘除流量）
-# startupProbe: 启动是否完成（避免启动慢被误判为死）</code></pre>
+# K8s 配置（YAML 片段）：
+# livenessProbe:   # 存活探针：进程是否运行（未运行则重启）
+#   httpGet:
+#     path: /health
+#     port: 8080
+#   periodSeconds: 10    # 每 10 秒检查一次
+#   failureThreshold: 3  # 连续 3 次失败认为不健康
+# readinessProbe:  # 就绪探针：是否可接收流量（未就绪则摘除流量）
+#   httpGet:
+#     path: /health
+#     port: 8080
+# startupProbe:    # 启动探针：启动是否完成（避免启动慢被误判为死）
+#   httpGet:
+#     path: /health
+#     port: 8080</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2747,32 +2815,36 @@ def health():
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Controller:
+    # 调和回路：持续比较实际状态和期望状态，自动修复差异
     def __init__(self, desired_state):
-        self.desired = desired_state
+        self.desired = desired_state  # 期望状态（如 3 个 Pod）
 
     def run(self):
         while True:
-            actual = self.get_actual_state()
-            if actual != self.desired:
+            actual = self.get_actual_state()  # 获取实际状态
+            if actual != self.desired:        # 发现差异
                 diff = self.calculate_diff(actual, self.desired)
-                self.apply(diff)
+                self.apply(diff)              # 执行操作对齐
             time.sleep(10)  # 每 10 秒检查一次
 
     def get_actual_state(self):
+        # 查询运行时获取当前状态（如当前有多少个 Pod）
         return k8s.get_pod_count("order-service")
 
     def calculate_diff(self, actual, desired):
-        return desired - actual  # 需要创建/删除的 Pod 数量
+        # 计算差异：需要创建或删除多少个 Pod
+        return desired - actual
 
     def apply(self, diff):
+        # 根据差异执行操作
         if diff > 0:
-            k8s.create_pods("order-service", diff)
+            k8s.create_pods("order-service", diff)   # 创建缺失的 Pod
         elif diff < 0:
-            k8s.delete_pods("order-service", -diff)
+            k8s.delete_pods("order-service", -diff)  # 删除多余的 Pod
 
-# 使用
+# 使用：声明期望状态，控制器自动维持
 ctrl = Controller(desired_state=3)
-ctrl.run()  # 持续运行，保持 3 个 Pod</code></pre>
+ctrl.run()  # 持续运行，始终保持 3 个 Pod（自动修复故障）</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -2858,29 +2930,32 @@ ctrl.run()  # 持续运行，保持 3 个 Pod</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CanaryRouter:
+    # 金丝雀发布：小流量验证新版本，逐步放量，降低风险
     def __init__(self, new_version_weight=1):
-        self.weight = new_version_weight
+        self.weight = new_version_weight  # 新版本流量占比（%）
 
     def route(self, request):
+        # 按比例分发流量：1% 到新版本，99% 到旧版本
         if random.random() < self.weight / 100:
-            return "new-version"
-        return "old-version"
+            return "new-version"  # 路由到新版本
+        return "old-version"      # 路由到旧版本
 
     def increase_weight(self, step=5):
+        # 逐步扩大流量：1% → 5% → 20% → 50% → 100%
         self.weight = min(100, self.weight + step)
 
     def rollback(self):
+        # 异常时回滚：全部切回旧版本
         self.weight = 0
 
-# 使用
+# 使用：1% 流量验证新版本
 router = CanaryRouter(new_version_weight=1)
-
 for request in requests:
     version = router.route(request)
     if version == "new-version":
-        response = new_service.handle(request)
+        response = new_service.handle(request)   # 新版本处理
     else:
-        response = old_service.handle(request)
+        response = old_service.handle(request)   # 旧版本处理
 
 # 监控指标正常 → 逐步放量
 router.increase_weight(5)  # 1% → 5%</code></pre>
@@ -2970,34 +3045,36 @@ router.increase_weight(5)  # 1% → 5%</code></pre>
 
   <h4>💻 核心代码</h4>
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class BlueGreenDeployer:
+    # 蓝绿部署：两套环境并行，零停机切换，秒级回滚
     def __init__(self, blue_env, green_env):
-        self.blue = blue_env
-        self.green = green_env
-        self.active = "blue"
+        self.blue = blue_env       # 蓝色环境：运行旧版（稳定）
+        self.green = green_env     # 绿色环境：部署新版（待验证）
+        self.active = "blue"       # 当前活跃的版本
 
     def deploy(self, new_version):
-        # 在绿色环境部署新版本
+        # 在绿色环境部署新版本（不影响线上流量）
         self.green.deploy(new_version)
-        # 运行冒烟测试
+        # 运行冒烟测试：验证新版本功能正常
         if self.green.smoke_test():
-            # 切换流量到绿色
+            # 测试通过，切换流量到绿色环境
             self.switch_traffic("green")
             self.active = "green"
             return True
         return False
 
     def rollback(self):
-        # 瞬间切回蓝色
+        # 秒级回滚：有问题立刻切回蓝色环境
         self.switch_traffic("blue")
         self.active = "blue"
 
     def switch_traffic(self, env):
+        # 负载均衡器切换流量（1 秒完成，用户无感知）
         load_balancer.set_target(env)
 
-# 使用
+# 使用：零停机发布，有问题秒级回滚
 deployer = BlueGreenDeployer(blue_env, green_env)
-deployer.deploy("v2.0")  # 零停机发布
-# 有问题 → deployer.rollback()  # 秒级回滚</code></pre>
+deployer.deploy("v2.0")  # 绿色环境部署 → 测试通过 → 切换流量
+# 有问题 → deployer.rollback()  # 1 秒切回旧版</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -3081,25 +3158,31 @@ GitOps
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 GitOps</th><th style="border:1px solid #ddd;padding:8px;">用 GitOps</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置管理</td><td style="border:1px solid #ddd;padding:8px;">配置分散，没有统一来源</td><td style="border:1px solid #ddd;padding:8px;">Git 是统一来源，版本化管理</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">变更审计</td><td style="border:1px solid #ddd;padding:8px;">不知道谁改了什么</td><td style="border:1px solid #ddd;padding:8px;">Git 记录每次变更，精确到人和时间</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚</td><td style="border:1px solid #ddd;padding:8px;">手动回滚，容易出错</td><td style="border:1px solid #ddd;padding:8px;">git revert 即可回滚</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">环境一致性</td><td style="border:1px solid #ddd;padding:8px;">测试和生产配置不同</td><td style="border:1px solid #ddd;padding:8px;">同一份配置应用到所有环境</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># GitOps 工作流（ArgoCD 配置）
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># GitOps 工作流（ArgoCD 配置）：以 Git 为唯一真相来源
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: order-service
 spec:
   source:
-    repoURL: https://github.com/company/k8s-manifests
-    targetRevision: main
-    path: order-service
+    repoURL: https://github.com/company/k8s-manifests  # Git 仓库地址
+    targetRevision: main                                # 监听的分支
+    path: order-service                                # 配置目录
   destination:
-    server: https://kubernetes.default.svc
-    namespace: production
+    server: https://kubernetes.default.svc  # K8s 集群地址
+    namespace: production                     # 目标命名空间
   syncPolicy:
-    automated:  # 自动同步
-      prune: true
-      selfHeal: true  # 自动修复配置漂移
+    automated:              # 自动同步：Git 变更后自动部署
+      prune: true           # 自动删除：Git 中删除的资源运行时也删除
+      selfHeal: true        # 自动修复：运行时配置漂移后自动恢复
 
-# 使用：修改 Git 中的 deployment.yaml → 提交 → ArgoCD 自动部署</code></pre>
+# 使用流程：
+# 1. 开发者在 Git 中修改 deployment.yaml（如副本数从 3 改为 5）
+# 2. 提交 PR，Code Review 通过
+# 3. 合并到 main 分支
+# 4. ArgoCD 检测到变更，自动拉取并应用到 K8s 集群
+# 5. 集群状态始终与 Git 保持一致
+# 6. 如需回滚：git revert 即可，ArgoCD 自动同步回旧版本</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -3188,23 +3271,27 @@ spec:
   <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import opentracing
 from jaeger_client import Config
 
-# 初始化 tracer
+# 初始化 tracer：给每个请求生成唯一的 Trace ID
 tracer = Config(
-    config={"sampler": {"type": "const", "param": 1}},
-    service_name="order-service",
+    config={"sampler": {"type": "const", "param": 1}},  # 全量采样
+    service_name="order-service",                          # 当前服务名
 ).initialize_tracer()
 
-# 使用
+# 使用：生成 Span 记录每个服务的处理过程
 with tracer.start_span("create_order") as span:
-    span.set_tag("user_id", "U001")
-    span.set_tag("order_id", "1001")
+    # 记录订单创建 Span，包含业务标签
+    span.set_tag("user_id", "U001")      # 用户标识
+    span.set_tag("order_id", "1001")     # 订单标识
     
-    # 调用支付服务，传递 Trace ID
+    # 调用支付服务，传递 Trace ID（保证链路连贯）
     with tracer.start_span("call_payment", child_of=span) as child_span:
+        # 在 HTTP Header 中传递 Trace ID，下游服务继续记录
         payment_service.charge(headers={"uber-trace-id": span.trace_id})
-        child_span.set_tag("amount", 5000)
+        child_span.set_tag("amount", 5000)  # 记录支付金额
 
-# 收集器聚合所有 Span，在 Jaeger UI 展示调用链路</code></pre>
+# 收集器聚合所有 Span，在 Jaeger UI 展示完整调用链路：
+# create_order (50ms) → call_payment (3000ms) → deduct_stock (20ms)
+# 一眼看出支付服务是瓶颈</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>
@@ -3293,28 +3380,30 @@ with tracer.start_span("create_order") as span:
 import logging
 
 class StructuredFormatter(logging.Formatter):
+    # 结构化日志格式化器：统一输出 JSON 格式，方便机器解析
     def format(self, record):
         return json.dumps({
-            "timestamp": datetime.now().isoformat(),
-            "level": record.levelname,
-            "service": "order-service",
-            "event": record.msg.get("event"),
-            "user_id": record.msg.get("user_id"),
-            "order_id": record.msg.get("order_id"),
-            "message": record.msg.get("message"),
-            "trace_id": record.msg.get("trace_id"),
+            "timestamp": datetime.now().isoformat(),  # 标准时间格式
+            "level": record.levelname,                  # 日志级别 INFO/ERROR
+            "service": "order-service",                 # 服务名
+            "event": record.msg.get("event"),           # 事件类型
+            "user_id": record.msg.get("user_id"),       # 用户标识
+            "order_id": record.msg.get("order_id"),     # 订单标识
+            "message": record.msg.get("message"),       # 可读消息
+            "trace_id": record.msg.get("trace_id"),     # 追踪标识
         })
 
-# 使用
+# 使用：记录结构化日志（不再是文本，而是可查询的 JSON）
 logger = logging.getLogger()
 logger.info({
-    "event": "order_created",
-    "user_id": "U001",
-    "order_id": "1001",
-    "amount": 199,
-    "trace_id": "abc123"
+    "event": "order_created",    # 事件类型：订单创建
+    "user_id": "U001",           # 关联用户
+    "order_id": "1001",          # 关联订单
+    "amount": 199,               # 订单金额
+    "trace_id": "abc123"         # 分布式追踪 ID
 })
-# 输出：{"timestamp": "...", "level": "INFO", "event": "order_created", ...}</code></pre>
+# 输出：{"timestamp": "2024-01-15T10:00:01Z", "level": "INFO", ...}
+# 可在 Kibana 中按 event、user_id、order_id 等字段搜索和聚合</code></pre>
 
   <div class="parts-section">
     <h4>📦 3 个关键部件</h4>

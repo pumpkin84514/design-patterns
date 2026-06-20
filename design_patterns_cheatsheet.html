@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23种设计模式 · 速查表</title>
+<style>
+  :root {
+    --c-creational: #ff6b6b; --c-structural: #4ecdc4; --c-behavioral: #45b7d1;
+    --bg: #f8f9fa; --card: #ffffff; --text: #2d3436; --muted: #636e72;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 30px 20px; }
+
+  h1 { text-align: center; font-size: 1.8rem; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.95rem; margin-bottom: 20px; }
+
+  .search-box { max-width: 500px; margin: 0 auto 20px; }
+  .search-box input { width: 100%; padding: 12px 20px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; outline: none; }
+  .search-box input:focus { border-color: #667eea; }
+
+  .legend { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; font-size: 0.85rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot.creational { background: var(--c-creational); }
+  .dot.structural { background: var(--c-structural); }
+  .dot.behavioral { background: var(--c-behavioral); }
+
+  table { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-size: 0.92rem; }
+  thead { background: #2d3436; color: white; }
+  th { padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tbody tr:hover { background: #f8f9fa; }
+  tr.hidden { display: none; }
+
+  .name-cell { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .name-cell .emoji { font-size: 1.3rem; }
+  .en { font-size: 0.75rem; color: #999; font-weight: 400; }
+  .type-tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; color: white; }
+  .type-tag.creational { background: var(--c-creational); }
+  .type-tag.structural { background: var(--c-structural); }
+  .type-tag.behavioral { background: var(--c-behavioral); }
+
+  .analogy { color: #555; font-style: italic; }
+  .oneliner { color: #333; line-height: 1.5; }
+  .keywords { display: flex; flex-wrap: wrap; gap: 4px; }
+  .kw { background: #f0f0f0; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; color: #666; }
+
+  .memory-tip { max-width: 1000px; margin: 0 auto 20px; background: #fffbe6; border: 1px solid #ffd93d; border-radius: 10px; padding: 14px 18px; font-size: 0.9rem; color: #555; }
+  .memory-tip strong { color: #e65100; }
+
+  .nav-bar { background: #2d3436; padding: 12px 20px; display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; }
+  .nav-bar a { color: white; text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+  .nav-bar a:hover { opacity: 0.8; }
+
+  .filter-buttons { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .filter-btn { padding: 8px 20px; border: none; border-radius: 20px; background: white; color: #333; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .filter-btn:hover { transform: translateY(-1px); }
+  .filter-btn.active { color: white; }
+  .filter-btn[data-filter="all"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
+  .filter-btn[data-filter="creational"].active { background: var(--c-creational); }
+  .filter-btn[data-filter="structural"].active { background: var(--c-structural); }
+  .filter-btn[data-filter="behavioral"].active { background: var(--c-behavioral); }
+
+  .back-link { text-align: center; margin-bottom: 20px; }
+  .back-link a { color: #667eea; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+  .back-link a:hover { text-decoration: underline; }
+
+  .footer { text-align: center; padding: 30px 20px; color: #999; font-size: 0.85rem; border-top: 1px solid #eee; margin-top: 40px; }
+  .footer a { color: #667eea; text-decoration: none; }
+
+  @media (max-width: 768px) {
+    table { font-size: 0.85rem; }
+    th, td { padding: 10px 12px; }
+    .analogy { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <a href="index.html">← 返回首页</a>
+  <a href="design_patterns_guide.html">查看完整实现 →</a>
+</div>
+
+<h1>🧠 23种设计模式 · 一句话速查表</h1>
+<p class="subtitle">看到名字 → 想到类比 → 知道场景 → 会写代码</p>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="🔍 搜索名称、类比或关键词..." />
+</div>
+
+<div class="filter-buttons">
+  <button class="filter-btn active" data-filter="all">全部</button>
+  <button class="filter-btn" data-filter="creational">创建型</button>
+  <button class="filter-btn" data-filter="structural">结构型</button>
+  <button class="filter-btn" data-filter="behavioral">行为型</button>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="dot creational"></span>创建型（5个）对象怎么出生</div>
+  <div class="legend-item"><span class="dot structural"></span>结构型（7个）零件怎么组装</div>
+  <div class="legend-item"><span class="dot behavioral"></span>行为型（11个）对象怎么交互</div>
+</div>
+
+<div class="memory-tip">
+  <strong>💡 记忆口诀：</strong>创建 = 造对象 · 结构 = 拼积木 · 行为 = 定规矩
+</div>
+
+<table>
+<thead>
+<tr>
+  <th style="width:22%">模式</th>
+  <th style="width:18%">类比</th>
+  <th style="width:35%">一句话</th>
+  <th style="width:25%">关键词</th>
+</tr>
+</thead>
+<tbody>
+
+<!-- 创建型 -->
+<tr data-cat="creational">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">👑</span>
+      <div>
+        单例<br><span class="en">Singleton</span>
+      </div>
+    </div>
+    <span class="type-tag creational">创建</span>
+  </td>
+  <td class="analogy">全世界只有一个我</td>
+  <td class="oneliner">确保全局只有一个实例，任何时候 new 都返回同一个对象</td>
+  <td class="keywords"><span class="kw">唯一</span><span class="kw">全局</span><span class="kw">共享</span></td>
+</tr>
+
+<tr data-cat="creational">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🏭</span>
+      <div>
+        工厂方法<br><span class="en">Factory</span>
+      </div>
+    </div>
+    <span class="type-tag creational">创建</span>
+  </td>
+  <td class="analogy">工厂造不同产品</td>
+  <td class="oneliner">子类决定生产什么对象，父类只管使用产品的流程</td>
+  <td class="keywords"><span class="kw">创建</span><span class="kw">子类决定</span><span class="kw">解耦</span></td>
+</tr>
+
+<tr data-cat="creational">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🏢</span>
+      <div>
+        抽象工厂<br><span class="en">Abstract Factory</span>
+      </div>
+    </div>
+    <span class="type-tag creational">创建</span>
+  </td>
+  <td class="analogy">工厂家族，一套配套</td>
+  <td class="oneliner">一个工厂生产一整套配套产品，换工厂 = 换整套风格</td>
+  <td class="keywords"><span class="kw">产品族</span><span class="kw">配套</span><span class="kw">整体替换</span></td>
+</tr>
+
+<tr data-cat="creational">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🔧</span>
+      <div>
+        建造者<br><span class="en">Builder</span>
+      </div>
+    </div>
+    <span class="type-tag creational">创建</span>
+  </td>
+  <td class="analogy">一步一步配电脑</td>
+  <td class="oneliner">分步骤组装复杂对象，链式调用，每步配一个属性</td>
+  <td class="keywords"><span class="kw">分步骤</span><span class="kw">链式</span><span class="kw">组装</span></td>
+</tr>
+
+<tr data-cat="creational">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">📋</span>
+      <div>
+        原型<br><span class="en">Prototype</span>
+      </div>
+    </div>
+    <span class="type-tag creational">创建</span>
+  </td>
+  <td class="analogy">复印简历改名字</td>
+  <td class="oneliner">基于现有对象克隆一份，修改副本不影响原模板</td>
+  <td class="keywords"><span class="kw">克隆</span><span class="kw">复制</span><span class="kw">模板</span></td>
+</tr>
+
+<!-- 结构型 -->
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🔌</span>
+      <div>
+        适配器<br><span class="en">Adapter</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">转接头让旧设备兼容</td>
+  <td class="oneliner">包装旧接口，让它适配新系统，不改旧代码</td>
+  <td class="keywords"><span class="kw">兼容</span><span class="kw">包装</span><span class="kw">转换</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🧋</span>
+      <div>
+        装饰器<br><span class="en">Decorator</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">奶茶加料层层加</td>
+  <td class="oneliner">一层一层包装对象，每层添加新功能，核心对象不变</td>
+  <td class="keywords"><span class="kw">包装</span><span class="kw">叠加</span><span class="kw">增强</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🛡️</span>
+      <div>
+        代理<br><span class="en">Proxy</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">经纪人在中间把关</td>
+  <td class="oneliner">中间人控制对真实对象的访问，前后加逻辑（权限、缓存、日志）</td>
+  <td class="keywords"><span class="kw">中间人</span><span class="kw">控制</span><span class="kw">拦截</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🎬</span>
+      <div>
+        外观<br><span class="en">Facade</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">一键观影搞定所有</td>
+  <td class="oneliner">封装一堆复杂子系统，对外只暴露一个简单入口</td>
+  <td class="keywords"><span class="kw">封装</span><span class="kw">简化</span><span class="kw">统一入口</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🌉</span>
+      <div>
+        桥接<br><span class="en">Bridge</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">品牌和技术独立换</td>
+  <td class="oneliner">抽象和实现分开，各自独立变化，任意组合</td>
+  <td class="keywords"><span class="kw">解耦</span><span class="kw">独立变化</span><span class="kw">组合</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🗂️</span>
+      <div>
+        组合<br><span class="en">Composite</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">文件夹套文件夹</td>
+  <td class="oneliner">统一处理单个对象和组合对象，递归操作树结构</td>
+  <td class="keywords"><span class="kw">树</span><span class="kw">递归</span><span class="kw">统一处理</span></td>
+</tr>
+
+<tr data-cat="structural">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🌳</span>
+      <div>
+        享元<br><span class="en">Flyweight</span>
+      </div>
+    </div>
+    <span class="type-tag structural">结构</span>
+  </td>
+  <td class="analogy">共享素材省内存</td>
+  <td class="oneliner">共享大量对象的相同部分，只存差异部分，减少内存</td>
+  <td class="keywords"><span class="kw">共享</span><span class="kw">缓存</span><span class="kw">内存优化</span></td>
+</tr>
+
+<!-- 行为型 -->
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🗺️</span>
+      <div>
+        策略<br><span class="en">Strategy</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">导航换路线</td>
+  <td class="oneliner">封装不同算法，运行时切换，把变化的部分独立出来</td>
+  <td class="keywords"><span class="kw">算法</span><span class="kw">切换</span><span class="kw">替换</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">📢</span>
+      <div>
+        观察者<br><span class="en">Observer</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">公众号推送</td>
+  <td class="oneliner">一个对象变化，自动通知所有关注者，解耦发布和订阅</td>
+  <td class="keywords"><span class="kw">订阅</span><span class="kw">通知</span><span class="kw">事件</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">📋</span>
+      <div>
+        模板方法<br><span class="en">Template</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">泡茶流程固定</td>
+  <td class="oneliner">定义固定流程骨架，子类只重写差异步骤</td>
+  <td class="keywords"><span class="kw">流程</span><span class="kw">骨架</span><span class="kw">固定步骤</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🎮</span>
+      <div>
+        命令<br><span class="en">Command</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">遥控器按键</td>
+  <td class="oneliner">把请求封装成对象，支持撤销、队列、日志记录</td>
+  <td class="keywords"><span class="kw">封装请求</span><span class="kw">撤销</span><span class="kw">队列</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🎰</span>
+      <div>
+        状态<br><span class="en">State</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">投币后状态变</td>
+  <td class="oneliner">对象状态改变时行为跟着变，把状态封装成独立类</td>
+  <td class="keywords"><span class="kw">状态切换</span><span class="kw">行为变化</span><span class="kw">封装</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">⛓️</span>
+      <div>
+        职责链<br><span class="en">Chain</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">请假层层审批</td>
+  <td class="oneliner">多个对象连成链，请求逐级传递，直到有人处理</td>
+  <td class="keywords"><span class="kw">链式</span><span class="kw">传递</span><span class="kw">逐级处理</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">💬</span>
+      <div>
+        中介者<br><span class="en">Mediator</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">聊天室统一转发</td>
+  <td class="oneliner">中间人统一管理对象间的通信，避免对象之间直接互相引用</td>
+  <td class="keywords"><span class="kw">中间人</span><span class="kw">解耦</span><span class="kw">统一调度</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">📀</span>
+      <div>
+        迭代器<br><span class="en">Iterator</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">顺序访问列表</td>
+  <td class="oneliner">封装遍历逻辑，不暴露集合内部结构，统一访问方式</td>
+  <td class="keywords"><span class="kw">遍历</span><span class="kw">顺序</span><span class="kw">封装</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">🏥</span>
+      <div>
+        访问者<br><span class="en">Visitor</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">不同人不同检查</td>
+  <td class="oneliner">把对元素的操作从元素类中抽出来，新增操作不用改元素类</td>
+  <td class="keywords"><span class="kw">双分派</span><span class="kw">操作分离</span><span class="kw">扩展</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">💾</span>
+      <div>
+        备忘录<br><span class="en">Memento</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">游戏存档读档</td>
+  <td class="oneliner">保存对象状态快照，之后可以恢复到之前的状态</td>
+  <td class="keywords"><span class="kw">快照</span><span class="kw">保存</span><span class="kw">恢复</span></td>
+</tr>
+
+<tr data-cat="behavioral">
+  <td>
+    <div class="name-cell">
+      <span class="emoji">📜</span>
+      <div>
+        解释器<br><span class="en">Interpreter</span>
+      </div>
+    </div>
+    <span class="type-tag behavioral">行为</span>
+  </td>
+  <td class="analogy">规则拆成树执行</td>
+  <td class="oneliner">把规则表达式拆成树，每个节点递归解释执行，最终得到结果</td>
+  <td class="keywords"><span class="kw">规则树</span><span class="kw">递归</span><span class="kw">解析</span></td>
+</tr>
+
+</tbody>
+</table>
+
+<div class="footer">
+  <p>设计模式速查表 · <a href="index.html">返回首页</a> · <a href="design_patterns_guide.html">查看完整实现</a></p>
+</div>
+
+<script>
+  // Search
+  const input = document.getElementById('searchInput');
+  const rows = document.querySelectorAll('tbody tr');
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.classList.toggle('hidden', q && !text.includes(q));
+    });
+  });
+
+  // Filter
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      rows.forEach(row => {
+        const cat = row.dataset.cat;
+        row.classList.toggle('hidden', filter !== 'all' && cat !== filter);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

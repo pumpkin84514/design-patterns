@@ -1,0 +1,2557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>☁️ 分布式系统模式 · 详细讲解</title>
+<style>
+:root {
+  --c-arch: #667eea; --c-code: #f472b6; --c-ops: #4ecdc4;
+  --c-core: #ff6b6b;
+  --bg: #f0f2f5; --card: #ffffff; --text: #2d3436; --muted: #636e72;
+  --shadow: 0 4px 20px rgba(0,0,0,0.08); --radius: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 50px 20px 30px; text-align: center; position: relative; overflow: hidden; }
+header::before { content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.3; }
+header h1 { font-size: 2.4rem; font-weight: 800; margin-bottom: 10px; position: relative; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; position: relative; z-index: 1; }
+
+.roadmap { max-width: 900px; margin: 30px auto; padding: 0 20px; text-align: center; }
+.roadmap h2 { font-size: 1.3rem; margin-bottom: 20px; color: var(--text); }
+.roadmap-flow { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.roadmap-step { background: white; padding: 14px 20px; border-radius: 12px; box-shadow: var(--shadow); font-weight: 600; font-size: 0.9rem; position: relative; }
+.roadmap-step::after { content: '→'; position: absolute; right: -18px; top: 50%; transform: translateY(-50%); color: #b0b0b0; font-size: 1.1rem; }
+.roadmap-step:last-child::after { display: none; }
+.roadmap-step .step-num { display: block; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
+
+.quick-tip { background: #fff8e1; border: 1px solid #ffe0b2; border-radius: 12px; padding: 16px; max-width: 800px; margin: 0 auto 20px; text-align: center; }
+.quick-tip h3 { color: #e65100; margin-bottom: 6px; font-size: 1rem; }
+.quick-tip p { color: #666; font-size: 0.9rem; }
+
+.filter-bar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 20px 16px; max-width: 1000px; margin: 0 auto; }
+.filter-btn { padding: 10px 24px; border: none; border-radius: 30px; background: white; color: var(--text); font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.filter-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+.filter-btn.active { color: white; }
+.filter-btn[data-cat="all"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
+.filter-btn[data-cat="core"].active { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+.filter-btn[data-cat="arch"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
+.filter-btn[data-cat="code"].active { background: linear-gradient(135deg, #f472b6, #ec4899); }
+.filter-btn[data-cat="ops"].active { background: linear-gradient(135deg, #4ecdc4, #26b0a1); }
+
+.search-box { max-width: 500px; margin: 0 auto 16px; padding: 0 16px; }
+.search-box input { width: 100%; padding: 14px 24px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; outline: none; transition: all 0.3s; background: white; }
+.search-box input:focus { border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.15); }
+
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+
+.card { background: var(--card); border-radius: var(--radius); padding: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: var(--shadow); position: relative; overflow: hidden; border: 1px solid #f0f0f0; }
+.card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: #667eea; }
+.card.hidden { display: none !important; }
+
+.card-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.card-badge.arch { background: #eef2ff; color: #4f46e5; }
+.card-badge.code { background: #fce7f3; color: #db2777; }
+.card-badge.ops { background: #e6fffa; color: #0d9488; }
+.card-badge.core { background: #ffeaea; color: #d63031; margin-left: 8px; }
+
+.card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.card-header .emoji { font-size: 2.2rem; }
+.card-header .name-area { flex: 1; }
+.card-header .name-area h3 { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+.card-header .name-area .en { font-size: 0.78rem; color: #999; }
+
+.card .analogy { font-size: 0.95rem; color: #444; line-height: 1.7; margin-bottom: 12px; background: #f8f9fa; padding: 12px 14px; border-radius: 10px; border-left: 3px solid #667eea; }
+.card .memory-anchor { font-size: 0.85rem; color: #888; margin-bottom: 14px; padding: 8px 12px; background: #fffbe6; border-radius: 8px; border: 1px dashed #ffd93d; }
+.card .memory-anchor strong { color: #e65100; }
+.card .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.card .card-footer .scene-tag { font-size: 0.78rem; color: #888; background: #f0f0f0; padding: 4px 10px; border-radius: 20px; }
+.card .card-footer .click-hint { font-size: 0.8rem; color: #667eea; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.card .card-footer .click-hint::after { content: '›'; font-size: 1.1rem; }
+.card:hover .card-footer .click-hint { color: #764ba2; }
+
+.card-arch { border-left: 4px solid var(--c-arch); }
+.card-code { border-left: 4px solid var(--c-code); }
+.card-ops { border-left: 4px solid var(--c-ops); }
+
+.card .core-star { position: absolute; top: 10px; right: 10px; background: #ff6b6b; color: white; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 700; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: var(--radius); max-width: 850px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.3); animation: modalIn 0.3s ease; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.modal-header { padding: 28px 32px 20px; border-bottom: 1px solid #f0f0f0; position: relative; }
+.modal-header .pattern-id { font-size: 0.8rem; color: #999; margin-bottom: 6px; }
+.modal-header h2 { font-size: 1.8rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.modal-header .close-btn { position: absolute; top: 16px; right: 20px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f5f5f5; cursor: pointer; font-size: 1.4rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.modal-header .close-btn:hover { background: #ff6b6b; color: white; }
+
+.modal-body { padding: 24px 32px 32px; }
+
+.memory-section { background: linear-gradient(135deg, #fffbe6 0%, #fff3cd 100%); border: 2px solid #ffd93d; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
+.memory-section h4 { font-size: 0.95rem; color: #e65100; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.memory-section h4 .icon { font-size: 1.3rem; }
+.memory-section .link-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+.memory-section .link-row .arrow { font-size: 1.2rem; color: #ccc; }
+.memory-section .link-box { background: white; padding: 10px 16px; border-radius: 10px; border: 1px solid #e0e0e0; font-size: 0.92rem; flex: 1; min-width: 200px; }
+.memory-section .link-box.name { border-color: #667eea; color: #667eea; font-weight: 700; font-size: 1rem; }
+.memory-section .link-box.analogy { border-color: #ff6b6b; color: #444; }
+.memory-section .link-box.core { border-color: #4ecdc4; color: #444; }
+.memory-section .link-box .label { font-size: 0.72rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+.memory-section .link-box .label-name { color: #667eea; }
+.memory-section .link-box .label-analogy { color: #ff6b6b; }
+.memory-section .link-box .label-core { color: #4ecdc4; }
+.memory-section .memory-tip { margin-top: 14px; padding: 12px 16px; background: white; border-radius: 8px; font-size: 0.9rem; color: #666; border-left: 3px solid #ffd93d; }
+.memory-section .memory-tip strong { color: #e65100; }
+
+.parts-section { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
+.parts-section h4 { font-size: 0.95rem; color: #16a34a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.parts-section .parts-intro { font-size: 0.9rem; color: #666; margin-bottom: 14px; }
+.parts-section .parts-list { list-style: none; padding: 0; }
+.parts-section .parts-list li { padding: 10px 14px; background: white; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #22c55e; font-size: 0.9rem; color: #444; }
+.parts-section .parts-list li strong { color: #16a34a; }
+
+.steps-section { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
+.steps-section h4 { font-size: 0.95rem; color: #2563eb; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.steps-section .steps-intro { font-size: 0.9rem; color: #666; margin-bottom: 14px; }
+.steps-section .steps-list { padding-left: 20px; }
+.steps-section .steps-list li { padding: 10px 0; font-size: 0.9rem; color: #444; line-height: 1.7; border-bottom: 1px dashed #dbeafe; }
+.steps-section .steps-list li:last-child { border-bottom: none; }
+.steps-section .steps-list li::marker { color: #3b82f6; font-weight: 700; }
+
+.when-to-use { background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 18px 24px; margin: 20px 0; }
+.when-to-use h4 { font-size: 0.95rem; color: #2563eb; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.when-to-use p { font-size: 0.93rem; color: #444; line-height: 1.8; }
+.when-to-use .trigger { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin: 2px 4px; }
+
+.modal-body h4 { font-size: 0.95rem; color: #667eea; margin: 24px 0 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.modal-body p { line-height: 1.8; color: #444; margin-bottom: 10px; font-size: 0.95rem; }
+.modal-body .story-box { background: #f8f9fa; border-left: 4px solid #667eea; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 14px 0; }
+.modal-body .story-box .story-label { font-weight: 700; color: #667eea; font-size: 0.85rem; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.modal-body .story-box p { font-style: italic; color: #555; margin: 0; }
+.modal-body .code-section { margin: 20px 0; }
+.modal-body .code-section h4 { margin-bottom: 10px; }
+.modal-body pre { background: #1e1e2e; color: #cdd6f4; padding: 18px; border-radius: 12px; overflow-x: auto; font-size: 0.82rem; line-height: 1.7; }
+.modal-body code { font-family: 'Consolas', 'Monaco', monospace; }
+.modal-body .scene-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 20px; }
+.modal-body .scene-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: #555; }
+
+.source-section { background: #f5f5ff; border: 1px solid #c7c7ff; border-radius: 12px; padding: 16px 20px; margin: 20px 0; }
+.source-section h4 { font-size: 0.95rem; color: #5b4cdb; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.source-section .source-list { font-size: 0.88rem; color: #555; }
+.source-section .source-list li { margin: 4px 0; }
+.source-section .source-list a { color: #5b4cdb; text-decoration: none; }
+.source-section .source-list a:hover { text-decoration: underline; }
+
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+@media (max-width: 600px) { .pros-cons { grid-template-columns: 1fr; } .cards-grid { grid-template-columns: 1fr; } header h1 { font-size: 1.8rem; } .roadmap-step::after { display: none; } .memory-section .link-row { flex-direction: column; } .memory-section .link-row .arrow { transform: rotate(90deg); } }
+.pros, .cons { padding: 16px; border-radius: 12px; }
+.pros { background: #e8f8f5; }
+.cons { background: #fff0f0; }
+.pros h5 { color: #00b894; margin-bottom: 8px; font-size: 0.9rem; }
+.cons h5 { color: #d63031; margin-bottom: 8px; font-size: 0.9rem; }
+.pros ul, .cons ul { padding-left: 18px; font-size: 0.88rem; color: #444; }
+.pros li, .cons li { margin: 6px 0; }
+
+.section-title { max-width: 1200px; margin: 0 auto; padding: 0 20px 16px; font-size: 1.1rem; font-weight: 700; color: var(--muted); }
+.status-bar { max-width: 1200px; margin: 10px auto 20px; padding: 0 20px; text-align: center; color: #999; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>☁️ 分布式系统模式 · 详细讲解</h1>
+  <p>基于 5 本经典著作，从架构设计到代码实现到运维保障，25 个核心模式逐层拆解</p>
+</header>
+
+<div class="roadmap">
+  <h2>📖 学习路线图：从概念到动手</h2>
+  <div class="roadmap-flow">
+    <div class="roadmap-step"><span class="step-num">Step 1</span>看卡片记名字</div>
+    <div class="roadmap-step"><span class="step-num">Step 2</span>点击看记忆锚点</div>
+    <div class="roadmap-step"><span class="step-num">Step 3</span>了解关键部件</div>
+    <div class="roadmap-step"><span class="step-num">Step 4</span>按步骤搭建</div>
+    <div class="roadmap-step"><span class="step-num">Step 5</span>对照代码写</div>
+  </div>
+</div>
+
+<div class="quick-tip">
+  <h3>💡 记忆口诀</h3>
+  <p><strong>架构层</strong> = 系统怎么拆？　<strong>代码层</strong> = 故障怎么扛？　<strong>运维层</strong> = 环境怎么管？</p>
+</div>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="🔍 搜索模式名称、类比或应用场景..." />
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-cat="all">📚 全部 25 种</button>
+  <button class="filter-btn" data-cat="core">🔴 14 个核心</button>
+  <button class="filter-btn" data-cat="arch">🏗️ 架构设计层 (8)</button>
+  <button class="filter-btn" data-cat="code">💻 代码实现层 (8)</button>
+  <button class="filter-btn" data-cat="ops">🔧 运维保障层 (9)</button>
+</div>
+
+<div class="section-title" id="sectionTitle">📚 全部 25 种分布式模式 — 点击任意卡片查看完整搭建指南</div>
+<div class="status-bar" id="statusBar">加载中...</div>
+<div class="cards-grid" id="cardsGrid">
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="1">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">📖</span>
+    <div class="name-area">
+      <h3>Saga 长事务</h3>
+      <span class="en">Saga</span>
+    </div>
+  </div>
+  <p class="analogy">订外卖：下单→付款→商家接单→配送。如果商家不接单，退款取消订单。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>Saga = 外卖流程 → 每一步有补偿 → 失败就回退 → 长事务拆分
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 电商订单、旅游预订、金融转账、长流程业务</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="2">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">📜</span>
+    <div class="name-area">
+      <h3>事件溯源</h3>
+      <span class="en">Event Sourcing</span>
+    </div>
+  </div>
+  <p class="analogy">银行账本：不记录余额，只记录每笔存取，余额是算出来的。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>事件溯源 = 银行账本 → 记录事件 → 状态由事件推导 → 可回溯
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 审计追踪、状态重建、复杂业务、时间旅行</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="3">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">⚡</span>
+    <div class="name-area">
+      <h3>CQRS 读写分离</h3>
+      <span class="en">Command Query Separation</span>
+    </div>
+  </div>
+  <p class="analogy">餐厅：厨师负责做菜（写），服务员负责上菜（读），分工明确。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>CQRS = 读写分离 → 命令和查询分开 → 各自优化 → 不互相影响
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 高并发读写、复杂查询、事件溯源、报表系统</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="4">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🚪</span>
+    <div class="name-area">
+      <h3>API 网关</h3>
+      <span class="en">API Gateway</span>
+    </div>
+  </div>
+  <p class="analogy">酒店前台：客人来了先找前台，前台再分配房间、处理登记、解答问题。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>API网关 = 酒店前台 → 统一入口 → 过滤/路由/聚合 → 不直接找服务员
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务入口、统一认证、协议转换、流量聚合</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="5">
+  
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🚌</span>
+    <div class="name-area">
+      <h3>事件总线</h3>
+      <span class="en">Event Bus</span>
+    </div>
+  </div>
+  <p class="analogy">公司公告栏：有人发布消息，所有人都能看见，不用一个个通知。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>事件总线 = 公告栏 → 发布订阅 → 松耦合 → 广播通知
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 服务间通信、状态变更通知、领域事件传播</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="6">
+  
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🗄️</span>
+    <div class="name-area">
+      <h3>服务独享数据库</h3>
+      <span class="en">Database per Service</span>
+    </div>
+  </div>
+  <p class="analogy">每家公司都有自己的账本，互不干涉。你要查账只能找对方公司。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>独享数据库 = 各自账本 → 不共享数据 → 通过API通信 → 独立演进
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务拆分、数据自治、团队独立、技术异构</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="7">
+  
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🔪</span>
+    <div class="name-area">
+      <h3>数据分片</h3>
+      <span class="en">Sharding</span>
+    </div>
+  </div>
+  <p class="analogy">图书馆按字母分书：A-F放一楼，G-L放二楼，不用在一层楼找所有书。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>数据分片 = 图书馆分区 → 按规则拆分 → 均匀分布 → 分散压力
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 大表拆分、按用户/地域分片、水平扩展、分布式数据库</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="8">
+  
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🥪</span>
+    <div class="name-area">
+      <h3>分层缓存</h3>
+      <span class="en">Cache Hierarchy</span>
+    </div>
+  </div>
+  <p class="analogy">办公室：桌上→抽屉→文件柜，常用文件放最近处。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>分层缓存 = 桌面/抽屉/文件柜 → 越近越快 → 命中率高 → 分层命中
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 L1/L2/L3缓存、Redis/本地缓存/CDN、热点数据加速</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="9">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔌</span>
+    <div class="name-area">
+      <h3>熔断器</h3>
+      <span class="en">Circuit Breaker</span>
+    </div>
+  </div>
+  <p class="analogy">电路保险丝：电流过载时自动断开，防止烧毁电器。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>熔断器 = 保险丝 → 故障过多自动断开 → 保护系统不被拖垮
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务调用、第三方API、数据库连接、远程服务</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="10">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🚦</span>
+    <div class="name-area">
+      <h3>限流</h3>
+      <span class="en">Rate Limiting</span>
+    </div>
+  </div>
+  <p class="analogy">高速收费站：每秒只放行固定数量车辆，防止拥堵。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>限流 = 收费站 → 控制流速 → 超过就排队或拒绝 → 保护系统
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 API网关、接口防刷、抢购活动、验证码发送</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="11">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔄</span>
+    <div class="name-area">
+      <h3>重试</h3>
+      <span class="en">Retry</span>
+    </div>
+  </div>
+  <p class="analogy">打电话对方占线，过一会儿再打，不是永远等下去。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>重试 = 占线再打 → 不是立即放弃 → 有策略地重试
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 网络请求、消息发送、数据库写入、分布式锁获取</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="12">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">⏱️</span>
+    <div class="name-area">
+      <h3>超时</h3>
+      <span class="en">Timeout</span>
+    </div>
+  </div>
+  <p class="analogy">微波炉定时：设10分钟，到时间就自动停止，不会无限加热。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>超时 = 微波炉定时 → 到点就停 → 防止无限等待
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 RPC调用、HTTP请求、数据库查询、锁等待</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="13">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🛳️</span>
+    <div class="name-area">
+      <h3>舱壁隔离</h3>
+      <span class="en">Bulkhead</span>
+    </div>
+  </div>
+  <p class="analogy">轮船防水舱：一个舱进水，其他舱不受影响，船不会沉。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>舱壁隔离 = 防水舱 → 故障隔离 → 互不影响 → 局部问题
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 线程池隔离、服务分组、资源分区、数据库分库</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="0" data-id="14">
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔽</span>
+    <div class="name-area">
+      <h3>降级</h3>
+      <span class="en">Degradation</span>
+    </div>
+  </div>
+  <p class="analogy">医院急诊：病人太多时，优先救治危重病人，轻症暂缓。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>降级 = 急诊分诊 → 保核心 → 非核心暂停 → 有损服务
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 大促活动、服务过载、依赖故障、非核心功能关闭</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="1" data-id="15">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">♻️</span>
+    <div class="name-area">
+      <h3>幂等</h3>
+      <span class="en">Idempotency</span>
+    </div>
+  </div>
+  <p class="analogy">电梯按钮：按一次和按十次效果一样，电梯只来一趟。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>幂等 = 电梯按钮 → 重复操作结果一样 → 按多少次都一样
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 支付回调、接口重试、消息消费、表单提交</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-code" data-cat="code" data-core="0" data-id="16">
+  
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔐</span>
+    <div class="name-area">
+      <h3>分布式锁</h3>
+      <span class="en">Distributed Lock</span>
+    </div>
+  </div>
+  <p class="analogy">公共厕所：有人进去就锁门，外面的人必须等待。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>分布式锁 = 厕所锁门 → 互斥访问 → 防止争抢 → 排队
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 库存扣减、订单防重、定时任务、全局唯一ID</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="17">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔍</span>
+    <div class="name-area">
+      <h3>服务发现</h3>
+      <span class="en">Service Discovery</span>
+    </div>
+  </div>
+  <p class="analogy">医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>服务发现 = 导诊台 → 注册/查询 → 动态发现 → 不用硬编码地址
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务注册、动态扩缩容、K8s服务、负载均衡前置</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="18">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">⚖️</span>
+    <div class="name-area">
+      <h3>负载均衡</h3>
+      <span class="en">Load Balancing</span>
+    </div>
+  </div>
+  <p class="analogy">超市收银台：多个柜台分流顾客，避免某个柜台排太长队。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>负载均衡 = 多收银台 → 分流排队 → 均匀分配 → 不扎堆
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 网关分发、服务集群、数据库读写分离、CDN调度</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="19">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">💓</span>
+    <div class="name-area">
+      <h3>健康探针</h3>
+      <span class="en">Health Probe</span>
+    </div>
+  </div>
+  <p class="analogy">体检中心：定期给人做检查，有问题早发现早治疗。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>健康探针 = 体检 → 定期检测 → 不健康剔除 → 自动恢复
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s存活检查、服务状态监控、自动重启、流量摘除</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="20">
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔁</span>
+    <div class="name-area">
+      <h3>调和回路</h3>
+      <span class="en">Reconciliation Loop</span>
+    </div>
+  </div>
+  <p class="analogy">扫地机器人：设定目标（全扫一遍），不断调整路径直到完成。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>调和回路 = 扫地机器人 → 实际vs期望 → 持续修正 → 自动对齐
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s控制器、配置漂移修复、资源状态同步、期望管理</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="21">
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🐦</span>
+    <div class="name-area">
+      <h3>金丝雀发布</h3>
+      <span class="en">Canary Release</span>
+    </div>
+  </div>
+  <p class="analogy">煤矿工人带金丝雀下矿：先放小鸟探路，安全了人再下去。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>金丝雀 = 先派鸟探路 → 小流量验证 → 没问题再全量 → 风险控制
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 版本发布、A/B测试、灰度验证、新功能上线</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="22">
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📋</span>
+    <div class="name-area">
+      <h3>GitOps</h3>
+      <span class="en">GitOps</span>
+    </div>
+  </div>
+  <p class="analogy">装修图纸：设计师画好图纸，工人按图施工，装修完跟图纸一致。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>GitOps = 装修图纸 → Git是唯一真相 → 自动部署 → 状态一致
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s部署、基础设施管理、配置即代码、自动化运维</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="23">
+  <span class="core-star">🔴 核心</span>
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔬</span>
+    <div class="name-area">
+      <h3>分布式追踪</h3>
+      <span class="en">Distributed Tracing</span>
+    </div>
+  </div>
+  <p class="analogy">快递跟踪：从发货到签收，每个中转站都扫码记录，全程可追踪。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>分布式追踪 = 快递跟踪 → 每个节点记录 → 串联全链路 → 定位问题
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 性能分析、故障定位、调用链分析、延迟排查</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="24">
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📝</span>
+    <div class="name-area">
+      <h3>结构化日志</h3>
+      <span class="en">Structured Logging</span>
+    </div>
+  </div>
+  <p class="analogy">表格登记：不是手写笔记，而是统一表格，方便分类查找。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>结构化日志 = 统一表格 → 标准化格式 → 可检索分析 → 日志即数据
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 日志聚合、ELK/Loki、异常分析、业务监控</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="25">
+  
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📜</span>
+    <div class="name-area">
+      <h3>声明式配置</h3>
+      <span class="en">Declarative Config</span>
+    </div>
+  </div>
+  <p class="analogy">点外卖：你说"我要一份宫保鸡丁"，不用管厨房怎么炒。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>声明式配置 = 点外卖 → 描述期望 → 系统自动达成 → 不用关心过程
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s YAML、Terraform、基础设施编排、自动化部署</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const modalTemplates = {
+"1": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 1 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">📖</span>
+    <span style="color:#667eea">Saga 长事务</span>
+    <span style="font-size:0.85rem;color:#999">Saga</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        Saga 长事务
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        订外卖：下单→付款→商家接单→配送。如果商家不接单，退款取消订单。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将跨服务的分布式事务拆分为多个本地事务，每个步骤有对应的补偿操作，失败时按相反顺序执行补偿。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>Saga = 外卖流程 → 每一步有补偿 → 失败就回退 → 长事务拆分
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Saga Orchestrator</strong>— 编排器，按顺序调用各步骤和补偿</li><li><strong>Local Service</strong>— 各服务的本地事务操作</li><li><strong>Compensator</strong>— 补偿操作，用于回滚已完成的步骤</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 将长事务拆分为多个独立的本地事务步骤</li><li>② 为每个步骤定义对应的补偿操作</li><li>③ 按顺序正向执行各步骤</li><li>④ 某步失败时，按相反顺序执行补偿</li><li>⑤ 记录 Saga 执行状态，便于追踪和审计</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">跨服务事务</span><span class="trigger">长流程业务</span><span class="trigger">最终一致性</span><span class="trigger">不能忍受 2PC 阻塞</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将跨服务的分布式事务拆分为多个本地事务，每个步骤有对应的补偿操作，失败时按相反顺序执行补偿。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>想象你订外卖：下单→付款→商家接单→配送。如果商家不接单，平台自动退款，取消订单，就像什么都没发生过。整个过程不需要等待所有人确认（不像 2PC），每步独立执行，灵活高效。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">事务</span><span class="scene-tag">补偿</span><span class="scene-tag">长事务</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>避免分布式锁阻塞</li><li>适合长流程业务</li><li>最终一致性</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>实现复杂</li><li>补偿设计困难</li><li>调试困难</li></ul></div>
+  </div>
+</div>`,
+"2": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 2 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">📜</span>
+    <span style="color:#667eea">事件溯源</span>
+    <span style="font-size:0.85rem;color:#999">Event Sourcing</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        事件溯源
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        银行账本：不记录余额，只记录每笔存取，余额是算出来的。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        不直接存储当前状态，只存储导致状态变化的事件序列。当前状态通过重放事件推导得出。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>事件溯源 = 银行账本 → 记录事件 → 状态由事件推导 → 可回溯
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Event Store</strong>— 事件存储，按顺序记录所有领域事件</li><li><strong>Event Publisher</strong>— 事件发布器，将事件广播给订阅者</li><li><strong>State Projector</strong>— 状态投影器，通过重放事件构建当前状态</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated, PaymentReceived）</li><li>② 业务操作只生成事件，不修改状态</li><li>③ 事件存储到事件库（Append-only）</li><li>④ 通过事件投影构建读模型</li><li>⑤ 可按时间点重放事件，重建任意时刻状态</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">需要审计追踪</span><span class="trigger">状态可回溯</span><span class="trigger">复杂业务领域</span><span class="trigger">时间旅行</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>不直接存储当前状态，只存储导致状态变化的事件序列。当前状态通过重放事件推导得出。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>银行不记录你的余额是 1000 元，而是记录：存入 500，取出 200，工资到账 800... 余额 = 500 - 200 + 800 = 1100。如果账有疑问，可以逐笔核对，这就是事件溯源。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">审计</span><span class="scene-tag">事件</span><span class="scene-tag">回溯</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》</li><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>完整审计</li><li>状态可溯</li><li>事件驱动</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储巨大</li><li>查询复杂</li><li>性能开销</li></ul></div>
+  </div>
+</div>`,
+"3": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 3 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">⚡</span>
+    <span style="color:#667eea">CQRS 读写分离</span>
+    <span style="font-size:0.85rem;color:#999">Command Query Separation</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        CQRS 读写分离
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        餐厅：厨师负责做菜（写），服务员负责上菜（读），分工明确。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将系统的读操作（Query）和写操作（Command）分离到不同的模型，各自独立优化。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>CQRS = 读写分离 → 命令和查询分开 → 各自优化 → 不互相影响
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Command Handler</strong>— 命令处理器，处理写操作，触发领域事件</li><li><strong>Query Handler</strong>— 查询处理器，处理读操作，直接返回数据</li><li><strong>Event Bus</strong>— 事件总线，同步命令端和查询端的数据</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 分离命令模型和查询模型</li><li>② 命令端处理写操作，触发领域事件</li><li>③ 事件通过总线同步到查询端</li><li>④ 查询端优化读性能（如物化视图）</li><li>⑤ 处理读写延迟，保证最终一致性</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">高并发读写</span><span class="trigger">复杂查询</span><span class="trigger">事件溯源</span><span class="trigger">报表系统</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将系统的读操作（Query）和写操作（Command）分离到不同的模型，各自独立优化。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>餐厅里厨师专注于做菜（写），服务员专注于上菜（读）。如果让厨师既做菜又上菜，效率会很低。CQRS 就是给厨师和服务员各自分工，互不干扰。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">读写分离</span><span class="scene-tag">优化</span><span class="scene-tag">架构</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>读写优化</li><li>独立扩展</li><li>清晰分离</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>数据延迟</li><li>复杂度增加</li><li>一致性问题</li></ul></div>
+  </div>
+</div>`,
+"4": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 4 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🚪</span>
+    <span style="color:#667eea">API 网关</span>
+    <span style="font-size:0.85rem;color:#999">API Gateway</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        API 网关
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        酒店前台：客人来了先找前台，前台再分配房间、处理登记、解答问题。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        为微服务集群提供统一的入口，负责请求路由、协议转换、认证授权、限流熔断、响应聚合。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>API网关 = 酒店前台 → 统一入口 → 过滤/路由/聚合 → 不直接找服务员
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Router</strong>— 路由器，按路径/规则分发请求到后端服务</li><li><strong>Aggregator</strong>— 聚合器，合并多个服务的响应为单一响应</li><li><strong>Filter Chain</strong>— 过滤器链，处理认证、限流、日志等横切逻辑</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 接收客户端请求</li><li>② 通过过滤器链处理认证、限流等</li><li>③ 根据路由规则分发到后端服务</li><li>④ 聚合多个服务的响应（如需要）</li><li>⑤ 返回统一格式的响应给客户端</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">微服务入口</span><span class="trigger">统一认证</span><span class="trigger">协议转换</span><span class="trigger">流量聚合</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>为微服务集群提供统一的入口，负责请求路由、协议转换、认证授权、限流熔断、响应聚合。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>你去酒店不会直接找客房服务员，而是找前台。前台负责登记、分配房间、解答问题。API 网关就是微服务的前台，外部请求统一走网关，不用直接找各个服务。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">网关</span><span class="scene-tag">入口</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>统一入口</li><li>解耦客户端</li><li>集中治理</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>单点风险</li><li>额外延迟</li><li>复杂度增加</li></ul></div>
+  </div>
+</div>`,
+"5": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 5 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🚌</span>
+    <span style="color:#667eea">事件总线</span>
+    <span style="font-size:0.85rem;color:#999">Event Bus</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        事件总线
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        公司公告栏：有人发布消息，所有人都能看见，不用一个个通知。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        通过事件驱动的方式实现服务间通信，发布者发布事件，订阅者异步消费，服务间不直接调用。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>事件总线 = 公告栏 → 发布订阅 → 松耦合 → 广播通知
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Publisher</strong>— 发布者，发布事件到总线</li><li><strong>Subscriber</strong>— 订阅者，消费感兴趣的事件</li><li><strong>Event Bus</strong>— 事件总线，负责事件的路由和分发</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义领域事件</li><li>② 服务发布事件到总线</li><li>③ 总线路由事件给订阅者</li><li>④ 订阅者异步处理事件</li><li>⑤ 处理失败重试和死信</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">服务间通信</span><span class="trigger">状态变更通知</span><span class="trigger">领域事件传播</span><span class="trigger">解耦</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>通过事件驱动的方式实现服务间通信，发布者发布事件，订阅者异步消费，服务间不直接调用。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>公司公告栏：行政发布通知，所有员工都能看到。不需要行政逐个打电话通知每个人。事件总线就是微服务的公告栏，服务 A 发布事件，服务 B 和 C 自动收到。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">事件</span><span class="scene-tag">解耦</span><span class="scene-tag">异步</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>松耦合</li><li>异步通信</li><li>可扩展</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>最终一致性</li><li>调试困难</li><li>消息丢失风险</li></ul></div>
+  </div>
+</div>`,
+"6": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 6 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🗄️</span>
+    <span style="color:#667eea">服务独享数据库</span>
+    <span style="font-size:0.85rem;color:#999">Database per Service</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        服务独享数据库
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        每家公司都有自己的账本，互不干涉。你要查账只能找对方公司。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        每个微服务拥有独立的数据库，不与其他服务共享数据存储，通过 API 进行数据交换。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>独享数据库 = 各自账本 → 不共享数据 → 通过API通信 → 独立演进
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Service DB</strong>— 服务自己的数据库，独立 Schema</li><li><strong>API</strong>— 服务对外暴露的 API，用于数据交换</li><li><strong>Data Sync</strong>— 数据同步机制（如事件）</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 为每个服务分配独立数据库</li><li>② 服务通过 API 暴露数据</li><li>③ 需要跨服务数据时，调用 API 或订阅事件</li><li>④ 避免直接访问其他服务的数据库</li><li>⑤ 独立进行数据库迁移和优化</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">微服务拆分</span><span class="trigger">数据自治</span><span class="trigger">团队独立</span><span class="trigger">技术异构</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>每个微服务拥有独立的数据库，不与其他服务共享数据存储，通过 API 进行数据交换。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>每家公司有自己的账本，A 公司不会直接去 B 公司的账本上记账。如果 B 公司想告诉 A 公司什么，会通过正式函件（API）。这就是数据库独享。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">数据库</span><span class="scene-tag">自治</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>数据自治</li><li>独立演进</li><li>技术异构</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>数据一致困难</li><li>查询复杂</li><li>跨服务事务</li></ul></div>
+  </div>
+</div>`,
+"7": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 7 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔪</span>
+    <span style="color:#667eea">数据分片</span>
+    <span style="font-size:0.85rem;color:#999">Sharding</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        数据分片
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        图书馆按字母分书：A-F放一楼，G-L放二楼，不用在一层楼找所有书。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将大数据集按某种规则（如哈希、范围）拆分到多个节点，每个节点只负责一部分数据。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>数据分片 = 图书馆分区 → 按规则拆分 → 均匀分布 → 分散压力
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Shard Key</strong>— 分片键，决定数据分配到哪个节点</li><li><strong>Shard Router</strong>— 分片路由器，根据 Key 路由到对应节点</li><li><strong>Rebalancer</strong>— 再平衡器，动态调整分片分布</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 选择分片键（如 user_id）</li><li>② 定义分片规则（哈希/范围）</li><li>③ 数据写入时按规则路由到对应节点</li><li>④ 查询时路由到对应节点，或聚合多个节点</li><li>⑤ 监控分片负载，必要时再平衡</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">大表拆分</span><span class="trigger">按用户/地域分片</span><span class="trigger">水平扩展</span><span class="trigger">分布式数据库</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将大数据集按某种规则（如哈希、范围）拆分到多个节点，每个节点只负责一部分数据。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>图书馆太大，按字母分书：A-F 放一楼，G-L 放二楼。你找书时直接去对应楼层，不用翻遍整个图书馆。数据分片就是给数据分楼层。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">分片</span><span class="scene-tag">扩展</span><span class="scene-tag">大数据</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>水平扩展</li><li>分散压力</li><li>查询局部化</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>跨片查询复杂</li><li>热点问题</li><li>再平衡开销</li></ul></div>
+  </div>
+</div>`,
+"8": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 · 第 8 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🥪</span>
+    <span style="color:#667eea">分层缓存</span>
+    <span style="font-size:0.85rem;color:#999">Cache Hierarchy</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        分层缓存
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        办公室：桌上→抽屉→文件柜，常用文件放最近处。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将缓存分为多个层级（L1本地/L2分布式/L3 CDN），热点数据放在最近层，逐层回源。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>分层缓存 = 桌面/抽屉/文件柜 → 越近越快 → 命中率高 → 分层命中
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>L1 Cache</strong>— 本地缓存（如 Caffeine），最快但容量小</li><li><strong>L2 Cache</strong>— 分布式缓存（如 Redis），容量大但网络开销</li><li><strong>L3 Cache</strong>— CDN / 边缘缓存，最接近用户</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 分析数据访问频率</li><li>② 最热数据放 L1 本地缓存</li><li>③ 次热数据放 L2 分布式缓存</li><li>④ 静态资源放 L3 CDN</li><li>⑤ 未命中时逐层回源，更新缓存</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">L1/L2/L3缓存</span><span class="trigger">Redis/本地缓存/CDN</span><span class="trigger">热点数据加速</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将缓存分为多个层级（L1本地/L2分布式/L3 CDN），热点数据放在最近层，逐层回源。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>办公室里的文件：最常用的放桌上（L1），次常用的放抽屉（L2），不常用的放文件柜（L3）。找文件时从最近处开始找，效率最高。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">缓存</span><span class="scene-tag">分层</span><span class="scene-tag">性能</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>命中率高</li><li>性能优化</li><li>成本平衡</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>一致性复杂</li><li>缓存失效</li><li>管理成本</li></ul></div>
+  </div>
+</div>`,
+"9": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 9 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔌</span>
+    <span style="color:#f472b6">熔断器</span>
+    <span style="font-size:0.85rem;color:#999">Circuit Breaker</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        熔断器
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        电路保险丝：电流过载时自动断开，防止烧毁电器。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        当服务调用失败率达到阈值时，自动断开连接，防止故障扩散。经过一段时间后试探恢复。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>熔断器 = 保险丝 → 故障过多自动断开 → 保护系统不被拖垮
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Circuit Breaker</strong>— 熔断器，维护关闭/半开/开放三种状态</li><li><strong>Failure Counter</strong>— 失败计数器，统计连续失败次数</li><li><strong>State Monitor</strong>— 状态监控器，检测服务恢复后自动闭合</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义熔断器状态：关闭（正常）、半开（试探）、开放（拒绝）</li><li>② 设置失败阈值和超时时间</li><li>③ 调用失败时计数，超过阈值切换为开放状态</li><li>④ 开放状态下直接返回降级响应，不调用远程服务</li><li>⑤ 超时后转为半开，允许试探请求，成功则关闭</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">服务调用失败</span><span class="trigger">响应超时</span><span class="trigger">依赖服务不可用</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>当服务调用失败率达到阈值时，自动断开连接，防止故障扩散。经过一段时间后试探恢复。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>想象你家的电路保险丝：当电流过大时，保险丝自动熔断，保护电器不被烧毁。等修好后，换上新保险丝，电路又恢复正常。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">容错</span><span class="scene-tag">弹性</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止故障扩散</li><li>保护系统资源</li><li>自动恢复</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加复杂度</li><li>需要调参</li><li>可能误断</li></ul></div>
+  </div>
+</div>`,
+"10": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 10 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🚦</span>
+    <span style="color:#f472b6">限流</span>
+    <span style="font-size:0.85rem;color:#999">Rate Limiting</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        限流
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        高速收费站：每秒只放行固定数量车辆，防止拥堵。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        控制请求的速率或并发数，防止系统过载，保证服务的可用性。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>限流 = 收费站 → 控制流速 → 超过就排队或拒绝 → 保护系统
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Rate Limiter</strong>— 限流器，计算请求速率</li><li><strong>Counter Store</strong>— 计数器存储（如 Redis）</li><li><strong>Rejection Handler</strong>— 拒绝处理器，处理超限请求</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义限流规则（QPS/并发数）</li><li>② 每次请求检查计数器</li><li>③ 未超限则处理请求</li><li>④ 超限则拒绝或排队</li><li>⑤ 定期重置计数器</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">API网关</span><span class="trigger">接口防刷</span><span class="trigger">抢购活动</span><span class="trigger">验证码发送</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>控制请求的速率或并发数，防止系统过载，保证服务的可用性。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>高速收费站：每秒只放行 10 辆车，第 11 辆必须等待。如果没有收费站，所有车挤在一起，道路会彻底瘫痪。限流就是系统的收费站。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">保护</span><span class="scene-tag">限流</span><span class="scene-tag">稳定性</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保护系统</li><li>公平分配</li><li>易于实现</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>影响体验</li><li>需要调参</li><li>误伤正常</li></ul></div>
+  </div>
+</div>`,
+"11": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 11 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔄</span>
+    <span style="color:#f472b6">重试</span>
+    <span style="font-size:0.85rem;color:#999">Retry</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        重试
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        打电话对方占线，过一会儿再打，不是永远等下去。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        调用失败时，按策略（固定间隔/指数退避）重试，避免偶发故障影响整体。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>重试 = 占线再打 → 不是立即放弃 → 有策略地重试
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Retry Policy</strong>— 重试策略，定义次数和间隔</li><li><strong>Backoff Strategy</strong>— 退避策略，线性或指数退避</li><li><strong>Failure Detector</strong>— 失败检测器，判断哪些错误可重试</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 捕获调用异常</li><li>② 判断异常类型是否可重试</li><li>③ 按退避策略等待</li><li>④ 重试调用直到成功或达到最大次数</li><li>⑤ 记录重试日志</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">网络超时</span><span class="trigger">瞬时故障</span><span class="trigger">连接断开</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>调用失败时，按策略（固定间隔/指数退避）重试，避免偶发故障影响整体。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>就像你打电话对方占线，你不会只打一次就放弃，而是会等一会儿再打。但如果打了十次还是占线，你就知道可能是对方真的不想接了。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">网络</span><span class="scene-tag">容错</span><span class="scene-tag">自动化</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>提高可用性</li><li>自动恢复</li><li>简单实现</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加延迟</li><li>可能放大问题</li><li>幂等性要求</li></ul></div>
+  </div>
+</div>`,
+"12": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 12 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">⏱️</span>
+    <span style="color:#f472b6">超时</span>
+    <span style="font-size:0.85rem;color:#999">Timeout</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        超时
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        微波炉定时：设10分钟，到时间就自动停止，不会无限加热。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        为每个远程调用设置最大等待时间，超时后立即返回，防止无限阻塞。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>超时 = 微波炉定时 → 到点就停 → 防止无限等待
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Timer</strong>— 定时器，监控调用耗时</li><li><strong>Timeout Value</strong>— 超时阈值，根据 SLA 设定</li><li><strong>Fallback Handler</strong>— 降级处理器，超时后的响应</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 根据服务响应时间设定超时阈值</li><li>② 在调用前启动定时器</li><li>③ 调用完成或超时触发</li><li>④ 超时后返回降级响应</li><li>⑤ 记录超时指标</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">慢查询</span><span class="trigger">网络抖动</span><span class="trigger">服务响应慢</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>为每个远程调用设置最大等待时间，超时后立即返回，防止无限阻塞。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>就像微波炉设定了 10 分钟，时间到了自动停止。如果没有超时，食物可能会烤焦，甚至引发火灾。超时就是系统的定时器。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">性能</span><span class="scene-tag">资源保护</span><span class="scene-tag">稳定性</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止资源耗尽</li><li>快速失败</li><li>保护调用方</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>需要合理设置</li><li>可能误杀</li><li>实现复杂</li></ul></div>
+  </div>
+</div>`,
+"13": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 13 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🛳️</span>
+    <span style="color:#f472b6">舱壁隔离</span>
+    <span style="font-size:0.85rem;color:#999">Bulkhead</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        舱壁隔离
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        轮船防水舱：一个舱进水，其他舱不受影响，船不会沉。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将资源（线程、连接、队列）划分为独立的池，局部故障不会影响整体系统。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>舱壁隔离 = 防水舱 → 故障隔离 → 互不影响 → 局部问题
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Resource Pool</strong>— 资源池，分配给不同服务或功能</li><li><strong>Isolation Enforcer</strong>— 隔离执行器，强制执行资源隔离</li><li><strong>Failure Monitor</strong>— 故障监控器，监控故障传播</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 划分资源池（线程/连接/队列）</li><li>② 不同服务使用不同资源池</li><li>③ 某池耗尽不影响其他池</li><li>④ 监控各池使用情况</li><li>⑤ 动态调整池大小</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">线程池隔离</span><span class="trigger">服务分组</span><span class="trigger">资源分区</span><span class="trigger">数据库分库</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将资源（线程、连接、队列）划分为独立的池，局部故障不会影响整体系统。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>轮船的防水舱：一个舱进水了，其他舱不受影响，船不会沉。即使局部受损，整体依然安全。舱壁隔离就是给系统做防水舱。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">隔离</span><span class="scene-tag">故障控制</span><span class="scene-tag">资源管理</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>故障隔离</li><li>局部保护</li><li>资源控制</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源利用率</li><li>配置复杂</li><li>监控困难</li></ul></div>
+  </div>
+</div>`,
+"14": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 14 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔽</span>
+    <span style="color:#f472b6">降级</span>
+    <span style="font-size:0.85rem;color:#999">Degradation</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        降级
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        医院急诊：病人太多时，优先救治危重病人，轻症暂缓。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        系统过载时，关闭非核心功能，保证核心业务的可用性，提供有损但可用的服务。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>降级 = 急诊分诊 → 保核心 → 非核心暂停 → 有损服务
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Degradation Router</strong>— 降级路由器，路由到降级实现</li><li><strong>Priority Config</strong>— 优先级配置，定义功能优先级</li><li><strong>Health Monitor</strong>— 健康监控器，监控系统状态</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义功能优先级</li><li>② 监控系统负载指标</li><li>③ 负载超过阈值时触发降级</li><li>④ 关闭非核心功能</li><li>⑤ 恢复后自动开启</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">大促活动</span><span class="trigger">服务过载</span><span class="trigger">依赖故障</span><span class="trigger">非核心功能关闭</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>系统过载时，关闭非核心功能，保证核心业务的可用性，提供有损但可用的服务。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>医院急诊室病人太多时，医生优先救治危重病人，轻症患者需要等待。降级就是系统的急诊分诊：保证核心功能不崩，非核心功能可以等。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">降级</span><span class="scene-tag">有损服务</span><span class="scene-tag">稳定性</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保证核心</li><li>有损服务</li><li>自动恢复</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>体验下降</li><li>策略设计</li><li>恢复时机</li></ul></div>
+  </div>
+</div>`,
+"15": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 15 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">♻️</span>
+    <span style="color:#f472b6">幂等</span>
+    <span style="font-size:0.85rem;color:#999">Idempotency</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        幂等
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        电梯按钮：按一次和按十次效果一样，电梯只来一趟。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        重复执行同一操作不会产生副作用，保证在重试或网络抖动时的数据安全。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>幂等 = 电梯按钮 → 重复操作结果一样 → 按多少次都一样
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Idempotency Key</strong>— 幂等键，唯一标识请求</li><li><strong>Deduplication Store</strong>— 去重存储，存储已处理请求</li><li><strong>Validator</strong>— 验证器，验证重复请求</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 生成唯一幂等键</li><li>② 执行业务前先检查是否已处理</li><li>③ 已处理则返回之前结果</li><li>④ 未处理则执行业务并记录</li><li>⑤ 返回结果</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">支付回调</span><span class="trigger">接口重试</span><span class="trigger">消息消费</span><span class="trigger">表单提交</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>重复执行同一操作不会产生副作用，保证在重试或网络抖动时的数据安全。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>电梯按钮：按一次和按十次效果一样，电梯只来一趟。不会因为多按几次就多来几趟。幂等就是系统的电梯按钮。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">安全</span><span class="scene-tag">重复处理</span><span class="scene-tag">幂等</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>安全可靠</li><li>防止重复</li><li>易于实现</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储开销</li><li>过期处理</li><li>设计复杂</li></ul></div>
+  </div>
+</div>`,
+"16": `<div class="modal-header">
+  <div class="pattern-id">代码实现层 · 第 16 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔐</span>
+    <span style="color:#f472b6">分布式锁</span>
+    <span style="font-size:0.85rem;color:#999">Distributed Lock</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        分布式锁
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        公共厕所：有人进去就锁门，外面的人必须等待。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        在分布式环境下实现互斥访问，防止多个进程同时操作共享资源。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>分布式锁 = 厕所锁门 → 互斥访问 → 防止争抢 → 排队
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Lock Manager</strong>— 锁管理器，管理锁生命周期</li><li><strong>Lock Store</strong>— 锁存储，存储锁状态（如 Redis）</li><li><strong>Watchdog</strong>— 看门狗，检测死锁并释放</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 客户端请求加锁</li><li>② 锁服务检查是否可用</li><li>③ 可用则创建锁，设置过期时间</li><li>④ 执行业务操作</li><li>⑤ 操作完成后释放锁</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">库存扣减</span><span class="trigger">订单防重</span><span class="trigger">定时任务</span><span class="trigger">全局唯一ID</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>在分布式环境下实现互斥访问，防止多个进程同时操作共享资源。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>公共厕所：有人进去就锁门，外面的人必须等待。没人时门开着，大家都能进。分布式锁就是系统的厕所门锁。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">并发</span><span class="scene-tag">锁</span><span class="scene-tag">资源保护</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>互斥访问</li><li>防止竞争</li><li>通用方案</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>性能开销</li><li>死锁风险</li><li>实现复杂</li></ul></div>
+  </div>
+</div>`,
+"17": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 17 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔍</span>
+    <span style="color:#4ecdc4">服务发现</span>
+    <span style="font-size:0.85rem;color:#999">Service Discovery</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        服务发现
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        服务启动时注册自己，客户端通过服务名动态发现可用实例，不依赖硬编码 IP。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>服务发现 = 导诊台 → 注册/查询 → 动态发现 → 不用硬编码地址
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Registry</strong>— 注册中心，存储服务实例信息</li><li><strong>Service Provider</strong>— 服务提供者，启动时注册自己</li><li><strong>Service Consumer</strong>— 服务消费者，查询注册中心获取地址</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 服务启动时向注册中心注册</li><li>② 定期发送心跳保持健康</li><li>③ 客户端通过服务名查询注册中心</li><li>④ 注册中心返回可用实例列表</li><li>⑤ 服务下线时注销</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">微服务注册</span><span class="trigger">动态扩缩容</span><span class="trigger">K8s服务</span><span class="trigger">负载均衡前置</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>服务启动时注册自己，客户端通过服务名动态发现可用实例，不依赖硬编码 IP。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。不用记住每个医生的办公室号码，导诊台会告诉你。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">注册</span><span class="scene-tag">发现</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>动态发现</li><li>自动扩缩容</li><li>无需硬编码</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>注册中心单点</li><li>心跳开销</li><li>延迟问题</li></ul></div>
+  </div>
+</div>`,
+"18": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 18 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">⚖️</span>
+    <span style="color:#4ecdc4">负载均衡</span>
+    <span style="font-size:0.85rem;color:#999">Load Balancing</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        负载均衡
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        超市收银台：多个柜台分流顾客，避免某个柜台排太长队。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        将请求均匀分配到多个服务实例，避免单点过载，提高系统吞吐量。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>负载均衡 = 多收银台 → 分流排队 → 均匀分配 → 不扎堆
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Load Balancer</strong>— 负载均衡器，接收请求并分配</li><li><strong>Health Checker</strong>— 健康检查器，检测后端服务状态</li><li><strong>Algorithm</strong>— 分配算法，轮询/随机/加权/一致性哈希</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 维护可用服务实例列表</li><li>② 定期健康检查，剔除异常实例</li><li>③ 根据算法选择目标实例</li><li>④ 转发请求到选中实例</li><li>⑤ 记录分发指标</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">网关分发</span><span class="trigger">服务集群</span><span class="trigger">数据库读写分离</span><span class="trigger">CDN调度</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>将请求均匀分配到多个服务实例，避免单点过载，提高系统吞吐量。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>超市有多个收银台，顾客来了会分流到不同柜台。如果某个柜台的人特别多，店长会引导顾客去人少的柜台。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">性能</span><span class="scene-tag">扩展性</span><span class="scene-tag">高可用</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>提高吞吐量</li><li>消除单点</li><li>弹性伸缩</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>引入额外跳转</li><li>会话保持复杂</li><li>健康检查开销</li></ul></div>
+  </div>
+</div>`,
+"19": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 19 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">💓</span>
+    <span style="color:#4ecdc4">健康探针</span>
+    <span style="font-size:0.85rem;color:#999">Health Probe</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        健康探针
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        体检中心：定期给人做检查，有问题早发现早治疗。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        定期检测服务健康状态，不健康的实例从流量中剔除，自动恢复后重新加入。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>健康探针 = 体检 → 定期检测 → 不健康剔除 → 自动恢复
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Liveness Probe</strong>— 存活探针，检测服务是否运行</li><li><strong>Readiness Probe</strong>— 就绪探针，检测服务是否可接受流量</li><li><strong>Startup Probe</strong>— 启动探针，检测服务启动完成</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义探针端点（如 /health）</li><li>② 配置探针间隔和阈值</li><li>③ 定期发送探针请求</li><li>④ 不健康时剔除流量</li><li>⑤ 恢复后重新加入</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">K8s存活检查</span><span class="trigger">服务状态监控</span><span class="trigger">自动重启</span><span class="trigger">流量摘除</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>定期检测服务健康状态，不健康的实例从流量中剔除，自动恢复后重新加入。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>体检中心定期给人做检查，血压高了早发现，早治疗。健康探针就是系统的体检，定期检查每个服务，有问题的及时隔离。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">健康</span><span class="scene-tag">探针</span><span class="scene-tag">自动化</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>自动发现故障</li><li>快速恢复</li><li>减少人工</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>探针开销</li><li>误判风险</li><li>配置复杂</li></ul></div>
+  </div>
+</div>`,
+"20": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 20 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔁</span>
+    <span style="color:#4ecdc4">调和回路</span>
+    <span style="font-size:0.85rem;color:#999">Reconciliation Loop</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        调和回路
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        扫地机器人：设定目标（全扫一遍），不断调整路径直到完成。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        持续比较系统的实际状态与期望状态，自动执行操作使两者对齐。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>调和回路 = 扫地机器人 → 实际vs期望 → 持续修正 → 自动对齐
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Desired State</strong>— 期望状态，定义系统应该是什么样</li><li><strong>Actual State</strong>— 实际状态，当前系统的真实状态</li><li><strong>Controller</strong>— 控制器，持续比较并执行修正</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义期望状态（如部署 3 个 Pod）</li><li>② 定期获取实际状态</li><li>③ 比较实际与期望的差异</li><li>④ 执行操作使实际状态对齐</li><li>⑤ 重复上述过程</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">K8s控制器</span><span class="trigger">配置漂移修复</span><span class="trigger">资源状态同步</span><span class="trigger">期望管理</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>持续比较系统的实际状态与期望状态，自动执行操作使两者对齐。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>扫地机器人设定目标：把客厅全扫一遍。它不断检测哪里还没扫，调整路径，直到完成。调和回路就是系统的扫地机器人。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">自动化</span><span class="scene-tag">控制器</span><span class="scene-tag">修复</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>自动修复</li><li>声明式管理</li><li>持续对齐</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>延迟问题</li><li>震荡风险</li><li>配置复杂</li></ul></div>
+  </div>
+</div>`,
+"21": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 21 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🐦</span>
+    <span style="color:#4ecdc4">金丝雀发布</span>
+    <span style="font-size:0.85rem;color:#999">Canary Release</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        金丝雀发布
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        煤矿工人带金丝雀下矿：先放小鸟探路，安全了人再下去。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        新版本先发布给少量用户，验证无问题后再逐步扩大流量，降低发布风险。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>金丝雀 = 先派鸟探路 → 小流量验证 → 没问题再全量 → 风险控制
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Canary Router</strong>— 金丝雀路由器，按比例分发流量</li><li><strong>Metrics Collector</strong>— 指标收集器，监控新版本表现</li><li><strong>Rollback Trigger</strong>— 回滚触发器，异常时自动切回旧版</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 部署新版本，只路由 1% 流量</li><li>② 监控错误率、延迟、业务指标</li><li>③ 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>④ 异常时自动回滚</li><li>⑤ 全量发布后观察</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">版本发布</span><span class="trigger">A/B测试</span><span class="trigger">灰度验证</span><span class="trigger">新功能上线</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>新版本先发布给少量用户，验证无问题后再逐步扩大流量，降低发布风险。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>煤矿工人带金丝雀下矿：金丝雀对有毒气体敏感，如果鸟死了，说明矿里有危险，人赶紧撤离。金丝雀发布就是先放"鸟"探路。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">发布</span><span class="scene-tag">灰度</span><span class="scene-tag">风险控制</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>降低风险</li><li>快速回滚</li><li>数据验证</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>部署复杂</li><li>流量管理</li><li>监控成本高</li></ul></div>
+  </div>
+</div>`,
+"22": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 22 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">📋</span>
+    <span style="color:#4ecdc4">GitOps</span>
+    <span style="font-size:0.85rem;color:#999">GitOps</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        GitOps
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        装修图纸：设计师画好图纸，工人按图施工，装修完跟图纸一致。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        以 Git 为唯一真相来源，所有基础设施和应用的配置都存储在 Git 中，变更自动同步到运行时。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>GitOps = 装修图纸 → Git是唯一真相 → 自动部署 → 状态一致
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Git Repository</strong>— Git 仓库，存储所有配置</li><li><strong>Controller</strong>— 控制器，监控 Git 变更并同步</li><li><strong>Runtime</strong>— 运行时环境，应用配置的执行地</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 将所有配置存入 Git</li><li>② 控制器监控 Git 变更</li><li>③ 变更时自动拉取并应用</li><li>④ 比较实际状态与 Git 状态</li><li>⑤ 不一致时自动修复（调和回路）</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">K8s部署</span><span class="trigger">基础设施管理</span><span class="trigger">配置即代码</span><span class="trigger">自动化运维</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>以 Git 为唯一真相来源，所有基础设施和应用的配置都存储在 Git 中，变更自动同步到运行时。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>装修图纸：设计师画好图纸，工人按图施工。如果工人擅自改了设计，监工会发现并纠正。GitOps 就是系统的图纸和监工。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">Git</span><span class="scene-tag">自动化</span><span class="scene-tag">运维</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>版本控制</li><li>审计追踪</li><li>自动化部署</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>学习曲线</li><li>权限管理</li><li>Secret处理</li></ul></div>
+  </div>
+</div>`,
+"23": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 23 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🔬</span>
+    <span style="color:#4ecdc4">分布式追踪</span>
+    <span style="font-size:0.85rem;color:#999">Distributed Tracing</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        分布式追踪
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        快递跟踪：从发货到签收，每个中转站都扫码记录，全程可追踪。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        为请求分配唯一 Trace ID，每个服务节点记录 Span，串联全链路调用，定位延迟和故障点。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>分布式追踪 = 快递跟踪 → 每个节点记录 → 串联全链路 → 定位问题
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Trace ID</strong>— 追踪 ID，唯一标识一次请求</li><li><strong>Span</strong>— 跨度，记录每个服务的处理信息</li><li><strong>Collector</strong>— 收集器，聚合所有 Span 构建完整链路</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 请求进入时生成 Trace ID</li><li>② 每个服务记录 Span（开始时间、结束时间、标签）</li><li>③ 传递 Trace ID 到下游服务</li><li>④ 收集器聚合所有 Span</li><li>⑤ 可视化展示完整调用链路</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">性能分析</span><span class="trigger">故障定位</span><span class="trigger">调用链分析</span><span class="trigger">延迟排查</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>为请求分配唯一 Trace ID，每个服务节点记录 Span，串联全链路调用，定位延迟和故障点。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>快递跟踪：从发货到签收，每个中转站都扫码记录。如果包裹丢了，可以查记录看在哪一站出问题。分布式追踪就是系统的快递跟踪。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">追踪</span><span class="scene-tag">监控</span><span class="scene-tag">性能</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Google, 《Site Reliability Engineering》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>全链路可见</li><li>快速定位</li><li>性能优化</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>采样开销</li><li>存储成本</li><li>侵入性</li></ul></div>
+  </div>
+</div>`,
+"24": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 24 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">📝</span>
+    <span style="color:#4ecdc4">结构化日志</span>
+    <span style="font-size:0.85rem;color:#999">Structured Logging</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        结构化日志
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        表格登记：不是手写笔记，而是统一表格，方便分类查找。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        使用统一的键值对格式（JSON）记录日志，便于机器解析、聚合和分析。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>结构化日志 = 统一表格 → 标准化格式 → 可检索分析 → 日志即数据
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Log Format</strong>— 日志格式，统一 JSON 结构</li><li><strong>Log Aggregator</strong>— 日志聚合器，收集分散日志</li><li><strong>Log Analyzer</strong>— 日志分析器，查询和统计</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 定义统一的日志格式（timestamp, level, service, message, context）</li><li>② 所有服务按格式输出日志</li><li>③ 聚合器收集分散日志到中央存储</li><li>④ 建立索引便于检索</li><li>⑤ 通过分析工具查询和告警</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">日志聚合</span><span class="trigger">ELK/Loki</span><span class="trigger">异常分析</span><span class="trigger">业务监控</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>使用统一的键值对格式（JSON）记录日志，便于机器解析、聚合和分析。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>表格登记：不是手写笔记，而是统一表格。你查信息时直接按列筛选，不用在一堆手写笔记里翻。结构化日志就是系统的统一表格。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">日志</span><span class="scene-tag">监控</span><span class="scene-tag">分析</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Google, 《Site Reliability Engineering》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>可检索</li><li>可分析</li><li>标准化</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储成本</li><li>格式约束</li><li>迁移成本</li></ul></div>
+  </div>
+</div>`,
+"25": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 · 第 25 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">📜</span>
+    <span style="color:#4ecdc4">声明式配置</span>
+    <span style="font-size:0.85rem;color:#999">Declarative Config</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+        声明式配置
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+        点外卖：你说"我要一份宫保鸡丁"，不用管厨房怎么炒。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+        描述系统的期望状态（如部署 3 个 Pod），由系统自动执行操作达成目标，不关心具体过程。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>声明式配置 = 点外卖 → 描述期望 → 系统自动达成 → 不用关心过程
+    </div>
+  </div>
+
+  <div class="parts-section">
+    <h4>📦 关键部件：你需要这几个类</h4>
+    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
+    <ul class="parts-list"><li><strong>Desired State</strong>— 期望状态，声明系统应该是什么样</li><li><strong>Controller</strong>— 控制器，解释声明并执行操作</li><li><strong>Runtime</strong>— 运行时，实际承载系统的基础设施</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 搭建步骤：从零开始写</h4>
+    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
+    <ol class="steps-list"><li>① 编写声明式配置（如 YAML）描述期望状态</li><li>② 提交到控制器</li><li>③ 控制器解析声明</li><li>④ 自动执行操作使实际状态对齐</li><li>⑤ 持续监控，保持状态一致</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它？</h4>
+    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <p style="margin-top:8px"><span class="trigger">K8s YAML</span><span class="trigger">Terraform</span><span class="trigger">基础设施编排</span><span class="trigger">自动化部署</span></p>
+  </div>
+
+  <h4>📖 核心思想</h4>
+  <p>描述系统的期望状态（如部署 3 个 Pod），由系统自动执行操作达成目标，不关心具体过程。</p>
+
+  <div class="story-box">
+    <span class="story-label">🎬 生活故事</span>
+    <p>点外卖：你说"我要一份宫保鸡丁"，不用管厨师怎么切菜、怎么炒。声明式配置就是点外卖，你只关心结果，系统自动搞定过程。</p>
+  </div>
+
+  <h4>🎯 典型应用场景</h4>
+  <div class="scene-tags"><span class="scene-tag">声明式</span><span class="scene-tag">自动化</span><span class="scene-tag">配置</span></div>
+
+  <div class="source-section">
+    <h4>📚 参考来源</h4>
+    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>简洁易懂</li><li>自动化执行</li><li>状态一致</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>抽象层复杂</li><li>调试困难</li><li>灵活性受限</li></ul></div>
+  </div>
+</div>`,
+};
+
+const catNames = { all: '全部 25 种', core: '14 个核心', arch: '架构设计层 (8)', code: '代码实现层 (8)', ops: '运维保障层 (9)' };
+
+const allCards = document.querySelectorAll('.card');
+for (let i = 0; i < allCards.length; i++) {
+  allCards[i].addEventListener('click', function() {
+    const id = parseInt(this.getAttribute('data-id'), 10);
+    openModal(id);
+  });
+}
+
+function openModal(id) {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modalOverlay');
+  const template = modalTemplates[id.toString()];
+  if (!template) { console.error('Modal not found:', id); return; }
+  modal.innerHTML = template + '<button class="close-btn" onclick="closeModal()" style="position:absolute;top:16px;right:20px;width:40px;height:40px;border-radius:50%;border:none;background:#f5f5f5;cursor:pointer;font-size:1.4rem;display:flex;align-items:center;justify-content:center;z-index:10;">&times;</button>';
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+let activeFilter = 'all';
+
+const filterBtns = document.querySelectorAll('.filter-btn');
+for (let i = 0; i < filterBtns.length; i++) {
+  filterBtns[i].addEventListener('click', function() {
+    for (let j = 0; j < filterBtns.length; j++) { filterBtns[j].classList.remove('active'); }
+    this.classList.add('active');
+    activeFilter = this.getAttribute('data-cat');
+    document.getElementById('sectionTitle').textContent = '📚 ' + catNames[activeFilter] + ' 分布式模式';
+    applyFilter();
+  });
+}
+
+function applyFilter() {
+  const input = document.getElementById('searchInput');
+  const q = input ? input.value.trim().toLowerCase() : '';
+  const cards = document.querySelectorAll('.card');
+  let visibleCount = 0;
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    const matchCat = activeFilter === 'all' || activeFilter === 'core' || card.getAttribute('data-cat') === activeFilter;
+    const matchCore = activeFilter !== 'core' || card.getAttribute('data-core') === '1';
+    const matchSearch = !q || card.textContent.toLowerCase().indexOf(q) !== -1;
+    if (matchCat && matchCore && matchSearch) { card.classList.remove('hidden'); visibleCount++; }
+    else { card.classList.add('hidden'); }
+  }
+  const status = document.getElementById('statusBar');
+  if (visibleCount === 0) { status.textContent = '🔍 没有找到匹配的分布式模式'; }
+  else { status.textContent = '✅ 显示 ' + visibleCount + ' / 25 种分布式模式 — 点击卡片查看搭建指南'; }
+}
+
+const searchInput = document.getElementById('searchInput');
+if (searchInput) { searchInput.addEventListener('input', applyFilter); }
+
+document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+applyFilter();
+</script>
+</body>
+</html>

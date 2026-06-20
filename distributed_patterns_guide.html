@@ -694,12 +694,12 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 <script>
 const modalTemplates = {
 "1": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 1 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 1 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">📖</span>
-    <span style="color:#667eea">Saga 长事务</span>
-    <span style="font-size:0.85rem;color:#999">Saga</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+    <span style="font-size:2.2rem">🎭</span>
+    <span style="color:#667eea">Saga 事务协调</span>
+    <span style="font-size:0.85rem;color:#999">Saga Pattern</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">🔴 核心</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -708,75 +708,100 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        Saga 长事务
+Saga 事务协调
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        订外卖：下单→付款→商家接单→配送。如果商家不接单，退款取消订单。
+旅游行程：航班取消，自动退酒店、退租车，undo 已预订步骤。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        跨服务的"大事务"拆成多个本地小事务，每步都有"后悔药"（补偿操作），失败时按相反顺序吃后悔药回滚。
+长事务拆分为多个本地事务，每步失败时执行补偿回滚，保证最终一致性。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>Saga = 外卖流程 → 每一步有补偿 → 失败就回退 → 长事务拆分
+      <strong>💡 记忆口诀：</strong>Saga = 旅游行程 → 每步可撤销 → 失败自动补偿 → 最终一致
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>Saga 把一个大事务拆成多个小步骤，每步成功就继续，某步失败就按相反顺序撤销前面所有步骤。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">电商下单：订单服务创建订单 → 库存服务扣库存（失败！）→ 订单已创建但库存未扣，数据不一致。用户付了钱，系统状态错乱，需要人工介入。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">Saga 协调：创建订单 → 扣库存 → 扣款。如果扣库存失败，自动执行补偿：释放订单（取消订单）、恢复库存。最终系统回到一致状态，无需人工干预。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Step 1: 创建订单 → 成功 checkmark
+Step 2: 扣库存   → 成功 checkmark
+Step 3: 扣款     → 失败 cross
+→ 触发补偿（反向撤销）
+Compensate 3: 退款
+Compensate 2: 加回库存
+Compensate 1: 取消订单
+→ 最终一致</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 Saga</th><th style="border:1px solid #ddd;padding:8px;">用 Saga</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">跨服务事务</td><td style="border:1px solid #ddd;padding:8px;">2PC 锁表时间长</td><td style="border:1px solid #ddd;padding:8px;">异步，无全局锁</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">某服务失败</td><td style="border:1px solid #ddd;padding:8px;">数据不一致</td><td style="border:1px solid #ddd;padding:8px;">自动补偿，数据干净</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务可用性</td><td style="border:1px solid #ddd;padding:8px;">一个服务慢，全部等</td><td style="border:1px solid #ddd;padding:8px;">各服务独立执行</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class SagaOrchestrator:
+    def execute(self, steps):
+        completed = []
+        for step in steps:
+            try:
+                step.execute()
+                completed.append(step)
+            except Exception:
+                for done in reversed(completed):
+                    done.compensate()
+                return False
+        return True
+
+steps = [
+    Step("创建订单", execute=create_order, compensate=cancel_order),
+    Step("扣库存", execute=deduct_stock, compensate=restore_stock),
+    Step("扣款", execute=charge_payment, compensate=refund_payment),
+]
+result = SagaOrchestrator().execute(steps)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Saga Orchestrator（编排器）</strong>— 中央指挥官，按顺序调用各步骤，失败时指挥回滚</li><li><strong>Local Service（本地服务）</strong>— 各服务自己的事务操作（如扣库存、支付）</li><li><strong>Compensator（补偿器）</strong>— 后悔药，正向操作失败了，把之前做过的事撤销</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Step</strong> — 定义正向操作和补偿操作（旅游预订一步）</li><li><strong>Orchestrator</strong> — 按顺序执行，失败反向补偿（旅行社导游）</li><li><strong>Compensate</strong> — 撤销已完成的操作（退订/退款）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 把一个大业务拆成多个步骤（下单→扣库存→支付→发货）</li><li>② 为每个步骤写"正向操作"（做什么）和"补偿操作"（怎么撤销）</li><li>③ 创建 Saga 编排器，按顺序调用各步骤</li><li>④ 某步失败时，编排器从最后完成的步骤开始，依次执行补偿</li><li>⑤ 记录 Saga 执行状态（哪步成功、哪步失败、补偿是否成功），方便追踪</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义长事务的每个步骤</li><li>2 为每个步骤写正向和补偿操作</li><li>3 搭建 Saga 协调器，按顺序执行</li><li>4 失败时反向调用补偿（从最后往前 undo）</li><li>5 记录执行日志，方便排查和重试</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">跨服务事务</span><span class="trigger">长流程业务</span><span class="trigger">最终一致性</span><span class="trigger">不能忍受 2PC 阻塞</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>单体系统的事务：</strong> 扣 A 账户 → 加 B 账户，如果第二步失败，数据库自动回滚第一步。这是<strong>强一致性</strong>，但只在同一个数据库里有效。</p>
-  <p><strong>微服务的问题：</strong> A 账户和 B 账户可能在两个服务里、两个数据库里。你没法用一个数据库事务锁住两个数据库。</p>
-  <p><strong>Saga 的解法：</strong> 不追求"立刻一致"，而是追求"最终一致"。先扣 A 的钱，再加 B 的钱。如果加 B 失败，就执行补偿：把 A 的钱加回来。最终数据是一致的，只是中间有过短暂不一致。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>想象你订外卖：下单→付款→商家接单→配送。如果商家不接单，平台自动退款，取消订单，就像什么都没发生过。Saga 就是这个逻辑：每走一步都准备好"如果后面失败了怎么办"。</p>
-  </div>
-
-  <h4>🔍 对比：Saga vs 2PC</h4>
-  <p><strong>2PC（两阶段提交）</strong>：像组织聚餐，先问所有人"去不去"（预提交），都答应后才订餐厅（正式提交）。问题是如果有人不回答，所有人都要等着。</p>
-  <p><strong>Saga</strong>：像订外卖，不需要等商家确认，先下单再说。如果商家不接单，退款取消订单。不用等待，快，但需要自己写退款逻辑。</p>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">电商下单</span><span class="scene-tag">旅游预订</span><span class="scene-tag">金融转账</span><span class="scene-tag">长流程业务</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》第4章</li><li>Sam Newman, 《Building Microservices》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">跨服务事务</span><span class="trigger">最终一致性</span><span class="trigger">长事务</span><span class="trigger">2PC性能差</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>不阻塞，性能好</li><li>适合跨服务长事务</li><li>最终一致性</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>补偿逻辑要自己写，实现复杂</li><li>补偿设计困难（如果退款也失败了怎么办？）</li><li>调试困难，需要记录完整状态</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>无全局锁（不锁表）</li><li>最终一致（失败自动补偿）</li><li>适合微服务（跨服务天然支持）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>补偿逻辑复杂（每个步骤都要写 undo）</li><li>补偿可能失败（undo 本身也会失败）</li><li>不是实时一致（补偿期间数据不一致）</li></ul></div>
   </div>
-</div>`,"2": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 2 个模式</div>
+</div>`,
+"2": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 &middot; 第 2 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">📜</span>
+    <span style="font-size:2.2rem">📝</span>
     <span style="color:#667eea">事件溯源</span>
     <span style="font-size:0.85rem;color:#999">Event Sourcing</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">🔴 核心</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -785,58 +810,93 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        事件溯源
+事件溯源
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        银行账本：不记录余额，只记录每笔存取，余额是算出来的。
+银行流水账：不记余额，只记每笔存取款。余额是算出来的。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        不直接存储当前状态，只存储导致状态变化的事件序列。当前状态通过重放事件推导得出。
+不存当前状态，只存发生了什么事。状态通过重放事件重新计算。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>事件溯源 = 银行账本 → 记录事件 → 状态由事件推导 → 可回溯
+      <strong>💡 记忆口诀：</strong>事件溯源 = 流水账 → 只记过程不记结果 → 余额是算出来的
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>事件溯源不记录当前状态，只记录发生了什么事。状态是通过重放事件计算出来的。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">传统数据库（只存结果）：SELECT * FROM orders WHERE id = 1001; 结果：status=已发货, amount=199。你知道状态，但不知道怎么变成已发货的。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">事件溯源（存过程）：SELECT * FROM events WHERE order_id = 1001 ORDER BY time; 结果：1.OrderCreated 2.PaymentReceived 3.StockDeducted 4.OrderShipped。你知道订单的每一步。用户说没支付？查事件2就证明他付了。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单 → 生成事件 OrderCreated → 存入事件库（只追加，不修改）
+用户支付 → 生成事件 PaymentReceived → 存入事件库
+仓库发货 → 生成事件 OrderShipped → 存入事件库
+
+查询状态：重放事件
+  OrderCreated(金额=199) → 状态=已创建
+  + PaymentReceived(已支付) → 状态=已支付
+  + OrderShipped(已发货) → 状态=已发货
+  → 当前状态 = 已发货，已支付</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用事件溯源</th><th style="border:1px solid #ddd;padding:8px;">用事件溯源</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户说没付款</td><td style="border:1px solid #ddd;padding:8px;">无法证明，扯皮</td><td style="border:1px solid #ddd;padding:8px;">查事件记录，精确到秒</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">审计这单怎么算</td><td style="border:1px solid #ddd;padding:8px;">只能看最终结果</td><td style="border:1px solid #ddd;padding:8px;">重放事件，每一步清晰</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚到昨天</td><td style="border:1px solid #ddd;padding:8px;">昨晚备份，丢失今天</td><td style="border:1px solid #ddd;padding:8px;">重放到昨天，精确恢复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">新服务需要历史</td><td style="border:1px solid #ddd;padding:8px;">没有，从零开始</td><td style="border:1px solid #ddd;padding:8px;">重放历史事件，自动有完整数据</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">@dataclass
+class OrderCreated:
+    order_id: str
+    amount: float
+
+class EventStore:
+    def append(self, event):
+        db.execute("INSERT INTO events (type, data) VALUES (?, ?)",
+                   event.__class__.__name__, json.dumps(asdict(event)))
+    
+    def get_events(self, order_id):
+        return db.query("SELECT * FROM events WHERE order_id = ? ORDER BY time", order_id)
+
+class OrderProjector:
+    def project(self, events):
+        state = OrderState()
+        for event in events:
+            if isinstance(event, OrderCreated):
+                state.status = "created"
+        return state
+
+store = EventStore()
+store.append(OrderCreated("1001", 199))
+events = store.get_events("1001")
+state = OrderProjector().project(events)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Event Store（事件库）</strong>— 只追加不修改的数据库，按顺序记录所有事件</li><li><strong>Event Publisher（事件发布器）</strong>— 新事件发生时，通知所有订阅者</li><li><strong>State Projector（状态投影器）</strong>— 读取事件库，重放事件算出当前状态</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Event Store</strong> — 只追加的数据库，记录所有事件（银行交易流水账）</li><li><strong>Event Publisher</strong> — 新事件发生时通知相关服务（银行短信通知）</li><li><strong>State Projector</strong> — 重放事件算出当前状态（计算器）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentReceived、StockDeducted）</li><li>② 业务操作不直接改数据库，而是生成一个事件存到事件库</li><li>③ 事件库 Append-only（只追加），历史永不删除</li><li>④ 需要读取状态时，从事件库开头重放所有事件，算出当前状态</li><li>⑤ 需要历史状态时，重放到任意时间点即可</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义领域事件（如 OrderCreated、PaymentReceived）</li><li>2 业务操作不直接改数据库，生成事件存到事件库</li><li>3 事件库 Append-only，只 INSERT，历史不删</li><li>4 需要状态时，从事件库开头重放所有事件，算出状态</li><li>5 需要历史状态时，重放到任意时间点即可</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">需要审计追踪</span><span class="trigger">状态可回溯</span><span class="trigger">复杂业务领域</span><span class="trigger">时间旅行</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 数据库直接存储当前状态（如用户余额 = 1000）。如果要追溯"余额怎么变成 1000 的"，无法知道。如果要恢复到历史某个时刻的状态，也无从做起。</p>
-  <p><strong>问题：</strong> 只存结果不存过程，导致审计困难、无法回溯、无法重现历史状态。</p>
-  <p><strong>事件溯源的解法：</strong> 不存余额，只存每笔交易事件。余额是通过事件推导出来的。你能知道每一笔钱的来龙去脉，也能回到任意时间点的状态。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>银行不记录你的余额是 1000 元，而是记录：存入 500，取出 200，工资到账 800... 余额 = 500 - 200 + 800 = 1100。如果账有疑问，可以逐笔核对，这就是事件溯源。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">审计</span><span class="scene-tag">事件</span><span class="scene-tag">回溯</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》</li><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">审计追踪</span><span class="trigger">状态回溯</span><span class="trigger">复杂业务领域</span><span class="trigger">事件驱动</span></p>
   </div>
 
   <div class="pros-cons">
@@ -845,12 +905,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "3": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 3 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 3 个模式</div>
   <h2>
     <span style="font-size:2.2rem">⚡</span>
     <span style="color:#667eea">CQRS 读写分离</span>
     <span style="font-size:0.85rem;color:#999">Command Query Separation</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">🔴 核心</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -859,17 +919,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        CQRS 读写分离
+CQRS 读写分离
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        餐厅：厨师负责做菜（写），服务员负责上菜（读），分工明确。
+餐厅：厨师负责做菜（写），服务员负责上菜（读），分工明确。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        将系统的读操作（Query）和写操作（Command）分离到不同的模型，各自独立优化。
+将读操作（Query）和写操作（Command）分离到不同模型，各自独立优化。
       </div>
     </div>
     <div class="memory-tip">
@@ -877,49 +937,71 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>CQRS 把读写分开：写操作走命令模型（验证业务规则），读操作走查询模型（直接查优化过的视图）。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">传统方式（读写同一张表）：用户下单 → INSERT orders + UPDATE inventory。用户查订单 → SELECT orders JOIN users JOIN products。订单表既要支持高并发写入，又要支持复杂查询，互相影响。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">CQRS（读写分开）：写：Command → 订单聚合 → 验证规则 → 生成事件 → 存 Event Store。读：Query → 物化视图（Elasticsearch）→ 直接查优化后的数据。写和读互不干扰，各自优化到最佳。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单（Command）→ 命令模型验证 → 生成事件 → 存入 Event Store
+                    ↓
+              事件总线同步 → 查询模型更新（Elasticsearch）
+                    ↓
+用户查订单（Query）→ 直接查 Elasticsearch → 毫秒级响应
+
+写操作不查数据库，读操作不改数据库，完全分离</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 CQRS</th><th style="border:1px solid #ddd;padding:8px;">用 CQRS</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">高并发写入</td><td style="border:1px solid #ddd;padding:8px;">读写互相阻塞，锁冲突</td><td style="border:1px solid #ddd;padding:8px;">写走命令模型，无锁竞争</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">复杂查询</td><td style="border:1px solid #ddd;padding:8px;">查询拖慢写入</td><td style="border:1px solid #ddd;padding:8px;">读走查询模型，预聚合优化</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">读多写少</td><td style="border:1px solid #ddd;padding:8px;">写操作冗余验证</td><td style="border:1px solid #ddd;padding:8px;">读模型缓存，写模型精简</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">团队协作</td><td style="border:1px solid #ddd;padding:8px;">Schema 变更互相影响</td><td style="border:1px solid #ddd;padding:8px;">读写模型独立演进</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CommandHandler:
+    def handle(self, cmd):
+        order = Order.create(cmd.user_id, cmd.items)
+        event = OrderCreated(order.id, order.items)
+        event_store.append(event)
+        return order.id
+
+class QueryHandler:
+    def get_order(self, order_id):
+        return read_model.find(order_id)
+
+cmd = CreateOrderCommand(user_id="U001", items=[...])
+order_id = CommandHandler().handle(cmd)
+order = QueryHandler().get_order(order_id)  # 毫秒级</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Command Handler（命令处理器）</strong>— 处理写操作，验证业务规则，生成事件</li><li><strong>Query Handler（查询处理器）</strong>— 处理读操作，直接查优化过的读模型</li><li><strong>Event Bus（事件总线）</strong>— 写操作产生的事件，同步给读模型更新</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Command Handler</strong> — 处理写操作，验证业务规则，生成事件（厨师做菜）</li><li><strong>Query Handler</strong> — 处理读操作，直接查优化过的读模型（服务员上菜）</li><li><strong>Event Bus</strong> — 写操作产生的事件同步给读模型更新（厨房传菜口）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 分离命令模型（写）和查询模型（读）</li><li>② 写操作通过 Command Handler 处理，验证后生成事件</li><li>③ 事件通过总线发送到查询端</li><li>④ 查询端更新自己的读模型（如 Elasticsearch、物化视图）</li><li>⑤ 处理读写延迟（读模型最终一致）</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 分离命令模型（写）和查询模型（读）</li><li>2 写操作通过 Command Handler 处理，验证后生成事件</li><li>3 事件通过总线发送到查询端</li><li>4 查询端更新自己的读模型（如 Elasticsearch）</li><li>5 处理读写延迟（读模型最终一致）</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">高并发读写</span><span class="trigger">复杂查询</span><span class="trigger">事件溯源</span><span class="trigger">报表系统</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 一个模型既处理用户下单（写），又处理查询订单（读）。写模型需要验证业务规则，读模型需要高效查询。两者混在一起，互相牵制。</p>
-  <p><strong>问题：</strong> 写操作和读操作的需求冲突。写要事务安全，读要高性能。用同一个模型，两边都做不好。</p>
-  <p><strong>CQRS 的解法：</strong> 把读写拆成两个模型。写模型负责验证和生成事件，读模型负责高效查询。通过事件总线同步数据。读模型可以优化为专门的查询视图（如物化视图）。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>餐厅里厨师专注于做菜（写），服务员专注于上菜（读）。如果让厨师既做菜又上菜，效率会很低。CQRS 就是给厨师和服务员各自分工，互不干扰。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">读写分离</span><span class="scene-tag">优化</span><span class="scene-tag">架构</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Chris Richardson, 《Microservices Patterns》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">读写分离</span><span class="trigger">读多写少</span><span class="trigger">复杂查询</span><span class="trigger">高并发写入</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>读写各自优化，性能提升</li><li>读模型可以针对查询优化（如预聚合）</li><li>写模型专注业务规则，不掺杂查询逻辑</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>读写各自优化（性能提升）</li><li>读模型可预聚合（毫秒级查询）</li><li>写模型专注业务规则（不掺杂查询）</li></ul></div>
     <div class="cons"><h5>❌ 缺点</h5><ul><li>读写数据有延迟（不是立刻一致）</li><li>系统复杂度增加（维护两套模型）</li><li>需要处理一致性问题</li></ul></div>
   </div>
 </div>`,
 "4": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 4 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 4 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🚪</span>
     <span style="color:#667eea">API 网关</span>
@@ -933,17 +1015,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        API 网关
+API 网关
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        酒店前台：客人来了先找前台，前台再分配房间、处理登记、解答问题。
+酒店前台：客人来了先找前台，前台再分配房间、处理登记。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        为微服务集群提供统一的入口，负责请求路由、协议转换、认证授权、限流熔断、响应聚合。
+为微服务集群提供统一入口，负责请求路由、认证授权、限流熔断、响应聚合。
       </div>
     </div>
     <div class="memory-tip">
@@ -951,49 +1033,73 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>API 网关是所有请求的单一入口。它统一处理认证、限流、日志，再路由到后端服务。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有网关（客户端直接调用服务）：手机App → 用户服务 /users/123。手机App → 订单服务 /orders/456。每个客户端要知道所有服务地址，服务变了客户端要改代码。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有 API 网关：手机App → API Gateway → 用户服务 /users/123。客户端只认网关，后端服务自由变动。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">客户端请求 → API Gateway
+                → 认证（JWT 验证）
+                → 限流（每秒 1000 请求）
+                → 路由（/users/* → 用户服务）
+                → 聚合（并行调用多个服务，合并返回）
+                → 客户端收到统一响应
+
+客户端只和网关打交道，不用知道后端服务在哪</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用网关</th><th style="border:1px solid #ddd;padding:8px;">用网关</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务地址变更</td><td style="border:1px solid #ddd;padding:8px;">客户端全部改代码</td><td style="border:1px solid #ddd;padding:8px;">只改网关配置，客户端无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">认证授权</td><td style="border:1px solid #ddd;padding:8px;">每个服务各自实现</td><td style="border:1px solid #ddd;padding:8px;">网关统一处理，一次搞定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">限流熔断</td><td style="border:1px solid #ddd;padding:8px;">每个服务各自实现</td><td style="border:1px solid #ddd;padding:8px;">网关统一配置，全局生效</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应聚合</td><td style="border:1px solid #ddd;padding:8px;">客户端调用 N 次</td><td style="border:1px solid #ddd;padding:8px;">网关并行调用，一次返回</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ApiGateway:
+    def handle(self, request):
+        if not self.authenticate(request):
+            return 401
+        if not self.rate_limit(request):
+            return 429
+        service = self.route(request.path)
+        return service.forward(request)
+
+    def aggregate(self, requests):
+        results = await asyncio.gather(*requests)
+        return merge(results)
+
+gateway = ApiGateway()
+response = gateway.handle(request)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Router（路由器）</strong>— 按 URL 路径或 Header 将请求分发到对应后端服务</li><li><strong>Aggregator（聚合器）</strong>— 一个请求需要多个服务数据时，网关并行调用后合并返回</li><li><strong>Filter Chain（过滤器链）</strong>— 处理认证、限流、日志、熔断等横切逻辑</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Router</strong> — 按 URL 路径将请求分发到对应后端服务（酒店前台分配房间）</li><li><strong>Aggregator</strong> — 一个请求需多个服务数据时，并行调用后合并（前台帮你打包所有需求）</li><li><strong>Filter Chain</strong> — 处理认证、限流、日志、熔断等横切逻辑（酒店安检门）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 部署网关作为唯一入口</li><li>② 配置路由规则（/users/* → 用户服务，/orders/* → 订单服务）</li><li>③ 配置过滤器链（JWT 认证、限流、日志）</li><li>④ 需要聚合时，网关并行调用多个服务，合并响应</li><li>⑤ 监控网关性能和健康状态</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 部署网关作为唯一入口</li><li>2 配置路由规则（/users/* → 用户服务）</li><li>3 配置过滤器链（JWT 认证、限流、日志）</li><li>4 需要聚合时，网关并行调用多个服务，合并响应</li><li>5 监控网关性能和健康状态</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">微服务入口</span><span class="trigger">统一认证</span><span class="trigger">协议转换</span><span class="trigger">流量聚合</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 客户端直接调用每个微服务。如果服务拆分变动，客户端需要改代码。每个客户端都要处理认证、限流、重试等横切逻辑。</p>
-  <p><strong>问题：</strong> 客户端耦合服务地址，横切逻辑重复实现，服务暴露过多细节。</p>
-  <p><strong>API 网关的解法：</strong> 所有请求先经过网关，由网关统一处理认证、限流、日志，再路由到后端服务。网关还可以聚合多个服务的响应，减少客户端调用次数。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>你去酒店不会直接找客房服务员，而是找前台。前台负责登记、分配房间、解答问题。API 网关就是微服务的前台，外部请求统一走网关，不用直接找各个服务。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">网关</span><span class="scene-tag">入口</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>统一入口，客户端只认网关</li><li>解耦服务地址，后端服务自由变动</li><li>横切逻辑集中管理（认证、限流等）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>统一入口（客户端只认网关）</li><li>解耦服务地址（后端服务自由变动）</li><li>横切逻辑集中管理（认证、限流等）</li></ul></div>
     <div class="cons"><h5>❌ 缺点</h5><ul><li>网关是单点（需要高可用）</li><li>增加一层跳转，延迟增加</li><li>网关本身复杂，需要维护</li></ul></div>
   </div>
 </div>`,
 "5": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 5 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 5 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🚌</span>
     <span style="color:#667eea">事件总线</span>
@@ -1007,17 +1113,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        事件总线
+事件总线
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        公司公告栏：有人发布消息，所有人都能看见，不用一个个通知。
+公司公告栏：有人发布消息，所有人都能看见，不用一个个通知。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        通过事件驱动的方式实现服务间通信，发布者发布事件，订阅者异步消费，服务间不直接调用。
+通过事件驱动实现服务间通信，发布者发布事件，订阅者异步消费，服务间不直接调用。
       </div>
     </div>
     <div class="memory-tip">
@@ -1025,54 +1131,81 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>事件总线让服务 A 不直接调用服务 B，而是发一个事件到公告栏，所有关心的服务自己接收。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">直接调用（紧耦合）：订单服务 → HTTP POST → 支付服务。订单服务 → HTTP POST → 库存服务。订单服务要知道所有服务地址，支付服务挂了订单服务也挂。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">事件总线（松耦合）：订单服务 → 发布事件 OrderCreated → 事件总线（Kafka）。支付服务 ← 订阅。库存服务 ← 订阅。订单服务只发事件，不用知道谁在监听。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务完成下单 → 发布事件 OrderCreated
+                    ↓
+              事件总线（Kafka）
+                    ↓
+         支付服务收到 → 创建待支付订单
+         库存服务收到 → 预扣库存
+         物流服务收到 → 准备运单
+
+订单服务只发一次事件，所有服务异步处理，互不阻塞</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用事件总线</th><th style="border:1px solid #ddd;padding:8px;">用事件总线</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务间通信</td><td style="border:1px solid #ddd;padding:8px;">HTTP 直接调用，紧耦合</td><td style="border:1px solid #ddd;padding:8px;">事件驱动，松耦合</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">A 挂了 B 也挂</td><td style="border:1px solid #ddd;padding:8px;">A 发完事件就结束，不影响 B</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">新增服务</td><td style="border:1px solid #ddd;padding:8px;">要改 A 的代码加调用</td><td style="border:1px solid #ddd;padding:8px;">新服务订阅事件即可，A 不用改</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能</td><td style="border:1px solid #ddd;padding:8px;">同步调用，阻塞等待</td><td style="border:1px solid #ddd;padding:8px;">异步消费，不阻塞</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class EventBus:
+    def publish(self, event):
+        kafka.send(event.topic, event.to_json())
+
+    def subscribe(self, topic, handler):
+        consumer = kafka.subscribe(topic)
+        for msg in consumer:
+            handler(Event.from_json(msg))
+
+# 发布
+event_bus.publish(OrderCreated(order_id="1001"))
+
+# 订阅（在支付服务中）
+event_bus.subscribe("OrderCreated", on_order_created)
+
+def on_order_created(event):
+    payment_service.create_pending_payment(event.order_id)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Publisher（发布者）</strong>— 服务产生事件，发到总线</li><li><strong>Subscriber（订阅者）</strong>— 服务注册感兴趣的事件类型，收到后处理</li><li><strong>Event Bus（事件总线）</strong>— 消息中间件（如 Kafka、RabbitMQ），负责事件路由和持久化</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Publisher</strong> — 服务产生事件，发到总线（公告栏发布人）</li><li><strong>Subscriber</strong> — 服务注册感兴趣的事件类型，收到后处理（看公告栏的员工）</li><li><strong>Event Bus</strong> — 消息中间件（Kafka、RabbitMQ），负责事件路由和持久化（公司公告栏）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentCompleted）</li><li>② 服务完成业务操作后，发布事件到总线</li><li>③ 总线将事件分发给所有订阅者</li><li>④ 订阅者异步处理事件，执行自己的业务逻辑</li><li>⑤ 处理失败重试、死信队列、事件顺序</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义领域事件（如 OrderCreated、PaymentCompleted）</li><li>2 服务完成业务操作后，发布事件到总线</li><li>3 总线将事件分发给所有订阅者</li><li>4 订阅者异步处理事件，执行自己的业务逻辑</li><li>5 处理失败重试、死信队列、事件顺序</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">服务间通信</span><span class="trigger">状态变更通知</span><span class="trigger">领域事件传播</span><span class="trigger">解耦</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 服务 A 直接调用服务 B 的 HTTP 接口。B 挂了，A 也挂。B 需要知道谁在调用它，才能返回正确的数据。</p>
-  <p><strong>问题：</strong> 服务间紧耦合，调用链长时性能差，一个服务故障影响整条链路。</p>
-  <p><strong>事件总线的解法：</strong> 服务 A 不直接调 B，而是发一个事件"订单已创建"到总线。服务 B 和 C 如果关心这个事件，就订阅。服务 A 不用知道谁在监听。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>公司公告栏：行政发布通知，所有员工都能看到。不需要行政逐个打电话通知每个人。事件总线就是微服务的公告栏，服务 A 发布事件，服务 B 和 C 自动收到。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">事件</span><span class="scene-tag">解耦</span><span class="scene-tag">异步</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>服务间松耦合（不需要知道对方存在）</li><li>异步处理，不阻塞主流程</li><li>容易扩展新服务（新服务订阅即可）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>最终一致性（事件有延迟）</li><li>调试困难（调用链不可见）</li><li>需要处理消息丢失和重复</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>服务间松耦合（不直接调用）</li><li>异步处理（不阻塞）</li><li>天然支持扩展（新增服务只需订阅）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>消息丢失风险（需要持久化）</li><li>顺序保证困难（分布式环境）</li><li>调试困难（异步调用链路难追踪）</li></ul></div>
   </div>
 </div>`,
 "6": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 6 个模式</div>
+  <div class="pattern-id">arch &middot; 第 6 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🗄️</span>
     <span style="color:#667eea">服务独享数据库</span>
     <span style="font-size:0.85rem;color:#999">Database per Service</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">arch</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1081,17 +1214,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        服务独享数据库
+服务独享数据库
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        每家公司都有自己的账本，互不干涉。你要查账只能找对方公司。
+每家公司有自己的账本，互不干涉。你要查账只能找对方公司。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        每个微服务拥有独立的数据库，不与其他服务共享数据存储，通过 API 进行数据交换。
+每个微服务拥有独立的数据库，不与其他服务共享数据存储，通过 API 进行数据交换。
       </div>
     </div>
     <div class="memory-tip">
@@ -1099,40 +1232,60 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>每个服务有自己的数据库，不共享。服务之间通过 API 或事件交换数据，而不是直接读对方的数据库。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">共享数据库（紧耦合）：订单服务 → 直接读用户数据库 → 查用户信息。库存服务 → 直接读订单数据库 → 查订单状态。所有服务耦合在同一张表上，一个团队改 Schema，其他团队全受影响。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">独享数据库（松耦合）：订单服务 → 自己的 order_db。用户服务 → 自己的 user_db。库存服务 → 自己的 inventory_db。需要用户数据？调用用户服务的 API，不直接读用户数据库。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务需要用户信息 → 调用用户服务 API
+                    ↓
+              用户服务查自己的 user_db
+                    ↓
+              返回用户数据给订单服务
+
+每个服务只访问自己的数据库，不跨服务读数据库</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">共享数据库</th><th style="border:1px solid #ddd;padding:8px;">独享数据库</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">Schema 变更</td><td style="border:1px solid #ddd;padding:8px;">一个团队改，所有团队受影响</td><td style="border:1px solid #ddd;padding:8px;">各团队独立变更，互不干扰</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">技术选型</td><td style="border:1px solid #ddd;padding:8px;">必须用同一种数据库</td><td style="border:1px solid #ddd;padding:8px;">各服务可选最适合的数据库</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据安全</td><td style="border:1px solid #ddd;padding:8px;">所有服务都能读所有数据</td><td style="border:1px solid #ddd;padding:8px;">只有服务自己能访问自己的数据</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障隔离</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，所有服务全挂</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，只影响一个服务</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class UserService:
+    def get_user(self, user_id):
+        return self.user_db.query(user_id)  # 只访问自己的数据库
+
+class OrderService:
+    def create_order(self, user_id, items):
+        # 不直接读 user_db，而是调用 UserService API
+        user = user_service_client.get_user(user_id)
+        return self.order_db.insert(Order(user_id=user_id, items=items))
+
+# 禁止：order_service 直接读 user_db
+# 正确：通过 API 获取数据</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Service DB（服务数据库）</strong>— 每个服务独立的数据库，独立 Schema</li><li><strong>API（服务接口）</strong>— 服务对外暴露 API，其他服务通过 API 获取数据</li><li><strong>Data Sync（数据同步）</strong>— 通过事件或 API 同步跨服务的数据</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Service DB</strong> — 每个服务独立的数据库，独立 Schema（公司的独立账本）</li><li><strong>API</strong> — 服务对外暴露 API，其他服务通过 API 获取数据（正式函件）</li><li><strong>Data Sync</strong> — 通过事件或 API 同步跨服务的数据（定期对账）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 为每个服务分配独立数据库</li><li>② 服务通过 API 暴露数据（不直接暴露数据库）</li><li>③ 需要跨服务数据时，调用 API 或订阅事件</li><li>④ 禁止直接访问其他服务的数据库</li><li>⑤ 独立进行数据库迁移、优化和升级</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 为每个服务分配独立数据库</li><li>2 服务通过 API 暴露数据（不直接暴露数据库）</li><li>3 需要跨服务数据时，调用 API 或订阅事件</li><li>4 禁止直接访问其他服务的数据库</li><li>5 独立进行数据库迁移、优化和升级</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">微服务拆分</span><span class="trigger">数据自治</span><span class="trigger">团队独立</span><span class="trigger">技术异构</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 多个服务共享一个数据库，不同团队改同一个 Schema，互相影响。一个团队想升级数据库版本，其他团队不同意。</p>
-  <p><strong>问题：</strong> 数据库成为耦合点，团队无法独立演进，一个服务的问题影响其他服务。</p>
-  <p><strong>独享数据库的解法：</strong> 每个服务有自己的数据库，Schema 独立。服务之间通过 API 或事件交换数据。数据主权属于服务自己。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>每家公司有自己的账本，A 公司不会直接去 B 公司的账本上记账。如果 B 公司想告诉 A 公司什么，会通过正式函件（API）。这就是数据库独享。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">数据库</span><span class="scene-tag">自治</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Chris Richardson, 《Microservices Patterns》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -1141,7 +1294,7 @@ const modalTemplates = {
   </div>
 </div>`,
 "7": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 7 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 7 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🔪</span>
     <span style="color:#667eea">数据分片</span>
@@ -1155,17 +1308,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        数据分片
+数据分片
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        图书馆按字母分书：A-F放一楼，G-L放二楼，不用在一层楼找所有书。
+图书馆按字母分书：A-F放一楼，G-L放二楼，不用在一层楼找所有书。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        将大数据集按某种规则（如哈希、范围）拆分到多个节点，每个节点只负责一部分数据。
+将大数据集按某种规则（如哈希、范围）拆分到多个节点，每个节点只负责一部分数据。
       </div>
     </div>
     <div class="memory-tip">
@@ -1173,53 +1326,76 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>数据分片把大表拆成多个小表，分散到不同数据库节点。每个节点只处理一部分数据，查询压力分散。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">不分片（单表瓶颈）：订单表 10 亿条记录，都在一个 MySQL 实例。查询越来越慢，加索引、加机器都救不了。单节点 CPU 100%，磁盘满了。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">分片（分散压力）：user_id % 4 = 0 → 数据库节点 A。user_id % 4 = 1 → 数据库节点 B。user_id % 4 = 2 → 数据库节点 C。user_id % 4 = 3 → 数据库节点 D。每个节点只存 2.5 亿条，查询速度快 4 倍。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户查询订单 → 计算 user_id % 4 = 2
+                    ↓
+              路由到数据库节点 C
+                    ↓
+              节点 C 只查自己的 2.5 亿条记录
+                    ↓
+              返回结果
+
+写入同理：按 user_id 路由到对应节点，每个节点只处理自己的数据</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不分片</th><th style="border:1px solid #ddd;padding:8px;">分片</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">单表数据量</td><td style="border:1px solid #ddd;padding:8px;">10 亿条，查询慢</td><td style="border:1px solid #ddd;padding:8px;">2.5 亿条/节点，查询快 4 倍</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">并发写入</td><td style="border:1px solid #ddd;padding:8px;">单节点 CPU 100%</td><td style="border:1px solid #ddd;padding:8px;">4 个节点分担，每个 25%</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">存储容量</td><td style="border:1px solid #ddd;padding:8px;">单节点磁盘满</td><td style="border:1px solid #ddd;padding:8px;">4 个节点，容量 4 倍</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障影响</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，全部数据不可用</td><td style="border:1px solid #ddd;padding:8px;">只影响 1/4 的数据</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ShardRouter:
+    def route(self, user_id):
+        shard = user_id % 4  # 哈希取模
+        return f"db_node_{shard}"
+
+    def query(self, user_id, sql):
+        db = self.route(user_id)
+        return db.execute(sql)
+
+# 查询
+router = ShardRouter()
+result = router.query(user_id=10001, "SELECT * FROM orders WHERE user_id = 10001")
+# 自动路由到 db_node_1</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Shard Key（分片键）</strong>— 决定数据去哪的字段（如 user_id），分片规则基于它</li><li><strong>Shard Router（分片路由器）</strong>— 根据 Shard Key 计算目标节点，把请求发到正确节点</li><li><strong>Rebalancer（再平衡器）</strong>— 监控各节点负载，自动迁移数据到负载低的节点</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Shard Key</strong> — 决定数据去哪的字段（如 user_id），分片规则基于它（图书馆按字母分书）</li><li><strong>Shard Router</strong> — 根据 Shard Key 计算目标节点，把请求发到正确节点（图书馆索引牌）</li><li><strong>Rebalancer</strong> — 监控各节点负载，自动迁移数据到负载低的节点（图书管理员调整书架）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 选择分片键（如 user_id，保证均匀分布）</li><li>② 定义分片规则（哈希取模、范围分片）</li><li>③ 写入时按分片键路由到对应节点</li><li>④ 按分片键查询时直接命中对应节点</li><li>⑤ 跨片查询时聚合多个节点结果</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 选择分片键（如 user_id，保证均匀分布）</li><li>2 定义分片规则（哈希取模、范围分片）</li><li>3 写入时按分片键路由到对应节点</li><li>4 按分片键查询时直接命中对应节点</li><li>5 跨片查询时聚合多个节点结果</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">大表拆分</span><span class="trigger">按用户/地域分片</span><span class="trigger">水平扩展</span><span class="trigger">分布式数据库</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 单表数据量过大，所有查询都查同一张表。加索引、加机器都救不了，查询越来越慢。</p>
-  <p><strong>问题：</strong> 单表瓶颈，读写都在同一个节点，无法水平扩展。数据量超过单机容量时只能换更贵的机器（垂直扩展）。</p>
-  <p><strong>数据分片的解法：</strong> 把大表按规则拆成多个小表，分散到不同数据库节点。每个节点只处理一部分数据，查询压力分散。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>图书馆太大，按字母分书：A-F 放一楼，G-L 放二楼。你找书时直接去对应楼层，不用翻遍整个图书馆。数据分片就是给数据分楼层。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">分片</span><span class="scene-tag">扩展</span><span class="scene-tag">大数据</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>水平扩展（加机器就能扩容）</li><li>分散读写压力</li><li>查询局部化（按分片键查询只需查一个节点）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>跨片查询复杂（需要聚合多个节点）</li><li>热点分片（某些分片数据特别多）</li><li>再平衡时数据迁移开销大</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>水平扩展（加节点就能扩容）</li><li>查询分散（每个节点处理更少数据）</li><li>故障隔离（单节点故障只影响部分数据）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>跨片查询复杂（需要聚合多个节点）</li><li>分片键选择困难（选不好导致数据倾斜）</li><li>数据迁移困难（重新分片时迁移量大）</li></ul></div>
   </div>
 </div>`,
 "8": `<div class="modal-header">
-  <div class="pattern-id">架构设计层 · 第 8 个模式</div>
+  <div class="pattern-id">架构设计层 &middot; 第 8 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🥪</span>
+    <span style="font-size:2.2rem">🥞</span>
     <span style="color:#667eea">分层缓存</span>
-    <span style="font-size:0.85rem;color:#999">Cache Hierarchy</span>
+    <span style="font-size:0.85rem;color:#999">Layered Cache</span>
     <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">架构设计层</span>
   </h2>
 </div>
@@ -1229,58 +1405,96 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        分层缓存
+分层缓存
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        办公室：桌上→抽屉→文件柜，常用文件放最近处。
+办公室文件：最常用的放桌上（L1），次常用的放抽屉（L2），不常用的放文件柜（L3）。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        将缓存分为多个层级（L1本地/L2分布式/L3 CDN），热点数据放在最近层，逐层回源。
+把缓存分成多层（本地内存、分布式缓存、CDN），越近用户越快，逐层回源。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>分层缓存 = 桌面/抽屉/文件柜 → 越近越快 → 命中率高 → 分层命中
+      <strong>💡 记忆口诀：</strong>分层缓存 = 桌上/抽屉/文件柜 → 越近越快 → 逐层回源 → 减少数据库压力
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>分层缓存把缓存分成 3 层：L1 本地内存（最快）、L2 Redis（多机共享）、L3 CDN（最接近用户）。数据先到 L1，找不到再查 L2，再找不到查数据库。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有缓存（每次都查数据库）：用户请求商品详情 → 查数据库。查数据库。查数据库（10000 次/秒）。数据库 CPU 100%，响应 500ms。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">分层缓存（L1/L2/L3）：用户请求商品详情 → L1 本地缓存（Caffeine）→ 1ms 命中！→ 未命中 → L2 Redis → 5ms 命中！→ 未命中 → L3 CDN → 20ms 命中！→ 未命中 → 查数据库 → 100ms → 更新到 L1/L2/L3。95% 请求在 L1/L2 命中，数据库压力减少 95%。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → L1 本地缓存（Caffeine，1ms）
+         → 未命中 → L2 Redis（5ms）
+         → 未命中 → L3 CDN（20ms）
+         → 未命中 → 数据库（100ms）
+         → 查到后更新 L1/L2/L3
+
+越近用户越快，逐层回源，大幅减少数据库压力</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">没有缓存</th><th style="border:1px solid #ddd;padding:8px;">分层缓存</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">热点数据查询</td><td style="border:1px solid #ddd;padding:8px;">每次都查数据库，100ms</td><td style="border:1px solid #ddd;padding:8px;">L1 命中，1ms</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库压力</td><td style="border:1px solid #ddd;padding:8px;">10000 QPS 直接打到数据库</td><td style="border:1px solid #ddd;padding:8px;">95% 在缓存命中，数据库 500 QPS</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">成本</td><td style="border:1px solid #ddd;padding:8px;">数据库扩容贵</td><td style="border:1px solid #ddd;padding:8px;">本地缓存免费，Redis 便宜</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户距离</td><td style="border:1px solid #ddd;padding:8px;">数据库在机房，用户在全国各地</td><td style="border:1px solid #ddd;padding:8px;">CDN 在用户家门口</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LayeredCache:
+    def __init__(self):
+        self.l1 = CaffeineCache()  # 本地内存
+        self.l2 = RedisCache()      # 分布式缓存
+        self.l3 = CDNCache()        # 边缘缓存
+
+    def get(self, key):
+        # L1
+        value = self.l1.get(key)
+        if value: return value
+        # L2
+        value = self.l2.get(key)
+        if value:
+            self.l1.set(key, value, ttl=60)
+            return value
+        # L3
+        value = self.l3.get(key)
+        if value:
+            self.l2.set(key, value, ttl=300)
+            self.l1.set(key, value, ttl=60)
+            return value
+        # 数据库
+        value = db.query(key)
+        self.l3.set(key, value, ttl=3600)
+        self.l2.set(key, value, ttl=300)
+        self.l1.set(key, value, ttl=60)
+        return value
+
+cache = LayeredCache()
+product = cache.get("product:12345")</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>L1 Cache（本地缓存）</strong>— 应用服务器内存（如 Caffeine），最快但容量小，单机有效</li><li><strong>L2 Cache（分布式缓存）</strong>— Redis/Memcached，容量大，多机共享，但走网络</li><li><strong>L3 Cache（边缘缓存）</strong>— CDN，最接近用户，缓存静态资源</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>L1 Cache</strong> — 应用服务器内存（如 Caffeine），最快但容量小，单机有效（桌上文件）</li><li><strong>L2 Cache</strong> — Redis/Memcached，容量大，多机共享，但走网络（抽屉文件）</li><li><strong>L3 Cache</strong> — CDN，最接近用户，缓存静态资源（文件柜）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 分析数据访问频率，识别热点数据</li><li>② 最热数据放 L1 本地缓存（TTL 短，更新快）</li><li>③ 次热数据放 L2 Redis（TTL 中等，多机共享）</li><li>④ 静态资源放 L3 CDN（长期缓存，地理就近）</li><li>⑤ 未命中时逐层回源，查到的数据更新到缓存</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 分析数据访问频率，识别热点数据</li><li>2 最热数据放 L1 本地缓存（TTL 短，更新快）</li><li>3 次热数据放 L2 Redis（TTL 中等，多机共享）</li><li>4 静态资源放 L3 CDN（长期缓存，地理就近）</li><li>5 未命中时逐层回源，查到的数据更新到缓存</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">L1/L2/L3缓存</span><span class="trigger">Redis/本地缓存/CDN</span><span class="trigger">热点数据加速</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 每次请求都查数据库，热点数据被反复查询，数据库压力大。</p>
-  <p><strong>问题：</strong> 数据库成为瓶颈，响应慢，成本高。所有数据都在同一个地方，离用户远。</p>
-  <p><strong>分层缓存的解法：</strong> 把缓存分成多层：最近用 L1（本地内存），次常用 L2（Redis），静态资源用 L3（CDN）。越近用户越快，越不容易打到数据库。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>办公室里的文件：最常用的放桌上（L1），次常用的放抽屉（L2），不常用的放文件柜（L3）。找文件时从最近处开始找，效率最高。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">缓存</span><span class="scene-tag">分层</span><span class="scene-tag">性能</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -1289,12 +1503,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "9": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 9 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 9 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🔌</span>
-    <span style="color:#f472b6">熔断器</span>
+    <span style="color:#667eea">熔断器</span>
     <span style="font-size:0.85rem;color:#999">Circuit Breaker</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1303,17 +1517,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        熔断器
+熔断器
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        电路保险丝：电流过载时自动断开，防止烧毁电器。
+电路保险丝：电流过载时自动断开，防止烧毁电器。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        当服务调用失败率达到阈值时，自动断开连接，防止故障扩散。经过一段时间后试探恢复。
+当服务调用失败率达到阈值时，自动断开连接，防止故障扩散。经过一段时间后试探恢复。
       </div>
     </div>
     <div class="memory-tip">
@@ -1321,54 +1535,98 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>熔断器监控服务调用失败率，超过阈值就断开，直接返回降级响应。等一段时间后试探恢复，成功则关闭。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有熔断器（雪崩效应）：用户请求 → 订单服务 → 调用支付服务（已故障，超时 5 秒）。等待 5 秒 → 超时错误。下一个用户请求 → 同样等待 5 秒。订单服务的线程池被占满，新请求全部排队。订单服务也挂了，故障扩散到整个系统。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有熔断器（保护系统）：用户请求 → 订单服务 → 熔断器检查（支付服务失败率 80% > 50%）。直接返回降级响应（支付服务繁忙，请稍后重试）。不调用支付服务，不占线程。订单服务正常，故障被隔离。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用支付服务 → 熔断器记录失败次数
+                     → 失败率超过阈值（如 50%）
+                     → 熔断器打开，直接返回降级响应
+                     → 不调用支付服务，保护系统
+
+30 秒后 → 熔断器半开 → 允许一个试探请求
+                     → 成功 → 关闭，恢复正常
+                     → 失败 → 继续打开，等待下一次试探</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用熔断器</th><th style="border:1px solid #ddd;padding:8px;">用熔断器</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">请求排队等待，拖垮整个系统</td><td style="border:1px solid #ddd;padding:8px;">快速失败，保护系统</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应时间</td><td style="border:1px solid #ddd;padding:8px;">超时 5 秒后才返回</td><td style="border:1px solid #ddd;padding:8px;">毫秒级返回降级响应</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">线程资源</td><td style="border:1px solid #ddd;padding:8px;">线程被占满，无法处理新请求</td><td style="border:1px solid #ddd;padding:8px;">不占用线程，资源充足</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障扩散</td><td style="border:1px solid #ddd;padding:8px;">一个服务故障，其他服务也挂</td><td style="border:1px solid #ddd;padding:8px;">故障隔离，不影响其他服务</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CircuitBreaker:
+    def __init__(self):
+        self.state = "CLOSED"  # 关闭=正常
+        self.failure_count = 0
+        self.threshold = 5
+        self.timeout = 30
+
+    def call(self, func):
+        if self.state == "OPEN":
+            if time.now() - self.last_failure_time > self.timeout:
+                self.state = "HALF_OPEN"
+            else:
+                return fallback()  # 直接返回降级
+
+        try:
+            result = func()
+            self.on_success()
+            return result
+        except Exception:
+            self.on_failure()
+            return fallback()
+
+    def on_failure(self):
+        self.failure_count += 1
+        if self.failure_count >= self.threshold:
+            self.state = "OPEN"
+            self.last_failure_time = time.now()
+
+    def on_success(self):
+        if self.state == "HALF_OPEN":
+            self.state = "CLOSED"
+        self.failure_count = 0
+
+cb = CircuitBreaker()
+result = cb.call(lambda: payment_service.charge())</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Circuit Breaker（熔断器）</strong>— 维护三种状态：关闭（正常）、半开（试探）、开放（拒绝）</li><li><strong>Failure Counter（失败计数器）</strong>— 统计连续失败次数和失败率</li><li><strong>State Monitor（状态监控器）</strong>— 超时后自动转为半开，试探请求成功后关闭</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Circuit Breaker</strong> — 维护三种状态：关闭（正常）、半开（试探）、开放（拒绝）（保险丝）</li><li><strong>Failure Counter</strong> — 统计连续失败次数和失败率（电表）</li><li><strong>State Monitor</strong> — 超时后自动转为半开，试探成功后关闭（自动复位开关）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义熔断器状态：关闭、半开、开放</li><li>② 设置失败阈值（如 50%）和超时时间（如 30 秒）</li><li>③ 调用失败时计数，超过阈值切换为开放状态</li><li>④ 开放状态下直接返回降级响应，不调用远程服务</li><li>⑤ 超时后转为半开，允许少量试探请求，成功则关闭</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义熔断器状态：关闭、半开、开放</li><li>2 设置失败阈值（如 50%）和超时时间（如 30 秒）</li><li>3 调用失败时计数，超过阈值切换为开放状态</li><li>4 开放状态下直接返回降级响应，不调用远程服务</li><li>5 超时后转为半开，允许少量试探请求，成功则关闭</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">服务调用失败</span><span class="trigger">响应超时</span><span class="trigger">依赖服务不可用</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 服务调用失败时，调用方一直等，直到超时。失败请求不断重试，拖垮下游服务。</p>
-  <p><strong>问题：</strong> 一个服务故障导致所有调用它的服务都故障（雪崩）。调用方资源被耗尽，无法处理正常请求。</p>
-  <p><strong>熔断器的解法：</strong> 统计失败率，超过阈值就自动断开，后续请求直接返回降级响应。过一段时间后试探，如果恢复了就自动重连。就像电路保险丝，保护整体系统。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>想象你家的电路保险丝：当电流过大时，保险丝自动熔断，保护电器不被烧毁。等修好后，换上新保险丝，电路又恢复正常。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">容错</span><span class="scene-tag">弹性</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">服务间调用</span><span class="trigger">防止级联故障</span><span class="trigger">超时保护</span><span class="trigger">故障隔离</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>防止故障扩散（保护调用方）</li><li>自动恢复（不需要人工干预）</li><li>给故障服务恢复时间</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加系统复杂度</li><li>阈值需要调参（太高不保护，太低误伤）</li><li>可能误断（网络抖动导致误判）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止故障扩散（保护系统不被拖垮）</li><li>快速失败（毫秒级返回降级响应）</li><li>自动恢复（试探成功后自动关闭）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>误杀（偶发故障也触发熔断）</li><li>需要合理设置阈值（太宽松无效，太严格误杀）</li><li>半开状态试探可能失败</li></ul></div>
   </div>
 </div>`,
 "10": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 10 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 10 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🚦</span>
-    <span style="color:#f472b6">限流</span>
+    <span style="color:#667eea">限流</span>
     <span style="font-size:0.85rem;color:#999">Rate Limiting</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1377,17 +1635,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        限流
+限流
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        高速收费站：每秒只放行固定数量车辆，防止拥堵。
+高速收费站：每秒只放行固定数量车辆，防止拥堵。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        控制请求的速率或并发数，防止系统过载，保证服务的可用性。
+控制请求的速率或并发数，防止系统过载，保证服务的可用性。
       </div>
     </div>
     <div class="memory-tip">
@@ -1395,54 +1653,87 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>限流控制每秒处理多少请求。超出的请求排队或拒绝，防止系统被流量压垮。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有限流（系统被压垮）：秒杀活动：10000 用户同时请求。系统来者不拒，全部处理。数据库连接池被占满（最大 100 连接）。第 101 个请求开始排队。所有请求都变慢，响应时间从 50ms 变成 5000ms。系统崩溃。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有限流（保护系统）：秒杀活动：10000 用户同时请求。限流器：每秒只处理 1000 个。第 1-1000 个：正常处理，50ms 响应。第 1001-10000 个：返回 429（请求太多）或进入队列。系统稳定，数据库连接池正常。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">10000 请求同时到达 → 限流器检查计数器
+                     → 当前 1000/1000，已超限
+                     → 请求 1001：返回 429（Too Many Requests）
+                     → 请求 1002：进入队列，等待处理
+                     → 请求 1003：直接拒绝
+
+1 秒后计数器重置 → 新的一批 1000 请求被处理
+→ 系统始终只处理 1000/秒，不会被压垮</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用限流</th><th style="border:1px solid #ddd;padding:8px;">用限流</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">突发流量</td><td style="border:1px solid #ddd;padding:8px;">系统被压垮，全部请求超时</td><td style="border:1px solid #ddd;padding:8px;">系统稳定，超出请求被拒绝或排队</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应时间</td><td style="border:1px solid #ddd;padding:8px;">所有请求都慢（5000ms）</td><td style="border:1px solid #ddd;padding:8px;">正常请求很快（50ms）</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库压力</td><td style="border:1px solid #ddd;padding:8px;">连接池占满，数据库崩溃</td><td style="border:1px solid #ddd;padding:8px;">连接池正常，数据库稳定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">全部请求失败或超时</td><td style="border:1px solid #ddd;padding:8px;">大部分请求正常，部分提示稍后重试</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class RateLimiter:
+    def __init__(self, limit=1000, window=1):
+        self.limit = limit
+        self.window = window
+        self.counter = 0
+        self.reset_time = time.now() + window
+
+    def allow(self, request):
+        now = time.now()
+        if now >= self.reset_time:
+            self.counter = 0
+            self.reset_time = now + self.window
+        
+        self.counter += 1
+        if self.counter <= self.limit:
+            return True  # 放行
+        else:
+            return False  # 拒绝
+
+limiter = RateLimiter(limit=1000, window=1)  # 每秒 1000 请求
+if limiter.allow(request):
+    process(request)
+else:
+    return 429  # Too Many Requests</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Rate Limiter（限流器）</strong>— 计算请求速率，判断是否超过阈值</li><li><strong>Counter Store（计数器存储）</strong>— 存储计数器（如 Redis），支持分布式限流</li><li><strong>Rejection Handler（拒绝处理器）</strong>— 超限请求的处理策略（排队、拒绝、降级）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Rate Limiter</strong> — 计算请求速率，判断是否超过阈值（收费站）</li><li><strong>Counter Store</strong> — 存储计数器（如 Redis），支持分布式限流（计数器）</li><li><strong>Rejection Handler</strong> — 超限请求的处理策略（排队、拒绝、降级）（收费站栏杆）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义限流规则（如每秒 1000 请求，或并发 100 个）</li><li>② 每次请求检查计数器，未超限则放行</li><li>③ 超限请求根据策略处理（排队等待、返回 429、返回降级内容）</li><li>④ 定期重置计数器（时间窗口滑动）</li><li>⑤ 监控限流效果，调整阈值</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义限流规则（如每秒 1000 请求，或并发 100 个）</li><li>2 每次请求检查计数器，未超限则放行</li><li>3 超限请求根据策略处理（排队等待、返回 429、返回降级内容）</li><li>4 定期重置计数器（时间窗口滑动）</li><li>5 监控限流效果，调整阈值</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">API网关</span><span class="trigger">接口防刷</span><span class="trigger">抢购活动</span><span class="trigger">验证码发送</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 系统来者不拒，请求量突然增加时，所有请求都处理，数据库连接被打满，系统崩溃。</p>
-  <p><strong>问题：</strong> 突发流量超过系统容量，导致整体不可用。恶意请求或爬虫压垮服务。</p>
-  <p><strong>限流的解法：</strong> 控制请求速率，每秒只处理固定数量。超出的请求排队或拒绝。就像高速收费站，控制车流。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>高速收费站：每秒只放行 10 辆车，第 11 辆必须等待。如果没有收费站，所有车挤在一起，道路会彻底瘫痪。限流就是系统的收费站。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">保护</span><span class="scene-tag">限流</span><span class="scene-tag">稳定性</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>保护系统不被突发流量压垮</li><li>公平分配（每个用户/IP 限流）</li><li>防止恶意请求</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>影响用户体验（请求被拒绝）</li><li>阈值需要反复调优</li><li>可能误伤正常请求（如秒杀时）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保护系统不被压垮</li><li>公平分配资源（每个用户/请求都有配额）</li><li> graceful degradation（优雅降级）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>误杀正常请求（阈值设置不当）</li><li>分布式限流复杂（需要 Redis 等共享计数器）</li><li>突发流量可能导致误拒</li></ul></div>
   </div>
 </div>`,
 "11": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 11 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 11 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🔄</span>
-    <span style="color:#f472b6">重试</span>
+    <span style="color:#667eea">重试</span>
     <span style="font-size:0.85rem;color:#999">Retry</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1451,58 +1742,90 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        重试
+重试
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        打电话对方占线，过一会儿再打，不是永远等下去。
+打电话占线：过一会儿再打，而不是只打一次就放弃。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        调用失败时，按策略（固定间隔/指数退避）重试，避免偶发故障影响整体。
+失败时等待一段时间再重试，使用指数退避策略，避免雪崩。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>重试 = 占线再打 → 不是立即放弃 → 有策略地重试
+      <strong>💡 记忆口诀：</strong>重试 = 过会儿再打 → 失败不是终点 → 指数退避 → 自动恢复
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>重试在调用失败时自动重试，第一次等 1 秒，第二次等 2 秒，第三次等 4 秒。如果三次都失败，才认为是真的故障。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有重试（偶发故障导致失败）：订单服务调用支付服务 → 网络抖动（丢包）。请求失败。直接返回错误给用户。用户看到支付失败，实际支付可能成功了。用户体验差，订单流失。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有重试（自动恢复）：订单服务调用支付服务 → 网络抖动（丢包）。请求失败。等待 1 秒，重试 1 次 → 成功！用户看到支付成功。偶发故障自动恢复，用户无感知。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">调用支付服务 → 失败（网络超时）
+            → 等待 1 秒，重试第 1 次 → 失败
+            → 等待 2 秒，重试第 2 次 → 失败
+            → 等待 4 秒，重试第 3 次 → 成功！
+            → 返回结果
+
+如果 3 次都失败 → 返回错误，记录日志
+→ 指数退避（1s→2s→4s）避免雪崩</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用重试</th><th style="border:1px solid #ddd;padding:8px;">用重试</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">网络抖动</td><td style="border:1px solid #ddd;padding:8px;">直接失败，用户体验差</td><td style="border:1px solid #ddd;padding:8px;">自动重试，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">瞬时故障</td><td style="border:1px solid #ddd;padding:8px;">偶发故障被当成永久故障</td><td style="border:1px solid #ddd;padding:8px;">自动恢复，提高可用性</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">看到错误页面，需要手动刷新</td><td style="border:1px solid #ddd;padding:8px;">自动恢复，不用手动刷新</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">开发成本</td><td style="border:1px solid #ddd;padding:8px;">每个调用都要写重试逻辑</td><td style="border:1px solid #ddd;padding:8px;">统一重试框架，一行装饰器</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import time
+import random
+
+def retry(max_attempts=3, backoff=1):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts - 1:
+                        raise e
+                    # 指数退避 + 随机抖动
+                    sleep_time = backoff * (2 ** attempt) + random.uniform(0, 1)
+                    time.sleep(sleep_time)
+        return wrapper
+    return decorator
+
+@retry(max_attempts=3, backoff=1)
+def call_payment_service():
+    return payment_api.charge()
+
+result = call_payment_service()  # 失败自动重试</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Retry Policy（重试策略）</strong>— 定义最大重试次数、重试间隔</li><li><strong>Backoff Strategy（退避策略）</strong>— 固定间隔或指数退避（1s→2s→4s），避免雪崩</li><li><strong>Failure Detector（失败检测器）</strong>— 判断哪些错误可重试（网络超时）vs 不可重试（业务错误）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Retry Policy</strong> — 定义最大重试次数、重试间隔（打电话的次数限制）</li><li><strong>Backoff Strategy</strong> — 固定间隔或指数退避（1s→2s→4s），避免雪崩（等一会儿再打）</li><li><strong>Failure Detector</strong> — 判断哪些错误可重试（网络超时）vs 不可重试（业务错误）（判断对方是真忙还是真拒接）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 捕获调用异常</li><li>② 判断错误类型（网络超时/连接失败可重试，业务逻辑错误不重试）</li><li>③ 按退避策略等待（指数退避 + 随机抖动）</li><li>④ 重试调用直到成功或达到最大次数</li><li>⑤ 最终失败时记录日志，返回降级响应</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 捕获调用异常</li><li>2 判断错误类型（网络超时/连接失败可重试，业务逻辑错误不重试）</li><li>3 按退避策略等待（指数退避 + 随机抖动）</li><li>4 重试调用直到成功或达到最大次数</li><li>5 最终失败时记录日志，返回降级响应</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">网络超时</span><span class="trigger">瞬时故障</span><span class="trigger">连接断开</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 网络请求失败一次就报错返回，用户看到错误页面。实际上很多失败是瞬时的（网络抖动、连接超时）。</p>
-  <p><strong>问题：</strong> 偶发故障导致用户体验差。瞬时不稳定被当成永久故障。</p>
-  <p><strong>重试的解法：</strong> 失败时等待一段时间再试。第一次等 1 秒，第二次等 2 秒，第三次等 4 秒（指数退避）。如果三次都失败，才认为是真的故障。就像打电话占线，过会儿再打。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>就像你打电话对方占线，你不会只打一次就放弃，而是会等一会儿再打。但如果打了十次还是占线，你就知道可能是对方真的不想接了。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">网络</span><span class="scene-tag">容错</span><span class="scene-tag">自动化</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -1511,12 +1834,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "12": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 12 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 12 个模式</div>
   <h2>
     <span style="font-size:2.2rem">⏱️</span>
-    <span style="color:#f472b6">超时</span>
+    <span style="color:#667eea">超时</span>
     <span style="font-size:0.85rem;color:#999">Timeout</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1525,17 +1848,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        超时
+超时
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        微波炉定时：设10分钟，到时间就自动停止，不会无限加热。
+微波炉定时：设 10 分钟，到时间就自动停止，不会无限加热。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        为每个远程调用设置最大等待时间，超时后立即返回，防止无限阻塞。
+为每个远程调用设置最大等待时间，超时后立即返回，防止无限阻塞。
       </div>
     </div>
     <div class="memory-tip">
@@ -1543,54 +1866,76 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>超时给每个远程调用设置一个时间上限。到时间不返回就直接报错，不会永远卡住。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有超时（请求卡死）：订单服务调用库存服务 → 库存服务挂了（进程死锁）。订单服务一直等待。等了 30 秒还在等。用户页面一直 loading。订单服务的线程被占满，无法处理新请求。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有超时（快速失败）：订单服务调用库存服务 → 设置超时 2 秒。库存服务挂了，2 秒后超时。立即返回降级响应（库存查询失败，默认有货）。用户页面快速响应。订单服务线程释放，继续处理新请求。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用库存服务 → 启动定时器（2 秒）
+                    → 2 秒内返回 → 取消定时器，正常处理
+                    → 2 秒超时 → 触发超时回调
+                    → 返回降级响应（默认有货/缓存数据）
+                    → 记录超时日志，用于监控
+
+超时不等于放弃业务，而是返回降级结果，保证系统继续运行</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用超时</th><th style="border:1px solid #ddd;padding:8px;">用超时</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务挂了</td><td style="border:1px solid #ddd;padding:8px;">请求永远等待，线程占满</td><td style="border:1px solid #ddd;padding:8px;">2 秒后返回降级，线程释放</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">页面一直 loading，用户不知道发生了什么</td><td style="border:1px solid #ddd;padding:8px;">快速返回，提示服务繁忙</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪一步卡住了</td><td style="border:1px solid #ddd;padding:8px;">超时日志明确记录</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">级联故障</td><td style="border:1px solid #ddd;padding:8px;">一个服务慢，拖垮所有服务</td><td style="border:1px solid #ddd;padding:8px;">超时隔离，不影响其他服务</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import requests
+
+def call_service_with_timeout(url, timeout=2):
+    try:
+        response = requests.get(url, timeout=timeout)
+        return response.json()
+    except requests.Timeout:
+        # 超时，返回降级响应
+        logger.warning(f"Timeout calling {url}")
+        return fallback_response()
+
+# 使用
+result = call_service_with_timeout("http://inventory-service/check", timeout=2)
+# 2 秒内不返回 → 超时 → 返回降级数据</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Timer（定时器）</strong>— 监控调用耗时，触发超时</li><li><strong>Timeout Value（超时阈值）</strong>— 根据服务 SLA 设定（如 P99 响应时间 + 20% 缓冲）</li><li><strong>Fallback Handler（降级处理器）</strong>— 超时后的响应（返回缓存、返回默认值、抛异常）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Timer</strong> — 监控调用耗时，触发超时（微波炉定时器）</li><li><strong>Timeout Value</strong> — 根据服务 SLA 设定（如 P99 响应时间 + 20% 缓冲）（微波炉设定时间）</li><li><strong>Fallback Handler</strong> — 超时后的响应（返回缓存、返回默认值、抛异常）（到时间后的提示音）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 根据历史响应时间设定超时阈值（不要太短误杀，也不要太长等待）</li><li>② 调用前启动定时器</li><li>③ 调用完成时取消定时器</li><li>④ 超时触发时，中断调用线程，返回降级响应</li><li>⑤ 记录超时指标，用于监控和报警</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 根据历史响应时间设定超时阈值（不要太短误杀，也不要太长等待）</li><li>2 调用前启动定时器</li><li>3 调用完成时取消定时器</li><li>4 超时触发时，中断调用线程，返回降级响应</li><li>5 记录超时指标，用于监控和报警</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">慢查询</span><span class="trigger">网络抖动</span><span class="trigger">服务响应慢</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 远程调用没有设置超时，线程一直等待响应。如果下游服务挂了，调用线程永远不释放。</p>
-  <p><strong>问题：</strong> 线程池被耗尽，整个服务无法处理任何请求。一个慢查询拖垮整个系统。</p>
-  <p><strong>超时的解法：</strong> 为每个远程调用设置最大等待时间。到时间就返回失败，释放资源。就像微波炉定时，到点就停。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>就像微波炉设定了 10 分钟，时间到了自动停止。如果没有超时，食物可能会烤焦，甚至引发火灾。超时就是系统的定时器。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">性能</span><span class="scene-tag">资源保护</span><span class="scene-tag">稳定性</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">服务间调用</span><span class="trigger">防止阻塞</span><span class="trigger">故障隔离</span><span class="trigger">资源保护</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>防止资源耗尽（线程不阻塞）</li><li>快速失败（用户不用无限等待）</li><li>保护调用方（不因为下游慢而拖垮自己）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>阈值需要合理设定（太短误杀正常请求）</li><li>可能误杀慢查询（大数据查询确实慢）</li><li>需要结合熔断器使用（超时频发说明下游有问题）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止无限等待（释放线程资源）</li><li>快速失败（提升用户体验）</li><li>明确故障边界（知道哪一步超时）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>阈值难设定（太短误杀，太长无效）</li><li>超时后需要降级逻辑（增加代码复杂度）</li><li>异步调用超时更难处理</li></ul></div>
   </div>
 </div>`,
 "13": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 13 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 13 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🛳️</span>
-    <span style="color:#f472b6">舱壁隔离</span>
+    <span style="font-size:2.2rem">🚢</span>
+    <span style="color:#667eea">舱壁隔离</span>
     <span style="font-size:0.85rem;color:#999">Bulkhead</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1599,17 +1944,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        舱壁隔离
+舱壁隔离
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        轮船防水舱：一个舱进水，其他舱不受影响，船不会沉。
+轮船防水舱：一个舱进水，其他舱不受影响，船不会沉。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        将资源（线程、连接、队列）划分为独立的池，局部故障不会影响整体系统。
+将资源（线程、连接、队列）划分为独立的池，局部故障不会影响整体系统。
       </div>
     </div>
     <div class="memory-tip">
@@ -1617,54 +1962,83 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>舱壁隔离给每个服务分配独立的线程池/连接池。A 服务耗尽自己的池，不影响 B 服务。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有舱壁隔离（一个服务拖垮所有）：所有服务共享一个线程池（100 线程）。商品详情服务出 Bug（死循环）。占满 100 个线程。订单服务、支付服务、用户服务全部没线程可用。整个系统瘫痪。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有舱壁隔离（故障隔离）：商品详情服务：独立线程池（20 线程）。订单服务：独立线程池（30 线程）。支付服务：独立线程池（30 线程）。用户服务：独立线程池（20 线程）。商品详情服务占满 20 线程。其他服务各自有线程，正常运行。只有商品详情服务受影响。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求订单服务 → 订单线程池（30/30 空闲）→ 正常处理
+用户请求支付服务 → 支付线程池（20/30 空闲）→ 正常处理
+用户请求商品服务 → 商品线程池（20/20 满）→ 商品服务故障
+                    → 商品请求被拒绝，不影响其他服务
+
+每个服务用自己的资源池，故障隔离，互不影响</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用舱壁隔离</th><th style="border:1px solid #ddd;padding:8px;">用舱壁隔离</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">一个服务拖垮所有服务</td><td style="border:1px solid #ddd;padding:8px;">只影响故障服务</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">资源竞争</td><td style="border:1px solid #ddd;padding:8px;">所有服务抢同一资源</td><td style="border:1px solid #ddd;padding:8px;">各服务资源独立</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪个服务导致的</td><td style="border:1px solid #ddd;padding:8px;">一眼看出是商品服务问题</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">系统可用性</td><td style="border:1px solid #ddd;padding:8px;">全部服务不可用</td><td style="border:1px solid #ddd;padding:8px;">核心服务（订单、支付）仍然可用</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Bulkhead:
+    def __init__(self, pool_size):
+        self.semaphore = Semaphore(pool_size)
+
+    def execute(self, func):
+        if not self.semaphore.acquire(timeout=1):
+            raise BulkheadFullException("线程池已满，拒绝请求")
+        try:
+            return func()
+        finally:
+            self.semaphore.release()
+
+# 为每个服务创建独立线程池
+order_pool = Bulkhead(pool_size=30)
+payment_pool = Bulkhead(pool_size=30)
+product_pool = Bulkhead(pool_size=20)
+
+# 使用
+order_pool.execute(lambda: order_service.create())
+payment_pool.execute(lambda: payment_service.charge())
+product_pool.execute(lambda: product_service.get_detail())
+# product_pool 满了 → 只影响商品服务</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Resource Pool（资源池）</strong>— 给每个服务或功能分配独立的线程池/连接池</li><li><strong>Isolation Enforcer（隔离执行器）</strong>— 强制执行资源隔离，不允许跨池使用</li><li><strong>Failure Monitor（故障监控器）</strong>— 监控各池使用情况，报警和自动扩容</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Resource Pool</strong> — 给每个服务或功能分配独立的线程池/连接池（轮船防水舱）</li><li><strong>Isolation Enforcer</strong> — 强制执行资源隔离，不允许跨池使用（舱壁钢板）</li><li><strong>Failure Monitor</strong> — 监控各池使用情况，报警和自动扩容（船长监控仪表）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 划分资源池（按服务、按功能、按优先级）</li><li>② 每个服务使用自己的池，不共享</li><li>③ 某池耗尽时，只影响该服务，不影响其他服务</li><li>④ 监控各池使用率，动态调整池大小</li><li>⑤ 设置池满时的拒绝策略（拒绝、排队、降级）</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 划分资源池（按服务、按功能、按优先级）</li><li>2 每个服务使用自己的池，不共享</li><li>3 某池耗尽时，只影响该服务，不影响其他服务</li><li>4 监控各池使用率，动态调整池大小</li><li>5 设置池满时的拒绝策略（拒绝、排队、降级）</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">线程池隔离</span><span class="trigger">服务分组</span><span class="trigger">资源分区</span><span class="trigger">数据库分库</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 所有服务共享一个线程池。一个服务把线程池占满，其他服务没线程可用。</p>
-  <p><strong>问题：</strong> 一个慢服务拖垮所有服务。故障传播，局部问题变成全局问题。</p>
-  <p><strong>舱壁隔离的解法：</strong> 给每个服务分配独立的线程池/连接池。A 服务耗尽自己的池，不影响 B 服务。就像轮船的防水舱，一个舱进水，其他舱安全。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>轮船的防水舱：一个舱进水了，其他舱不受影响，船不会沉。即使局部受损，整体依然安全。舱壁隔离就是给系统做防水舱。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">隔离</span><span class="scene-tag">故障控制</span><span class="scene-tag">资源管理</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>故障隔离（局部问题不影响全局）</li><li>资源控制（防止一个服务占满所有资源）</li><li>优先级保护（核心服务分配更多资源）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源利用率降低（每个池都有空闲）</li><li>配置复杂（需要为每个服务调优池大小）</li><li>监控困难（需要监控多个池）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>故障隔离（局部问题不影响全局）</li><li>资源保护（核心服务始终有资源）</li><li>便于排查（一眼看出哪个服务出问题）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源利用率低（每个池都有空闲资源）</li><li>配置复杂（需要为每个服务配置池大小）</li><li>池满时的拒绝策略需要设计</li></ul></div>
   </div>
 </div>`,
 "14": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 14 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 14 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🔽</span>
-    <span style="color:#f472b6">降级</span>
+    <span style="font-size:2.2rem">⬇️</span>
+    <span style="color:#667eea">降级</span>
     <span style="font-size:0.85rem;color:#999">Degradation</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1673,58 +2047,89 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        降级
+降级
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        医院急诊：病人太多时，优先救治危重病人，轻症暂缓。
+医院急诊室：病人太多时，优先救治危重病人，轻症患者等待。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        系统过载时，关闭非核心功能，保证核心业务的可用性，提供有损但可用的服务。
+系统过载时，关闭非核心功能，保证核心功能可用，是一种有损服务策略。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>降级 = 急诊分诊 → 保核心 → 非核心暂停 → 有损服务
+      <strong>💡 记忆口诀：</strong>降级 = 急诊分诊 → 保核心弃非核心 → 有损服务 → 系统不崩
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>降级在系统过载时，关闭非核心功能（如推荐、评论），把资源留给核心功能（如支付、下单）。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有降级（系统崩溃）：双 11 大促：100 万用户同时访问。系统处理所有请求（推荐、评论、下单、支付）。数据库连接池占满（1000 连接）。所有请求都慢，包括支付。用户无法完成购买，系统崩溃。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有降级（保住核心）：双 11 大促：100 万用户同时访问。系统检测到过载（CPU > 90%）。关闭推荐功能（非核心）。关闭评论功能（非核心）。简化商品详情页（非核心）。资源全部留给下单和支付（核心）。用户能完成购买，系统稳定。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">系统检测 CPU > 90% → 触发降级
+                    → 关闭推荐（返回空列表）
+                    → 关闭评论（返回暂无评论）
+                    → 简化商品详情（只返回基本信息）
+                    → 保留下单和支付（全功能）
+                    → 用户能完成购买
+
+负载恢复后（CPU < 70%）→ 自动恢复全部功能</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用降级</th><th style="border:1px solid #ddd;padding:8px;">用降级</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">大促活动</td><td style="border:1px solid #ddd;padding:8px;">系统崩溃，全部功能不可用</td><td style="border:1px solid #ddd;padding:8px;">核心功能可用，非核心关闭</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">所有功能都慢，无法完成购买</td><td style="border:1px solid #ddd;padding:8px;">能完成购买，只是看不到推荐</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">系统可用性</td><td style="border:1px solid #ddd;padding:8px;">全部挂掉</td><td style="border:1px solid #ddd;padding:8px;">核心功能稳定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">收入影响</td><td style="border:1px solid #ddd;padding:8px;">零订单</td><td style="border:1px solid #ddd;padding:8px;">订单正常，只是推荐减少</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class DegradationService:
+    def __init__(self):
+        self.health = HealthMonitor()
+
+    def get_recommendations(self, user_id):
+        if self.health.is_overloaded():
+            # 降级：返回空列表，不查推荐服务
+            return []
+        return recommendation_service.get(user_id)
+
+    def get_comments(self, product_id):
+        if self.health.is_overloaded():
+            # 降级：返回静态数据
+            return {"comments": "暂无评论"}
+        return comment_service.get(product_id)
+
+    def checkout(self, order):
+        # 核心功能，永不降级
+        return order_service.create(order)
+
+    def is_overloaded(self):
+        return cpu_usage > 90 or memory_usage > 85</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Degradation Router（降级路由器）</strong>— 根据系统负载和功能优先级，路由到降级实现</li><li><strong>Priority Config（优先级配置）</strong>— 定义功能优先级（核心/重要/非核心）</li><li><strong>Health Monitor（健康监控器）</strong>— 监控 CPU、内存、延迟，触发降级和恢复</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Degradation Router</strong> — 根据系统负载和功能优先级，路由到降级实现（急诊分诊台）</li><li><strong>Priority Config</strong> — 定义功能优先级（核心/重要/非核心）（病历分级）</li><li><strong>Health Monitor</strong> — 监控 CPU、内存、延迟，触发降级和恢复（医生判断）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义功能优先级（支付 = 核心，推荐 = 非核心）</li><li>② 为每个功能准备降级实现（推荐关闭、详情页简化）</li><li>③ 监控负载指标，超过阈值时触发降级</li><li>④ 按优先级关闭非核心功能，保留核心功能</li><li>⑤ 负载恢复后自动关闭降级</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义功能优先级（支付 = 核心，推荐 = 非核心）</li><li>2 为每个功能准备降级实现（推荐关闭、详情页简化）</li><li>3 监控负载指标，超过阈值时触发降级</li><li>4 按优先级关闭非核心功能，保留核心功能</li><li>5 负载恢复后自动关闭降级</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">大促活动</span><span class="trigger">服务过载</span><span class="trigger">依赖故障</span><span class="trigger">非核心功能关闭</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 系统过载时，所有功能都平等处理。结果核心功能（如支付）和非核心功能（如推荐）都变慢，用户无法完成关键操作。</p>
-  <p><strong>问题：</strong> 非核心功能占用资源，导致核心功能不可用。系统应该优先保证核心功能。</p>
-  <p><strong>降级的解法：</strong> 定义功能优先级。过载时关闭非核心功能（如关闭推荐、简化详情页），把资源留给核心功能。就像医院急诊，优先救治危重病人。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>医院急诊室病人太多时，医生优先救治危重病人，轻症患者需要等待。降级就是系统的急诊分诊：保证核心功能不崩，非核心功能可以等。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">降级</span><span class="scene-tag">有损服务</span><span class="scene-tag">稳定性</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Michael Nygard, 《Release It!》</li><li>Google, 《Site Reliability Engineering》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -1733,12 +2138,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "15": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 15 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 15 个模式</div>
   <h2>
     <span style="font-size:2.2rem">♻️</span>
-    <span style="color:#f472b6">幂等</span>
+    <span style="color:#667eea">幂等</span>
     <span style="font-size:0.85rem;color:#999">Idempotency</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1747,17 +2152,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        幂等
+幂等
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        电梯按钮：按一次和按十次效果一样，电梯只来一趟。
+电梯按钮：按一次和按十次效果一样，电梯只来一趟。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        重复执行同一操作不会产生副作用，保证在重试或网络抖动时的数据安全。
+重复执行同一操作不会产生副作用，保证在重试或网络抖动时的数据安全。
       </div>
     </div>
     <div class="memory-tip">
@@ -1765,54 +2170,87 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>幂等保证同样的请求执行多次，结果和一次一样。重试不会重复扣款、重复下单。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有幂等（重复扣款）：用户点击支付 → 网络抖动 → 请求超时。用户再次点击支付 → 又发了一次请求。支付服务处理两次请求。用户被扣了 2 笔 5000 元。用户投诉多扣款。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有幂等（只扣一次）：用户点击支付 → 生成幂等键（UUID）。网络抖动 → 请求超时。用户再次点击支付 → 使用同一个幂等键。支付服务检查：这个键已经处理过。直接返回上次结果（支付成功）。用户只扣了一笔 5000 元。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户点击支付 → 生成幂等键（如 pay-uuid-123）
+            → 发送请求到支付服务
+            → 支付服务检查 Redis：这个键存在吗？
+            → 不存在 → 执行扣款 → 存储键和结果到 Redis
+            → 返回支付成功
+
+网络超时，用户再次点击 → 使用同一个幂等键
+            → 支付服务检查 Redis：这个键已存在
+            → 直接返回上次结果支付成功
+            → 不执行扣款
+→ 只扣一次款</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用幂等</th><th style="border:1px solid #ddd;padding:8px;">用幂等</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">网络超时重试</td><td style="border:1px solid #ddd;padding:8px;">重复扣款、重复下单</td><td style="border:1px solid #ddd;padding:8px;">只执行一次，重复请求返回相同结果</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户多次点击</td><td style="border:1px solid #ddd;padding:8px;">产生多个订单</td><td style="border:1px solid #ddd;padding:8px;">同一个请求，只产生一个订单</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">消息队列重复消费</td><td style="border:1px solid #ddd;padding:8px;">重复处理消息</td><td style="border:1px solid #ddd;padding:8px;">去重，只处理一次</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据一致性</td><td style="border:1px solid #ddd;padding:8px;">脏数据</td><td style="border:1px solid #ddd;padding:8px;">数据干净，无副作用</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class IdempotencyService:
+    def __init__(self, redis):
+        self.redis = redis
+
+    def process(self, idempotency_key, func):
+        # 检查是否已经处理过
+        cached = self.redis.get(f"idem:{idempotency_key}")
+        if cached:
+            return json.loads(cached)  # 直接返回上次结果
+
+        # 执行操作
+        result = func()
+        
+        # 存储结果，设置过期时间（如 24 小时）
+        self.redis.setex(f"idem:{idempotency_key}", 86400, json.dumps(result))
+        return result
+
+# 使用
+service = IdempotencyService(redis)
+result = service.process("pay-uuid-123", lambda: payment_service.charge(5000))
+# 第二次调用（重试）→ 直接返回缓存结果，不扣款</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Idempotency Key（幂等键）</strong>— 唯一标识请求（如 UUID），由客户端生成</li><li><strong>Deduplication Store（去重存储）</strong>— 存储已处理的 Key 和结果（如 Redis）</li><li><strong>Validator（验证器）</strong>— 检查 Key 是否已存在，存在则返回缓存结果</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Idempotency Key</strong> — 唯一标识请求（如 UUID），由客户端生成（电梯按钮的唯一标识）</li><li><strong>Deduplication Store</strong> — 存储已处理的 Key 和结果（如 Redis）（电梯记录本）</li><li><strong>Validator</strong> — 检查 Key 是否已存在，存在则返回缓存结果（电梯控制系统）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 客户端生成唯一幂等键（每次请求不同）</li><li>② 业务操作前先查去重存储</li><li>③ 已存在则返回之前的结果（不执行业务）</li><li>④ 不存在则执行业务并存储结果</li><li>⑤ 设置过期时间（如 24 小时），清理旧 Key</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 客户端生成唯一幂等键（每次请求不同）</li><li>2 业务操作前先查去重存储</li><li>3 已存在则返回之前的结果（不执行业务）</li><li>4 不存在则执行业务并存储结果</li><li>5 设置过期时间（如 24 小时），清理旧 Key</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">支付回调</span><span class="trigger">接口重试</span><span class="trigger">消息消费</span><span class="trigger">表单提交</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 用户点击支付按钮两次，系统扣款两次。网络超时后重试，系统又扣款一次。</p>
-  <p><strong>问题：</strong> 重复操作导致数据错误。用户被多扣钱，库存被多扣。分布式环境下重试是常态，必须保证安全。</p>
-  <p><strong>幂等的解法：</strong> 每个请求带唯一 ID（如 UUID）。系统先检查这个 ID 是否已经处理过。如果已处理，直接返回之前的结果，不执行业务逻辑。就像电梯按钮，按一次和按十次效果一样。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>电梯按钮：按一次和按十次效果一样，电梯只来一趟。不会因为多按几次就多来几趟。幂等就是系统的电梯按钮。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">安全</span><span class="scene-tag">重复处理</span><span class="scene-tag">幂等</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">支付接口</span><span class="trigger">重复请求</span><span class="trigger">消息队列</span><span class="trigger">重试机制</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>安全可靠（重复操作无影响）</li><li>支持重试（不怕网络超时）</li><li>简单实现（中间件即可）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储开销（需要存储所有 Key）</li><li>过期处理（Key 何时删除？）</li><li>设计复杂（需要为每个接口考虑幂等）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止重复操作（重试不重复扣款）</li><li>数据安全（网络抖动不会导致脏数据）</li><li>简单实现（Redis 存储即可）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>需要存储空间（Redis 缓存）</li><li>过期时间难设定（太短重试失效，太长占用空间）</li><li>客户端需要生成唯一键</li></ul></div>
   </div>
 </div>`,
 "16": `<div class="modal-header">
-  <div class="pattern-id">代码实现层 · 第 16 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 16 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🔐</span>
-    <span style="color:#f472b6">分布式锁</span>
+    <span style="font-size:2.2rem">🔒</span>
+    <span style="color:#667eea">分布式锁</span>
     <span style="font-size:0.85rem;color:#999">Distributed Lock</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#f472b615;color:#f472b6;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #f472b630">代码实现层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1821,17 +2259,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        分布式锁
+分布式锁
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        公共厕所：有人进去就锁门，外面的人必须等待。
+公共厕所：有人进去就锁门，外面的人必须等待。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        在分布式环境下实现互斥访问，防止多个进程同时操作共享资源。
+在分布式环境下实现互斥访问，防止多个进程同时操作共享资源。
       </div>
     </div>
     <div class="memory-tip">
@@ -1839,54 +2277,97 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>分布式锁确保同一时间只有一个进程能操作某个资源。操作前先获取锁，获取成功才能执行，执行完释放锁。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有分布式锁（超卖）：秒杀活动：库存只剩 1 件。用户 A 查询：库存 = 1，可以购买。用户 B 查询：库存 = 1，可以购买。用户 A 扣减：库存 = 0。用户 B 扣减：库存 = -1。超卖！卖出 2 件，实际只有 1 件。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有分布式锁（安全）：秒杀活动：库存只剩 1 件。用户 A 请求 → 获取锁（成功）→ 查询库存 = 1 → 扣减 → 释放锁。用户 B 请求 → 获取锁（失败，等待）→ 等 A 释放锁 → 查询库存 = 0 → 返回已售罄。只卖出 1 件，不超卖。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户 A 请求扣库存 → 获取分布式锁（Redis SETNX）
+                  → 获取成功 → 查询库存 = 1
+                  → 扣减库存 → 库存 = 0
+                  → 释放锁
+
+用户 B 请求扣库存 → 获取锁（失败，A 还没释放）
+                  → 等待或返回系统繁忙
+                  → A 释放锁后，B 获取锁
+                  → 查询库存 = 0 → 返回已售罄
+
+同一时间只有一个用户能操作库存</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用分布式锁</th><th style="border:1px solid #ddd;padding:8px;">用分布式锁</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">库存扣减</td><td style="border:1px solid #ddd;padding:8px;">超卖（卖出比库存多）</td><td style="border:1px solid #ddd;padding:8px;">精确扣减，不超卖</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">订单生成</td><td style="border:1px solid #ddd;padding:8px;">重复订单号</td><td style="border:1px solid #ddd;padding:8px;">全局唯一订单号</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">定时任务</td><td style="border:1px solid #ddd;padding:8px;">多个节点同时执行</td><td style="border:1px solid #ddd;padding:8px;">只有一个节点执行</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">全局唯一 ID</td><td style="border:1px solid #ddd;padding:8px;">重复 ID</td><td style="border:1px solid #ddd;padding:8px;">唯一 ID</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import redis
+
+class DistributedLock:
+    def __init__(self, redis_client, key, expire=10):
+        self.redis = redis_client
+        self.key = f"lock:{key}"
+        self.expire = expire
+        self.identifier = str(uuid.uuid4())
+
+    def acquire(self):
+        # SETNX: 只有 key 不存在时才设置（原子操作）
+        acquired = self.redis.set(
+            self.key, self.identifier,
+            nx=True, ex=self.expire
+        )
+        return acquired
+
+    def release(self):
+        # 只有锁的持有者的才能释放（防止误释放别人的锁）
+        if self.redis.get(self.key) == self.identifier:
+            self.redis.delete(self.key)
+
+# 使用
+lock = DistributedLock(redis, "stock:sku123", expire=10)
+if lock.acquire():
+    try:
+        stock_service.deduct("sku123", 1)
+    finally:
+        lock.release()
+else:
+    return "系统繁忙，请重试"</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Lock Manager（锁管理器）</strong>— 管理锁的获取、续期、释放</li><li><strong>Lock Store（锁存储）</strong>— 存储锁状态（如 Redis、Zookeeper）</li><li><strong>Watchdog（看门狗）</strong>— 检测锁持有者是否存活，防止死锁</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Lock Manager</strong> — 管理锁的获取、续期、释放（厕所管理员）</li><li><strong>Lock Store</strong> — 存储锁状态（如 Redis、Zookeeper）（厕所门锁）</li><li><strong>Watchdog</strong> — 检测锁持有者是否存活，防止死锁（保洁员检查）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 客户端请求加锁（设置唯一标识）</li><li>② 锁服务检查是否可用（利用原子操作如 Redis SETNX）</li><li>③ 可用则创建锁，设置过期时间（防止死锁）</li><li>④ 执行业务操作</li><li>⑤ 操作完成后释放锁（检查标识，防止误释放别人的锁）</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 客户端请求加锁（设置唯一标识）</li><li>2 锁服务检查是否可用（利用原子操作如 Redis SETNX）</li><li>3 可用则创建锁，设置过期时间（防止死锁）</li><li>4 执行业务操作</li><li>5 操作完成后释放锁（检查标识，防止误释放别人的锁）</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">库存扣减</span><span class="trigger">订单防重</span><span class="trigger">定时任务</span><span class="trigger">全局唯一ID</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 多个进程同时操作同一个资源（如扣库存），没有协调，导致超卖或数据不一致。</p>
-  <p><strong>问题：</strong> 并发竞争导致数据错误。A 和 B 同时看到库存 = 1，都扣减，结果库存 = -1。</p>
-  <p><strong>分布式锁的解法：</strong> 操作前先获取锁，获取成功才能执行。执行完成后释放锁。其他进程必须等待。就像公共厕所，有人进去就锁门。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>公共厕所：有人进去就锁门，外面的人必须等待。没人时门开着，大家都能进。分布式锁就是系统的厕所门锁。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">并发</span><span class="scene-tag">锁</span><span class="scene-tag">资源保护</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Martin Kleppmann, 《Designing Data-Intensive Applications》</li><li>Sam Newman, 《Building Microservices》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>互斥访问（保证数据安全）</li><li>通用方案（各种场景都适用）</li><li>实现简单（基于 Redis 即可）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>性能开销（加锁解锁需要时间）</li><li>死锁风险（锁持有者挂了，锁不释放）</li><li>实现复杂（需要处理锁续期、误释放等）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保证数据一致性（不超卖、不重复）</li><li>简单易实现（Redis SETNX 即可）</li><li>自动过期（防止死锁）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>性能开销（获取锁需要网络请求）</li><li>死锁风险（锁持有者崩溃，未释放）</li><li>锁粒度难把握（太粗性能差，太细容易死锁）</li></ul></div>
   </div>
 </div>`,
 "17": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 17 个模式</div>
+  <div class="pattern-id">代码实现层 &middot; 第 17 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🔍</span>
-    <span style="color:#4ecdc4">服务发现</span>
+    <span style="color:#667eea">服务发现</span>
     <span style="font-size:0.85rem;color:#999">Service Discovery</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">代码实现层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1895,58 +2376,95 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        服务发现
+服务发现
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。
+医院导诊台：新医生来了登记，病人问导诊台找医生，不用记办公室号码。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        服务启动时注册自己，客户端通过服务名动态发现可用实例，不依赖硬编码 IP。
+服务启动时向注册中心注册自己，客户端通过服务名查询注册中心获取可用实例列表。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>服务发现 = 导诊台 → 注册/查询 → 动态发现 → 不用硬编码地址
+      <strong>💡 记忆口诀：</strong>服务发现 = 导诊台 → 新医生登记 → 病人问导诊台 → 不用记号码
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>服务发现让服务启动时自动登记，客户端通过服务名找服务，不用硬编码 IP 地址。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有服务发现（硬编码地址）：订单服务配置：payment_service_url = http://192.168.1.100:8080。支付服务扩容到新机器 192.168.1.101。订单服务要改代码、重新发布。所有调用支付服务的客户端都要改。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有服务发现（动态发现）：订单服务配置：payment_service_name = payment-service。启动时查询 Eureka：payment-service 有哪些实例？返回 [192.168.1.100:8080, 192.168.1.101:8080]。自动负载均衡到两个实例。支付服务扩容/下线，订单服务无需修改。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">支付服务启动 → 向 Eureka 注册（IP: 192.168.1.100:8080）
+            → 定期发送心跳（每 30 秒）
+
+订单服务调用支付服务 → 查询 Eureka：payment-service 实例列表？
+                    → 返回 [192.168.1.100:8080, 192.168.1.101:8080]
+                    → 选择其中一个实例调用
+                    → 调用成功
+
+支付服务宕机 → 心跳停止 → Eureka 剔除该实例
+            → 订单服务下次查询 → 只返回健康实例</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用服务发现</th><th style="border:1px solid #ddd;padding:8px;">用服务发现</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务扩容</td><td style="border:1px solid #ddd;padding:8px;">改代码、重新发布所有客户端</td><td style="border:1px solid #ddd;padding:8px;">自动发现，无需修改</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务迁移</td><td style="border:1px solid #ddd;padding:8px;">改 IP 地址，重新发布</td><td style="border:1px solid #ddd;padding:8px;">自动更新，无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">流量仍打到死节点</td><td style="border:1px solid #ddd;padding:8px;">自动剔除不健康实例</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置管理</td><td style="border:1px solid #ddd;padding:8px;">配置文件到处分散</td><td style="border:1px solid #ddd;padding:8px;">注册中心统一管理</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ServiceRegistry:
+    def __init__(self):
+        self.services = {}
+
+    def register(self, service_name, instance):
+        self.services.setdefault(service_name, []).append(instance)
+
+    def discover(self, service_name):
+        return self.services.get(service_name, [])
+
+class ServiceClient:
+    def __init__(self, registry):
+        self.registry = registry
+        self.load_balancer = RoundRobin()
+
+    def call(self, service_name, method, **kwargs):
+        instances = self.registry.discover(service_name)
+        instance = self.load_balancer.pick(instances)
+        return requests.post(f"http://{instance}/{method}", **kwargs)
+
+# 使用
+registry = ServiceRegistry()
+registry.register("payment-service", "192.168.1.100:8080")
+
+client = ServiceClient(registry)
+client.call("payment-service", "charge", amount=5000)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Registry（注册中心）</strong>— 存储服务实例信息（如 Eureka、Consul、Zookeeper）</li><li><strong>Service Provider（服务提供者）</strong>— 服务启动时注册自己，定期发送心跳保持健康</li><li><strong>Service Consumer（服务消费者）</strong>— 通过服务名查询注册中心，获取可用实例列表</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Registry</strong> — 存储服务实例信息（如 Eureka、Consul）（医院导诊台）</li><li><strong>Service Provider</strong> — 服务启动时注册自己，定期发送心跳保持健康（新医生登记）</li><li><strong>Service Consumer</strong> — 通过服务名查询注册中心，获取可用实例列表（问导诊台的病人）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 服务启动时向注册中心注册（IP、端口、健康状态）</li><li>② 定期发送心跳，保持健康状态</li><li>③ 客户端通过服务名查询注册中心</li><li>④ 注册中心返回可用实例列表（不健康实例已剔除）</li><li>⑤ 服务下线时注销，客户端自动刷新列表</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 服务启动时向注册中心注册（IP、端口、健康状态）</li><li>2 定期发送心跳，保持健康状态</li><li>3 客户端通过服务名查询注册中心</li><li>4 注册中心返回可用实例列表（不健康实例已剔除）</li><li>5 服务下线时注销，客户端自动刷新列表</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">微服务注册</span><span class="trigger">动态扩缩容</span><span class="trigger">K8s服务</span><span class="trigger">负载均衡前置</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 服务地址硬编码在客户端。服务扩容或迁移时，客户端必须修改代码重新发布。</p>
-  <p><strong>问题：</strong> 服务地址变化导致客户端大面积修改。无法动态扩缩容，新服务无法自动被发现。</p>
-  <p><strong>服务发现的解法：</strong> 服务启动时向注册中心注册自己（IP+端口）。客户端通过服务名向注册中心查询，获取可用实例列表。就像医院导诊台，新医生来了登记，病人问导诊台找医生。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。不用记住每个医生的办公室号码，导诊台会告诉你。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">微服务</span><span class="scene-tag">注册</span><span class="scene-tag">发现</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -1955,12 +2473,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "18": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 18 个模式</div>
+  <div class="pattern-id">运维保障层 &middot; 第 18 个模式</div>
   <h2>
     <span style="font-size:2.2rem">⚖️</span>
-    <span style="color:#4ecdc4">负载均衡</span>
+    <span style="color:#667eea">负载均衡</span>
     <span style="font-size:0.85rem;color:#999">Load Balancing</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -1969,17 +2487,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        负载均衡
+负载均衡
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        超市收银台：多个柜台分流顾客，避免某个柜台排太长队。
+超市收银台：多个柜台分流顾客，避免某个柜台排太长队。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        将请求均匀分配到多个服务实例，避免单点过载，提高系统吞吐量。
+将请求均匀分配到多个服务实例，避免单点过载，提高系统吞吐量。
       </div>
     </div>
     <div class="memory-tip">
@@ -1987,54 +2505,90 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>负载均衡器接收请求，按算法（轮询、随机、加权）分发到后端实例。不健康的实例会被剔除。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有负载均衡（单点过载）：3 台订单服务：A、B、C。用户请求全部打到 A。A 的 CPU 100%，响应 500ms。B 和 C 空闲，CPU 10%。资源浪费，用户体验差。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有负载均衡（均匀分配）：3 台订单服务：A、B、C。用户请求 1 → 负载均衡器 → A。用户请求 2 → 负载均衡器 → B。用户请求 3 → 负载均衡器 → C。用户请求 4 → 负载均衡器 → A。A、B、C 各处理 1/3 请求。每台 CPU 40%，响应 50ms。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → 负载均衡器（Nginx）
+         → 轮询算法
+         → 实例 A（健康）→ 处理请求
+         → 实例 B（健康）→ 处理请求
+         → 实例 C（健康）→ 处理请求
+         → 实例 D（不健康）→ 剔除，不分配流量
+
+每台实例处理相同数量请求，压力均匀分布</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用负载均衡</th><th style="border:1px solid #ddd;padding:8px;">用负载均衡</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">请求分配</td><td style="border:1px solid #ddd;padding:8px;">全部打到一台，单点过载</td><td style="border:1px solid #ddd;padding:8px;">均匀分配，每台压力相同</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障处理</td><td style="border:1px solid #ddd;padding:8px;">死节点仍接收流量</td><td style="border:1px solid #ddd;padding:8px;">不健康实例自动剔除</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">扩容</td><td style="border:1px solid #ddd;padding:8px;">新机器无法接入</td><td style="border:1px solid #ddd;padding:8px;">新机器自动加入分配</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能</td><td style="border:1px solid #ddd;padding:8px;">单点响应慢</td><td style="border:1px solid #ddd;padding:8px;">多台并行，响应快</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LoadBalancer:
+    def __init__(self, instances):
+        self.instances = instances
+        self.index = 0
+        self.healthy = set(instances)
+
+    def pick(self):
+        # 轮询算法
+        for _ in range(len(self.instances)):
+            instance = self.instances[self.index % len(self.instances)]
+            self.index += 1
+            if instance in self.healthy:
+                return instance
+        raise NoHealthyInstance()
+
+    def health_check(self):
+        for instance in self.instances:
+            if not self.check_health(instance):
+                self.healthy.discard(instance)
+            else:
+                self.healthy.add(instance)
+
+# 使用
+lb = LoadBalancer(["A", "B", "C"])
+for request in requests:
+    instance = lb.pick()
+    instance.process(request)</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Load Balancer（负载均衡器）</strong>— 接收请求，按算法分发到后端实例</li><li><strong>Health Checker（健康检查器）</strong>— 定期检测后端实例状态，剔除不健康实例</li><li><strong>Algorithm（分配算法）</strong>— 轮询、随机、加权、最小连接、一致性哈希</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Load Balancer</strong> — 接收请求，按算法分发到后端实例（收银台分配员）</li><li><strong>Health Checker</strong> — 定期检测后端实例状态，剔除不健康实例（体检医生）</li><li><strong>Algorithm</strong> — 轮询、随机、加权、最小连接、一致性哈希（分配规则）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 维护可用服务实例列表（动态更新）</li><li>② 定期健康检查，剔除异常实例</li><li>③ 根据算法选择目标实例（轮询、随机、加权）</li><li>④ 转发请求到选中实例</li><li>⑤ 记录分发指标，动态调整权重</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 维护可用服务实例列表（动态更新）</li><li>2 定期健康检查，剔除异常实例</li><li>3 根据算法选择目标实例（轮询、随机、加权）</li><li>4 转发请求到选中实例</li><li>5 记录分发指标，动态调整权重</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">网关分发</span><span class="trigger">服务集群</span><span class="trigger">数据库读写分离</span><span class="trigger">CDN调度</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 所有请求打到同一个服务器。服务器过载，其他服务器空闲。</p>
-  <p><strong>问题：</strong> 单点过载，资源利用率不均。某台服务器挂了，请求继续打到它，全部失败。</p>
-  <p><strong>负载均衡的解法：</strong> 在请求入口设置负载均衡器，按规则分发到多台服务器。不健康的服务器自动剔除。就像超市多个收银台，顾客分流排队。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>超市有多个收银台，顾客来了会分流到不同柜台。如果某个柜台的人特别多，店长会引导顾客去人少的柜台。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">性能</span><span class="scene-tag">扩展性</span><span class="scene-tag">高可用</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Sam Newman, 《Building Microservices》</li><li>Cornelia Davis, 《Cloud Native Patterns》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">微服务入口</span><span class="trigger">多实例部署</span><span class="trigger">高可用</span><span class="trigger">流量分发</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>提高吞吐量（多服务器并行处理）</li><li>消除单点（一台挂了不影响整体）</li><li>支持弹性伸缩（加机器自动加入）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>引入额外跳转（延迟增加）</li><li>会话保持复杂（请求可能分到不同服务器）</li><li>健康检查有开销</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>均匀分配（避免单点过载）</li><li>故障隔离（不健康实例自动剔除）</li><li>支持扩容（新实例自动加入）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>负载均衡器是单点（需要高可用）</li><li>算法选择困难（不同场景适合不同算法）</li><li>健康检查有延迟（死节点可能仍接收流量）</li></ul></div>
   </div>
 </div>`,
 "19": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 19 个模式</div>
+  <div class="pattern-id">运维保障层 &middot; 第 19 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">💓</span>
-    <span style="color:#4ecdc4">健康探针</span>
+    <span style="font-size:2.2rem">🏥</span>
+    <span style="color:#667eea">健康探针</span>
     <span style="font-size:0.85rem;color:#999">Health Probe</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2043,17 +2597,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        健康探针
+健康探针
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        体检中心：定期给人做检查，有问题早发现早治疗。
+体检中心：定期给人做检查，有问题早发现早治疗。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        定期检测服务健康状态，不健康的实例从流量中剔除，自动恢复后重新加入。
+定期检测服务健康状态，不健康的实例从流量中剔除，自动恢复后重新加入。
       </div>
     </div>
     <div class="memory-tip">
@@ -2061,54 +2615,79 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>健康探针定期 ping 服务的健康端点（/health）。如果连续多次失败，就认为服务不健康，从负载均衡中剔除。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有健康探针（流量打到死节点）：3 台订单服务：A、B、C。服务 A 挂了（内存溢出）。负载均衡器不知道 A 挂了。用户请求仍分配到 A。用户看到错误页面。1/3 的用户请求失败。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有健康探针（自动剔除）：3 台订单服务：A、B、C。K8s 每 10 秒探测 A 的 /health 端点。连续 3 次失败 → 认为 A 不健康。从负载均衡中剔除 A。用户请求只分配到 B 和 C。全部请求成功。A 恢复后，探测成功，重新加入。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">K8s 每 10 秒探测服务 → 发送 HTTP GET /health
+                → 返回 200 → 健康，继续接收流量
+                → 连续 3 次失败 → 不健康
+                → 从负载均衡中剔除
+                → 不分配新流量
+
+服务恢复后 → 探测成功 → 重新加入负载均衡
+            → 继续接收流量</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用健康探针</th><th style="border:1px solid #ddd;padding:8px;">用健康探针</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务挂了</td><td style="border:1px solid #ddd;padding:8px;">流量仍打到死节点，用户报错</td><td style="border:1px solid #ddd;padding:8px;">自动剔除，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障发现</td><td style="border:1px solid #ddd;padding:8px;">人工排查，耗时久</td><td style="border:1px solid #ddd;padding:8px;">自动检测，秒级发现</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">自动恢复</td><td style="border:1px solid #ddd;padding:8px;">死节点一直接收流量</td><td style="border:1px solid #ddd;padding:8px;">恢复后自动重新加入</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">资源浪费</td><td style="border:1px solid #ddd;padding:8px;">死节点占用资源处理错误请求</td><td style="border:1px solid #ddd;padding:8px;">资源只分配给健康节点</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">from flask import Flask, jsonify
+app = Flask(__name__)
+
+@app.route('/health')
+def health():
+    if app.is_ready and app.is_alive:
+        return jsonify({"status": "healthy"}), 200
+    elif app.is_alive and not app.is_ready:
+        return jsonify({"status": "not ready"}), 503
+    else:
+        return jsonify({"status": "unhealthy"}), 500
+
+# K8s 配置
+# livenessProbe: 进程是否运行（未运行则重启）
+# readinessProbe: 是否可接收流量（未就绪则摘除流量）
+# startupProbe: 启动是否完成（避免启动慢被误判为死）</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Liveness Probe（存活探针）</strong>— 检测进程是否运行（未运行则重启）</li><li><strong>Readiness Probe（就绪探针）</strong>— 检测是否可接收流量（未就绪则摘除流量）</li><li><strong>Startup Probe（启动探针）</strong>— 检测启动是否完成（避免启动慢被误判为死）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Liveness Probe</strong> — 检测进程是否运行（未运行则重启）（心电图）</li><li><strong>Readiness Probe</strong> — 检测是否可接收流量（未就绪则摘除流量）（血压检查）</li><li><strong>Startup Probe</strong> — 检测启动是否完成（避免启动慢被误判为死）（startup 检查）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义探针端点（如 /health，返回 200 表示健康）</li><li>② 配置探针间隔（如每 10 秒检查一次）和失败阈值（如连续 3 次失败）</li><li>③ 定期发送探针请求</li><li>④ 不健康时从负载均衡中摘除</li><li>⑤ 恢复后重新加入负载均衡</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义探针端点（如 /health，返回 200 表示健康）</li><li>2 配置探针间隔（如每 10 秒检查一次）和失败阈值（如连续 3 次失败）</li><li>3 定期发送探针请求</li><li>4 不健康时从负载均衡中摘除</li><li>5 恢复后重新加入负载均衡</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">K8s存活检查</span><span class="trigger">服务状态监控</span><span class="trigger">自动重启</span><span class="trigger">流量摘除</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 不知道服务是否还活着。服务挂了还在接收流量，用户看到的是错误页面。运维手动检查服务状态。</p>
-  <p><strong>问题：</strong> 故障发现慢，人工排查耗时。流量打到死节点，浪费资源。</p>
-  <p><strong>健康探针的解法：</strong> 定期检测服务状态（HTTP 请求 /health 端点）。不健康实例从负载均衡中剔除。恢复后自动重新加入。就像体检中心，定期检查身体。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>体检中心定期给人做检查，血压高了早发现，早治疗。健康探针就是系统的体检，定期检查每个服务，有问题的及时隔离。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">健康</span><span class="scene-tag">探针</span><span class="scene-tag">自动化</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>自动发现故障（无需人工）</li><li>快速恢复（自动重启或摘除流量）</li><li>减少人工运维</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>探针有开销（定期请求占用资源）</li><li>误判风险（探针失败但服务正常）</li><li>配置复杂（阈值、间隔、超时需要调优）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>自动故障发现（秒级检测）</li><li>自动恢复（健康后自动重新加入）</li><li>减少用户影响（不健康的实例不接收流量）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>探针本身有开销（定期请求占用资源）</li><li>误判（服务短暂卡顿被当成挂了）</li><li>探针端点需要设计（不能影响正常业务）</li></ul></div>
   </div>
 </div>`,
 "20": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 20 个模式</div>
+  <div class="pattern-id">运维保障层 &middot; 第 20 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🔁</span>
-    <span style="color:#4ecdc4">调和回路</span>
+    <span style="font-size:2.2rem">🔄</span>
+    <span style="color:#667eea">调和回路</span>
     <span style="font-size:0.85rem;color:#999">Reconciliation Loop</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2117,58 +2696,97 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        调和回路
+调和回路
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        扫地机器人：设定目标（全扫一遍），不断调整路径直到完成。
+扫地机器人：设定目标后不断检测哪里没扫，调整路径直到完成。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        持续比较系统的实际状态与期望状态，自动执行操作使两者对齐。
+声明期望状态，控制器持续检测实际状态，发现差异后自动执行操作使两者对齐。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>调和回路 = 扫地机器人 → 实际vs期望 → 持续修正 → 自动对齐
+      <strong>💡 记忆口诀：</strong>调和回路 = 扫地机器人 → 设定目标 → 检测差异 → 自动调整 → 直到完成
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>调和回路先声明想要的状态（如 3 个 Pod），然后不断检测实际状态。如果实际和期望不一样，自动执行操作让它们一致。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有调和回路（配置漂移）：你声明：需要 3 个订单服务 Pod。运维手动创建 3 个 Pod。某个 Pod 挂了（节点故障）。现在只有 2 个 Pod。你需要手动发现，手动创建新 Pod。期间服务容量不足，用户请求变慢。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有调和回路（自动修复）：你声明：需要 3 个订单服务 Pod（YAML）。K8s 控制器持续检测。发现只有 2 个 Pod。自动创建第 3 个 Pod。发现 Pod 分布不均衡。自动调度到空闲节点。始终维持 3 个 Pod。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">声明期望状态：3 个 Pod
+            ↓
+控制器检测实际状态：2 个 Pod
+            ↓
+差异 = 1 个 Pod
+            ↓
+执行操作：创建 1 个新 Pod
+            ↓
+再次检测：3 个 Pod = 期望状态 checkmark
+            ↓
+持续循环监控...</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用调和回路</th><th style="border:1px solid #ddd;padding:8px;">用调和回路</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置漂移</td><td style="border:1px solid #ddd;padding:8px;">人工发现，手动修复，慢且易遗漏</td><td style="border:1px solid #ddd;padding:8px;">自动检测，自动修复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">需要人工创建新实例</td><td style="border:1px solid #ddd;padding:8px;">自动创建，秒级恢复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">扩容</td><td style="border:1px solid #ddd;padding:8px;">手动操作，容易出错</td><td style="border:1px solid #ddd;padding:8px;">自动调整，无需人工</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">一致性</td><td style="border:1px solid #ddd;padding:8px;">实际和期望不一致</td><td style="border:1px solid #ddd;padding:8px;">始终保持一致</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Controller:
+    def __init__(self, desired_state):
+        self.desired = desired_state
+
+    def run(self):
+        while True:
+            actual = self.get_actual_state()
+            if actual != self.desired:
+                diff = self.calculate_diff(actual, self.desired)
+                self.apply(diff)
+            time.sleep(10)  # 每 10 秒检查一次
+
+    def get_actual_state(self):
+        return k8s.get_pod_count("order-service")
+
+    def calculate_diff(self, actual, desired):
+        return desired - actual  # 需要创建/删除的 Pod 数量
+
+    def apply(self, diff):
+        if diff > 0:
+            k8s.create_pods("order-service", diff)
+        elif diff < 0:
+            k8s.delete_pods("order-service", -diff)
+
+# 使用
+ctrl = Controller(desired_state=3)
+ctrl.run()  # 持续运行，保持 3 个 Pod</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 配置）</li><li><strong>Controller（控制器）</strong>— 持续比较实际和期望，执行差异操作</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的环境（如 K8s 集群）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Desired State</strong> — 声明系统应该是什么样（如 YAML 配置）（目标地图）</li><li><strong>Controller</strong> — 持续比较实际和期望，执行差异操作（扫地机器人）</li><li><strong>Runtime</strong> — 实际承载系统的环境（如 K8s 集群）（房间）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义期望状态（如"部署 3 个 Pod，每个 1 核 2G"）</li><li>② 控制器定期获取实际状态（如当前只有 2 个 Pod）</li><li>③ 比较实际和期望的差异</li><li>④ 执行操作对齐（如创建第 3 个 Pod）</li><li>⑤ 持续循环，确保状态一致</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义期望状态（如部署 3 个 Pod，每个 1 核 2G）</li><li>2 控制器定期获取实际状态（如当前只有 2 个 Pod）</li><li>3 比较实际和期望的差异</li><li>4 执行操作对齐（如创建第 3 个 Pod）</li><li>5 持续循环，确保状态一致</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">K8s控制器</span><span class="trigger">配置漂移修复</span><span class="trigger">资源状态同步</span><span class="trigger">期望管理</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 手动管理服务器状态。配置漂移（实际配置和期望不一致），需要人工检查发现。</p>
-  <p><strong>问题：</strong> 手动维护容易出错。配置漂移后系统行为不可预期。人工修复慢且容易遗漏。</p>
-  <p><strong>调和回路的解法：</strong> 声明期望状态（如"需要 3 个 Pod"），控制器持续检测实际状态。如果实际 != 期望，自动执行操作使两者对齐。就像扫地机器人，设定目标后不断调整直到完成。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>扫地机器人设定目标：把客厅全扫一遍。它不断检测哪里还没扫，调整路径，直到完成。调和回路就是系统的扫地机器人。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">自动化</span><span class="scene-tag">控制器</span><span class="scene-tag">修复</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -2177,12 +2795,12 @@ const modalTemplates = {
   </div>
 </div>`,
 "21": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 21 个模式</div>
+  <div class="pattern-id">运维保障层 &middot; 第 21 个模式</div>
   <h2>
     <span style="font-size:2.2rem">🐦</span>
-    <span style="color:#4ecdc4">金丝雀发布</span>
+    <span style="color:#667eea">金丝雀发布</span>
     <span style="font-size:0.85rem;color:#999">Canary Release</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2191,17 +2809,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        金丝雀发布
+金丝雀发布
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        煤矿工人带金丝雀下矿：先放小鸟探路，安全了人再下去。
+煤矿工人带金丝雀下矿：先放小鸟探路，安全了人再下去。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        新版本先发布给少量用户，验证无问题后再逐步扩大流量，降低发布风险。
+新版本先发布给少量用户，验证无问题后再逐步扩大流量，降低发布风险。
       </div>
     </div>
     <div class="memory-tip">
@@ -2209,54 +2827,91 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>金丝雀发布只把 1% 的流量导到新版本，观察错误率和延迟。没问题再扩大到 5%、20%、100%。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有金丝雀（直接全量）：发布新版本订单服务 → 直接切换 100% 流量。新版本有 Bug（内存泄漏）。100% 用户受影响。系统崩溃。紧急回滚，影响大量用户。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有金丝雀（逐步放量）：发布新版本订单服务 → 只切换 1% 流量。观察 30 分钟：错误率正常，延迟正常。扩大到 5%。观察 30 分钟：一切正常。扩大到 20% → 50% → 100%。如果有问题，只影响 1% 用户，快速回滚。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">发布新版本 → 金丝雀路由：1% 流量 → 新版本
+                     99% 流量 → 旧版本
+            ↓
+指标收集器监控：错误率、延迟、业务指标
+            ↓
+正常 → 逐步扩大：5% → 20% → 50% → 100%
+异常 → 自动回滚：全部切回旧版本
+
+风险可控，问题早发现</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用金丝雀</th><th style="border:1px solid #ddd;padding:8px;">用金丝雀</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">新版本 Bug</td><td style="border:1px solid #ddd;padding:8px;">100% 用户受影响</td><td style="border:1px solid #ddd;padding:8px;">只影响 1% 用户</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚成本</td><td style="border:1px solid #ddd;padding:8px;">紧急回滚，影响大量用户</td><td style="border:1px solid #ddd;padding:8px;">快速回滚，影响小</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">验证难度</td><td style="border:1px solid #ddd;padding:8px;">生产环境无法验证</td><td style="border:1px solid #ddd;padding:8px;">小流量验证真实场景</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户信任</td><td style="border:1px solid #ddd;padding:8px;">频繁故障降低信任</td><td style="border:1px solid #ddd;padding:8px;">稳定发布提升信任</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CanaryRouter:
+    def __init__(self, new_version_weight=1):
+        self.weight = new_version_weight
+
+    def route(self, request):
+        if random.random() < self.weight / 100:
+            return "new-version"
+        return "old-version"
+
+    def increase_weight(self, step=5):
+        self.weight = min(100, self.weight + step)
+
+    def rollback(self):
+        self.weight = 0
+
+# 使用
+router = CanaryRouter(new_version_weight=1)
+
+for request in requests:
+    version = router.route(request)
+    if version == "new-version":
+        response = new_service.handle(request)
+    else:
+        response = old_service.handle(request)
+
+# 监控指标正常 → 逐步放量
+router.increase_weight(5)  # 1% → 5%</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Canary Router（金丝雀路由器）</strong>— 按比例分发流量（如 99% 旧版 + 1% 新版）</li><li><strong>Metrics Collector（指标收集器）</strong>— 监控新版本的错误率、延迟、业务指标</li><li><strong>Rollback Trigger（回滚触发器）</strong>— 异常时自动切回旧版</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Canary Router</strong> — 按比例分发流量（如 99% 旧版 + 1% 新版）（金丝雀笼子）</li><li><strong>Metrics Collector</strong> — 监控新版本的错误率、延迟、业务指标（矿工观察金丝雀）</li><li><strong>Rollback Trigger</strong> — 异常时自动切回旧版（拉绳逃生）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 部署新版本，只路由 1% 流量</li><li>② 监控错误率、延迟、业务指标</li><li>③ 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>④ 异常时自动回滚到旧版</li><li>⑤ 全量发布后持续观察</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 部署新版本，只路由 1% 流量</li><li>2 监控错误率、延迟、业务指标</li><li>3 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>4 异常时自动回滚到旧版</li><li>5 全量发布后持续观察</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">版本发布</span><span class="trigger">A/B测试</span><span class="trigger">灰度验证</span><span class="trigger">新功能上线</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 新版本直接全量发布。如果新版本有 bug，所有用户都受影响。回滚需要很长时间。</p>
-  <p><strong>问题：</strong> 发布风险高，一旦出问题影响面广。无法在生产环境验证新版本。</p>
-  <p><strong>金丝雀发布的解法：</strong> 新版本只发布给 1% 的用户，监控指标。如果错误率、延迟正常，逐步扩大流量（5%→20%→50%→100%）。如果异常，立即回滚，只影响少量用户。就像煤矿工人带金丝雀下矿探路。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>煤矿工人带金丝雀下矿：金丝雀对有毒气体敏感，如果鸟死了，说明矿里有危险，人赶紧撤离。金丝雀发布就是先放"鸟"探路。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">发布</span><span class="scene-tag">灰度</span><span class="scene-tag">风险控制</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">灰度发布</span><span class="trigger">新版本验证</span><span class="trigger">风险控制</span><span class="trigger">A/B测试</span></p>
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>降低发布风险（只影响少量用户）</li><li>快速回滚（发现问题立即切换）</li><li>数据验证（真实用户流量验证）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>部署复杂（需要两套环境同时运行）</li><li>流量管理复杂（需要按用户/IP/区域分流）</li><li>监控成本高（需要对比新旧版指标）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>风险可控（只影响少量用户）</li><li>真实环境验证（不是测试环境）</li><li>快速回滚（秒级切换）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>发布周期长（需要逐步观察）</li><li>需要监控基础设施（指标收集、报警）</li><li>回滚也可能有问题（数据已写入新版本）</li></ul></div>
   </div>
 </div>`,
 "22": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 22 个模式</div>
+  <div class="pattern-id">运维保障层 &middot; 第 22 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">📋</span>
-    <span style="color:#4ecdc4">GitOps</span>
-    <span style="font-size:0.85rem;color:#999">GitOps</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="font-size:2.2rem">🔵🟢</span>
+    <span style="color:#667eea">蓝绿部署</span>
+    <span style="font-size:0.85rem;color:#999">Blue-Green Deployment</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2265,17 +2920,131 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        GitOps
+蓝绿部署
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        装修图纸：设计师画好图纸，工人按图施工，装修完跟图纸一致。
+双车道：一条车道通车（蓝），另一条车道修路（绿）。修好了切换，旧车道再维护。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        以 Git 为唯一真相来源，所有基础设施和应用的配置都存储在 Git 中，变更自动同步到运行时。
+同时部署两套完整环境（蓝=旧版，绿=新版），测试通过后瞬间切换流量，零 downtime。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>蓝绿部署 = 双车道 → 一套运行一套备用 → 瞬间切换 → 零停机
+    </div>
+  </div>
+
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>蓝绿部署有两套完整环境：蓝色运行旧版，绿色运行新版。测试绿色没问题后，把流量瞬间从蓝切到绿。旧版保留，有问题立刻切回。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有蓝绿部署（停机发布）：发布新版本 → 停止旧版本 → 部署新版本 → 启动新版本。停机 5 分钟。用户看到系统维护中。发布失败 → 回滚又停机 5 分钟。用户流失。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有蓝绿部署（零停机）：蓝色环境：运行旧版（100% 流量）。绿色环境：部署新版（0% 流量，内部测试）。测试绿色：功能正常、性能正常。切换：100% 流量 → 绿色环境（1 秒完成）。蓝色环境保留（备用）。绿色有问题 → 1 秒切回蓝色。零 downtime。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">蓝色环境运行旧版 ← 100% 流量
+绿色环境部署新版 ← 0% 流量（内部测试）
+            ↓
+测试通过 → 负载均衡器切换：100% 流量 → 绿色
+            ↓
+绿色运行中，蓝色保留（备用）
+            ↓
+绿色有问题 → 负载均衡器切换：100% 流量 → 蓝色
+            ↓
+零 downtime，瞬间回滚</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用蓝绿部署</th><th style="border:1px solid #ddd;padding:8px;">用蓝绿部署</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">发布停机</td><td style="border:1px solid #ddd;padding:8px;">停机 5 分钟，用户无法访问</td><td style="border:1px solid #ddd;padding:8px;">零停机，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">发布失败</td><td style="border:1px solid #ddd;padding:8px;">回滚又停机</td><td style="border:1px solid #ddd;padding:8px;">瞬间切回旧版</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">测试环境</td><td style="border:1px solid #ddd;padding:8px;">测试环境不代表生产</td><td style="border:1px solid #ddd;padding:8px;">在生产环境测试（绿环境接真实流量前验证）</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库变更</td><td style="border:1px solid #ddd;padding:8px;">新旧版本共用数据库，兼容性难处理</td><td style="border:1px solid #ddd;padding:8px;">可配合数据库迁移策略</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class BlueGreenDeployer:
+    def __init__(self, blue_env, green_env):
+        self.blue = blue_env
+        self.green = green_env
+        self.active = "blue"
+
+    def deploy(self, new_version):
+        # 在绿色环境部署新版本
+        self.green.deploy(new_version)
+        # 运行冒烟测试
+        if self.green.smoke_test():
+            # 切换流量到绿色
+            self.switch_traffic("green")
+            self.active = "green"
+            return True
+        return False
+
+    def rollback(self):
+        # 瞬间切回蓝色
+        self.switch_traffic("blue")
+        self.active = "blue"
+
+    def switch_traffic(self, env):
+        load_balancer.set_target(env)
+
+# 使用
+deployer = BlueGreenDeployer(blue_env, green_env)
+deployer.deploy("v2.0")  # 零停机发布
+# 有问题 → deployer.rollback()  # 秒级回滚</code></pre>
+
+  <div class="parts-section">
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Blue Environment</strong> — 运行旧版本的稳定环境（通车车道）</li><li><strong>Green Environment</strong> — 部署新版本的环境，测试通过后接收流量（修好的车道）</li><li><strong>Load Balancer</strong> — 控制流量切换（蓝 ↔ 绿）（交通指挥员）</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 部署两套完整环境（蓝=旧版，绿=新版）</li><li>2 在绿色环境运行测试（冒烟测试、集成测试）</li><li>3 测试通过后，负载均衡器切换流量到绿色</li><li>4 保留蓝色环境（备用，有问题秒级回滚）</li><li>5 观察绿色环境稳定后，可释放蓝色环境资源</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">零停机发布</span><span class="trigger">快速回滚</span><span class="trigger">生产环境验证</span><span class="trigger">重要版本发布</span></p>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>零 downtime（发布用户无感知）</li><li>秒级回滚（有问题立刻切回旧版）</li><li>生产环境测试（绿环境验证真实场景）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源成本高（需要两套完整环境）</li><li>数据库兼容性（新旧版本可能共用数据库）</li><li>切换瞬间可能有少量请求丢失</li></ul></div>
+  </div>
+</div>`,
+"23": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 &middot; 第 23 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🌿</span>
+    <span style="color:#667eea">GitOps</span>
+    <span style="font-size:0.85rem;color:#999">GitOps</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+GitOps
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+装修图纸：设计师画好图纸，工人按图施工，装修完跟图纸一致。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+以 Git 为唯一真相来源，所有配置存 Git，变更自动同步到运行时，可审计、可回滚。
       </div>
     </div>
     <div class="memory-tip">
@@ -2283,54 +3052,82 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>GitOps 把所有基础设施配置（K8s YAML、Terraform）存到 Git。Git 是唯一真相，任何变更先改 Git，自动化工具检测到后自动应用到环境。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有 GitOps（手动部署）：运维登录服务器 → 手动执行 kubectl apply。配置分散在各处，没有统一来源。谁改了什么配置不知道。环境差异大（测试和生产配置不同）。回滚困难（不知道上一版配置是什么）。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有 GitOps（配置即代码）：所有配置存 Git 仓库（k8s-manifests/）。开发人员修改 deployment.yaml。提交 PR，Code Review。合并到 main 分支。GitOps 工具（ArgoCD）检测到变更。自动拉取并应用到 K8s 集群。Git 记录谁在什么时候改了什么。随时回滚到任意版本。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Git 仓库（配置即代码）→ ArgoCD 监控
+                    → 检测到变更
+                    → 自动应用到 K8s 集群
+                    → 实际状态与 Git 状态对比
+                    → 不一致 → 自动修复
+                    → 一致 → 继续监控
+
+所有变更可追溯、可审计、可回滚</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 GitOps</th><th style="border:1px solid #ddd;padding:8px;">用 GitOps</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置管理</td><td style="border:1px solid #ddd;padding:8px;">配置分散，没有统一来源</td><td style="border:1px solid #ddd;padding:8px;">Git 是统一来源，版本化管理</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">变更审计</td><td style="border:1px solid #ddd;padding:8px;">不知道谁改了什么</td><td style="border:1px solid #ddd;padding:8px;">Git 记录每次变更，精确到人和时间</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚</td><td style="border:1px solid #ddd;padding:8px;">手动回滚，容易出错</td><td style="border:1px solid #ddd;padding:8px;">git revert 即可回滚</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">环境一致性</td><td style="border:1px solid #ddd;padding:8px;">测试和生产配置不同</td><td style="border:1px solid #ddd;padding:8px;">同一份配置应用到所有环境</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># GitOps 工作流（ArgoCD 配置）
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: order-service
+spec:
+  source:
+    repoURL: https://github.com/company/k8s-manifests
+    targetRevision: main
+    path: order-service
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:  # 自动同步
+      prune: true
+      selfHeal: true  # 自动修复配置漂移
+
+# 使用：修改 Git 中的 deployment.yaml → 提交 → ArgoCD 自动部署</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Git Repository（Git 仓库）</strong>— 存储所有配置（YAML、Terraform），版本化管理</li><li><strong>Controller（控制器）</strong>— 监控 Git 变更，自动拉取并应用到运行时</li><li><strong>Runtime（运行时）</strong>— 应用配置的执行环境（如 K8s 集群）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Git Repository</strong> — 存储所有配置（YAML、Terraform），版本化管理（装修图纸）</li><li><strong>Controller</strong> — 监控 Git 变更，自动拉取并应用到运行时（监工）</li><li><strong>Runtime</strong> — 应用配置的执行环境（如 K8s 集群）（施工队）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 将所有配置存入 Git 仓库（基础设施即代码）</li><li>② 控制器持续监控 Git 仓库</li><li>③ 配置变更时自动拉取并应用</li><li>④ 比较实际状态与 Git 状态，不一致时自动修复</li><li>⑤ 所有变更可追溯、可回滚</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 将所有配置存入 Git 仓库（基础设施即代码）</li><li>2 控制器持续监控 Git 仓库</li><li>3 配置变更时自动拉取并应用</li><li>4 比较实际状态与 Git 状态，不一致时自动修复</li><li>5 所有变更可追溯、可回滚</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">K8s部署</span><span class="trigger">基础设施管理</span><span class="trigger">配置即代码</span><span class="trigger">自动化运维</span></p>
   </div>
 
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 手动登录服务器执行命令部署。配置分散在各处，没有统一来源。谁改了什么配置不知道。</p>
-  <p><strong>问题：</strong> 手动部署容易出错，配置不一致，无法审计。环境差异导致"我本地没问题"。</p>
-  <p><strong>GitOps 的解法：</strong> 所有配置存 Git。Git 是"唯一真相"。变更时先改 Git，自动化工具检测到变更后自动应用到环境。你能看到谁在什么时候改了什么，也能随时回滚到历史版本。就像装修图纸，按图施工。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>装修图纸：设计师画好图纸，工人按图施工。如果工人擅自改了设计，监工会发现并纠正。GitOps 就是系统的图纸和监工。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">Git</span><span class="scene-tag">自动化</span><span class="scene-tag">运维</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
-  </div>
-
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>版本控制（知道谁在什么时候改了什么）</li><li>审计追踪（完整的变更历史）</li><li>自动化部署（无需手动操作）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>学习曲线（需要理解 Git 和 CI/CD）</li><li>Secret 管理（密码不能存 Git，需要额外方案）</li><li>权限管理（谁能改 Git 仓库？）</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>变更可追溯（Git 记录每次变更）</li><li>可回滚（git revert 即可）</li><li>环境一致性（同一份配置应用到所有环境）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>学习成本（需要学习 GitOps 工具）</li><li>Git 权限管理（谁有权修改配置）</li><li>自动化风险（配置错误自动应用到生产）</li></ul></div>
   </div>
 </div>`,
-"23": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 23 个模式</div>
+"24": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 &middot; 第 24 个模式</div>
   <h2>
-    <span style="font-size:2.2rem">🔬</span>
-    <span style="color:#4ecdc4">分布式追踪</span>
+    <span style="font-size:2.2rem">🔍</span>
+    <span style="color:#667eea">分布式追踪</span>
     <span style="font-size:0.85rem;color:#999">Distributed Tracing</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2339,58 +3136,89 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        分布式追踪
+分布式追踪
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        快递跟踪：从发货到签收，每个中转站都扫码记录，全程可追踪。
+快递跟踪：从发货到签收，每个中转站都扫码记录，丢了可以查在哪一站出问题。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        为请求分配唯一 Trace ID，每个服务节点记录 Span，串联全链路调用，定位延迟和故障点。
+为每个请求生成唯一 Trace ID，经过每个服务时记录 Span，最后串成完整调用链路。
       </div>
     </div>
     <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>分布式追踪 = 快递跟踪 → 每个节点记录 → 串联全链路 → 定位问题
+      <strong>💡 记忆口诀：</strong>分布式追踪 = 快递跟踪 → 每个中转站记录 → 全程可查 → 快速定位问题
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>分布式追踪给每个请求一个唯一 ID，经过每个服务时记录服务名、耗时、状态。最后把所有记录串起来，形成完整的调用链路图。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有分布式追踪（排查困难）：用户说下单特别慢。日志分散在 5 个服务上。订单服务日志：收到请求。支付服务日志：收到请求。库存服务日志：收到请求。无法知道请求经过哪些服务。无法知道哪个服务耗时最长。排查靠猜，耗时数小时。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有分布式追踪（一眼定位）：用户说下单特别慢。查 Jaeger：Trace ID = abc123。调用链路图：订单服务 50ms → 支付服务 3000ms → 库存服务 20ms。一眼看出：支付服务慢了 3000ms。查支付服务日志，发现调用第三方支付超时。5 分钟定位问题。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求进入 → 生成 Trace ID（如 abc123）
+            → 经过订单服务 → 记录 Span（耗时 50ms）
+            → 传递 Trace ID 到支付服务
+            → 经过支付服务 → 记录 Span（耗时 3000ms）
+            → 传递 Trace ID 到库存服务
+            → 经过库存服务 → 记录 Span（耗时 20ms）
+            → 收集器聚合所有 Span
+            → 可视化展示调用链路
+
+一眼看出：支付服务耗时 3000ms，是瓶颈</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用分布式追踪</th><th style="border:1px solid #ddd;padding:8px;">用分布式追踪</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪个服务慢</td><td style="border:1px solid #ddd;padding:8px;">一眼看出瓶颈服务</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障定位</td><td style="border:1px solid #ddd;padding:8px;">日志分散，无法串联</td><td style="border:1px solid #ddd;padding:8px;">完整调用链路，快速定位</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">超时分析</td><td style="border:1px solid #ddd;padding:8px;">不知道在哪一步超时</td><td style="border:1px solid #ddd;padding:8px;">精确到每个服务的耗时</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">依赖分析</td><td style="border:1px solid #ddd;padding:8px;">不知道服务间调用关系</td><td style="border:1px solid #ddd;padding:8px;">可视化展示完整调用链</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import opentracing
+from jaeger_client import Config
+
+# 初始化 tracer
+tracer = Config(
+    config={"sampler": {"type": "const", "param": 1}},
+    service_name="order-service",
+).initialize_tracer()
+
+# 使用
+with tracer.start_span("create_order") as span:
+    span.set_tag("user_id", "U001")
+    span.set_tag("order_id", "1001")
+    
+    # 调用支付服务，传递 Trace ID
+    with tracer.start_span("call_payment", child_of=span) as child_span:
+        payment_service.charge(headers={"uber-trace-id": span.trace_id})
+        child_span.set_tag("amount", 5000)
+
+# 收集器聚合所有 Span，在 Jaeger UI 展示调用链路</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Trace ID（追踪 ID）</strong>— 唯一标识一次请求，全程传递</li><li><strong>Span（跨度）</strong>— 每个服务的处理单元，记录耗时、状态、标签</li><li><strong>Collector（收集器）</strong>— 聚合所有 Span，构建完整调用链路图</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Trace ID</strong> — 唯一标识一次请求，全程传递（快递单号）</li><li><strong>Span</strong> — 每个服务的处理单元，记录耗时、状态、标签（中转站扫码记录）</li><li><strong>Collector</strong> — 聚合所有 Span，构建完整调用链路图（快递跟踪系统）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 请求进入时生成 Trace ID（透传到所有下游服务）</li><li>② 每个服务处理时生成 Span（记录开始时间、耗时、标签）</li><li>③ 传递 Trace ID 到下游服务</li><li>④ 收集器聚合所有 Span</li><li>⑤ 可视化展示调用链路（如 Jaeger、Zipkin）</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 请求进入时生成 Trace ID（透传到所有下游服务）</li><li>2 每个服务处理时生成 Span（记录开始时间、耗时、标签）</li><li>3 传递 Trace ID 到下游服务</li><li>4 收集器聚合所有 Span</li><li>5 可视化展示调用链路（如 Jaeger、Zipkin）</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">性能分析</span><span class="trigger">故障定位</span><span class="trigger">调用链分析</span><span class="trigger">延迟排查</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 请求经过多个服务，出问题后不知道在哪一环。日志分散在各处，无法串联。性能瓶颈定位困难。</p>
-  <p><strong>问题：</strong> 故障排查靠猜。不知道请求在哪个服务慢了，哪个服务出错了。无法分析调用链路。</p>
-  <p><strong>分布式追踪的解法：</strong> 请求进入时生成唯一 Trace ID，经过每个服务时记录 Span（服务名、开始时间、耗时、标签）。最后把所有 Span 串起来，形成完整的调用链路。就像快递跟踪，每个中转站扫码记录。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>快递跟踪：从发货到签收，每个中转站都扫码记录。如果包裹丢了，可以查记录看在哪一站出问题。分布式追踪就是系统的快递跟踪。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">追踪</span><span class="scene-tag">监控</span><span class="scene-tag">性能</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Google, 《Site Reliability Engineering》</li><li>Sam Newman, 《Building Microservices》</li></ul>
   </div>
 
   <div class="pros-cons">
@@ -2398,13 +3226,13 @@ const modalTemplates = {
     <div class="cons"><h5>❌ 缺点</h5><ul><li>采样开销（全量采集性能影响大，需要采样）</li><li>存储成本（Trace 数据量大）</li><li>侵入性（代码需要埋点）</li></ul></div>
   </div>
 </div>`,
-"24": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 24 个模式</div>
+"25": `<div class="modal-header">
+  <div class="pattern-id">运维保障层 &middot; 第 25 个模式</div>
   <h2>
     <span style="font-size:2.2rem">📝</span>
-    <span style="color:#4ecdc4">结构化日志</span>
+    <span style="color:#667eea">结构化日志</span>
     <span style="font-size:0.85rem;color:#999">Structured Logging</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">运维保障层</span>
   </h2>
 </div>
 <div class="modal-body">
@@ -2413,17 +3241,17 @@ const modalTemplates = {
     <div class="link-row">
       <div class="link-box name">
         <span class="label label-name">模式名称</span>
-        结构化日志
+结构化日志
       </div>
       <div class="arrow">→</div>
       <div class="link-box analogy">
         <span class="label label-analogy">生活类比</span>
-        表格登记：不是手写笔记，而是统一表格，方便分类查找。
+表格登记：不是手写笔记，而是统一表格，方便分类查找。
       </div>
       <div class="arrow">→</div>
       <div class="link-box core">
         <span class="label label-core">核心概念</span>
-        使用统一的键值对格式（JSON）记录日志，便于机器解析、聚合和分析。
+使用统一的键值对格式（JSON）记录日志，便于机器解析、聚合和分析。
       </div>
     </div>
     <div class="memory-tip">
@@ -2431,122 +3259,84 @@ const modalTemplates = {
     </div>
   </div>
 
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>结构化日志不用文本格式写用户登录成功，而是用 JSON 写 {event: login, user_id: U001, timestamp: ...}。机器可以直接解析，支持搜索、过滤、聚合。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">非结构化日志（难以分析）：2024-01-15 10:00:01 用户张三登录成功。2024-01-15 10:00:02 订单 1001 创建成功。2024-01-15 10:00:03 支付失败，余额不足。想统计今天有多少登录失败？grep 登录失败。想统计张三的失败订单？需要复杂正则。无法做聚合分析。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">结构化日志（机器友好）：{timestamp: 2024-01-15T10:00:01Z, level: INFO, event: login, user_id: U001, result: success}。{timestamp: 2024-01-15T10:00:02Z, level: INFO, event: order_created, order_id: 1001, user_id: U001}。查询 user_id=U001 AND event=payment_failed → 直接命中。聚合统计：按 event 分组计数 → 秒级返回。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">服务产生日志 → 输出 JSON 格式
+            → 日志聚合器（Filebeat）收集
+            → 发送到 Elasticsearch
+            → Kibana 建立索引
+            → 查询：event=login AND result=failed
+            → 聚合：按 service 统计错误率
+            → 告警：错误率 > 1% 时报警
+
+日志不再是文本，而是可查询、可分析的数据</pre>
+
+  <h4>🆚 为什么需要它</h4>
+<table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用结构化日志</th><th style="border:1px solid #ddd;padding:8px;">用结构化日志</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">日志查询</td><td style="border:1px solid #ddd;padding:8px;">grep 文本，慢且不准确</td><td style="border:1px solid #ddd;padding:8px;">按字段搜索，毫秒级返回</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">日志分析</td><td style="border:1px solid #ddd;padding:8px;">无法做聚合统计</td><td style="border:1px solid #ddd;padding:8px;">按字段聚合，秒级分析</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">正则匹配，容易漏</td><td style="border:1px solid #ddd;padding:8px;">精确查询，不遗漏</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">监控告警</td><td style="border:1px solid #ddd;padding:8px;">人工查看日志</td><td style="border:1px solid #ddd;padding:8px;">自动告警，错误率 > 1% 报警</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import json
+import logging
+
+class StructuredFormatter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "timestamp": datetime.now().isoformat(),
+            "level": record.levelname,
+            "service": "order-service",
+            "event": record.msg.get("event"),
+            "user_id": record.msg.get("user_id"),
+            "order_id": record.msg.get("order_id"),
+            "message": record.msg.get("message"),
+            "trace_id": record.msg.get("trace_id"),
+        })
+
+# 使用
+logger = logging.getLogger()
+logger.info({
+    "event": "order_created",
+    "user_id": "U001",
+    "order_id": "1001",
+    "amount": 199,
+    "trace_id": "abc123"
+})
+# 输出：{"timestamp": "...", "level": "INFO", "event": "order_created", ...}</code></pre>
+
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Log Format（日志格式）</strong>— 统一 JSON 结构，字段标准化</li><li><strong>Log Aggregator（日志聚合器）</strong>— 收集分散日志到中央存储（如 ELK、Loki）</li><li><strong>Log Analyzer（日志分析器）</strong>— 查询和统计（如 Kibana）</li></ul>
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Log Format</strong> — 统一 JSON 结构，字段标准化（统一表格）</li><li><strong>Log Aggregator</strong> — 收集分散日志到中央存储（如 ELK、Loki）（数据录入员）</li><li><strong>Log Analyzer</strong> — 查询和统计（如 Kibana）（数据分析工具）</li></ul>
   </div>
 
   <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义统一日志格式（timestamp, level, service, message, context 等字段）</li><li>② 所有服务按格式输出日志</li><li>③ 聚合器收集分散日志到中央存储（如 Elasticsearch）</li><li>④ 建立索引便于检索</li><li>⑤ 通过分析工具查询和告警（如"错误率 > 1% 时报警"）</li></ol>
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 定义统一日志格式（timestamp, level, service, message, context 等字段）</li><li>2 所有服务按格式输出日志</li><li>3 聚合器收集分散日志到中央存储（如 Elasticsearch）</li><li>4 建立索引便于检索</li><li>5 通过分析工具查询和告警（如错误率 > 1% 时报警）</li></ol>
   </div>
 
   <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
+    <h4>🤔 什么时候用它</h4>
     <p style="margin-top:8px"><span class="trigger">日志聚合</span><span class="trigger">ELK/Loki</span><span class="trigger">异常分析</span><span class="trigger">业务监控</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 日志是文本格式，内容随意。想查找特定错误，需要 grep 整个日志文件。无法做统计和聚合。</p>
-  <p><strong>问题：</strong> 日志分散，格式不统一。无法快速查询。无法做结构化分析（如统计某个错误出现次数）。</p>
-  <p><strong>结构化日志的解法：</strong> 使用统一格式（JSON），每个字段有明确含义。例如：{timestamp, level, service, message, user_id, order_id}。机器可以直接解析，支持搜索、过滤、聚合。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>表格登记：不是手写笔记，而是统一表格。你查信息时直接按列筛选，不用在一堆手写笔记里翻。结构化日志就是系统的统一表格。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">日志</span><span class="scene-tag">监控</span><span class="scene-tag">分析</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Google, 《Site Reliability Engineering》</li><li>Sam Newman, 《Building Microservices》</li></ul>
   </div>
 
   <div class="pros-cons">
     <div class="pros"><h5>✅ 优点</h5><ul><li>可检索（按字段快速搜索）</li><li>可分析（统计、聚合、趋势分析）</li><li>标准化（所有服务格式统一）</li></ul></div>
     <div class="cons"><h5>❌ 缺点</h5><ul><li>存储成本（JSON 比文本大）</li><li>格式约束（需要严格遵守字段定义）</li><li>迁移成本（旧系统需要改造）</li></ul></div>
   </div>
-</div>`,
-"25": `<div class="modal-header">
-  <div class="pattern-id">运维保障层 · 第 25 个模式</div>
-  <h2>
-    <span style="font-size:2.2rem">📜</span>
-    <span style="color:#4ecdc4">声明式配置</span>
-    <span style="font-size:0.85rem;color:#999">Declarative Config</span>
-    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#4ecdc415;color:#4ecdc4;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #4ecdc430">运维保障层</span>
-  </h2>
-</div>
-<div class="modal-body">
-  <div class="memory-section">
-    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
-    <div class="link-row">
-      <div class="link-box name">
-        <span class="label label-name">模式名称</span>
-        声明式配置
-      </div>
-      <div class="arrow">→</div>
-      <div class="link-box analogy">
-        <span class="label label-analogy">生活类比</span>
-        点外卖：你说"我要一份宫保鸡丁"，不用管厨房怎么炒。
-      </div>
-      <div class="arrow">→</div>
-      <div class="link-box core">
-        <span class="label label-core">核心概念</span>
-        描述系统的期望状态（如部署 3 个 Pod），由系统自动执行操作达成目标，不关心具体过程。
-      </div>
-    </div>
-    <div class="memory-tip">
-      <strong>💡 记忆口诀：</strong>声明式配置 = 点外卖 → 描述期望 → 系统自动达成 → 不用关心过程
-    </div>
-  </div>
-
-  <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 文件）</li><li><strong>Controller（控制器）</strong>— 解释声明并执行操作（如 K8s 控制器）</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的基础设施（如 K8s 集群）</li></ul>
-  </div>
-
-  <div class="steps-section">
-    <h4>🔨 搭建步骤：从零开始写</h4>
-    <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 编写声明式配置（如 YAML）描述期望状态</li><li>② 提交到控制器</li><li>③ 控制器解析声明，计算差异</li><li>④ 自动执行操作使实际状态对齐</li><li>⑤ 持续监控，保持状态一致</li></ol>
-  </div>
-
-  <div class="when-to-use">
-    <h4>🤔 什么时候用它？</h4>
-    <p>当你遇到以下场景时，考虑使用这个模式</p>
-    <p style="margin-top:8px"><span class="trigger">K8s YAML</span><span class="trigger">Terraform</span><span class="trigger">基础设施编排</span><span class="trigger">自动化部署</span></p>
-  </div>
-
-  <h4>📖 核心思想</h4>
-  <p><strong>传统方式：</strong> 手动执行命令部署。需要记住步骤：先干什么，后干什么。不同的人执行结果可能不同。</p>
-  <p><strong>问题：</strong> 手动操作容易出错。过程不可重复。环境差异大。无法审计。</p>
-  <p><strong>声明式配置的解法：</strong> 你只需要描述"想要的状态"（如"需要 3 个 Pod，每个 1 核 2G"），系统自动计算如何达到这个状态。你不需要关心具体过程（怎么创建 Pod、怎么分配资源）。就像点外卖，你说"要一份宫保鸡丁"，不用管厨师怎么炒。</p>
-
-  <div class="story-box">
-    <span class="story-label">🎬 生活故事</span>
-    <p>点外卖：你说"我要一份宫保鸡丁"，不用管厨师怎么切菜、怎么炒。声明式配置就是点外卖，你只关心结果，系统自动搞定过程。</p>
-  </div>
-
-  <h4>🎯 典型应用场景</h4>
-  <div class="scene-tags"><span class="scene-tag">声明式</span><span class="scene-tag">自动化</span><span class="scene-tag">配置</span></div>
-
-  <div class="source-section">
-    <h4>📚 参考来源</h4>
-    <ul class="source-list"><li>Cornelia Davis, 《Cloud Native Patterns》</li><li>Google, 《Site Reliability Engineering》</li></ul>
-  </div>
-
-  <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>简洁易懂（只需描述结果，不用关心过程）</li><li>自动化执行（减少手动操作错误）</li><li>状态一致（系统始终和声明一致）</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>抽象层复杂（需要理解控制器如何工作）</li><li>调试困难（声明和实际不一致时难排查）</li><li>灵活性受限（只能声明支持的配置）</li></ul></div>
-  </div>
-</div>`,
-};
+</div>`
+}
 
 const catNames = { all: '全部 25 种', core: '14 个核心', arch: '架构设计层 (8)', code: '代码实现层 (8)', ops: '运维保障层 (9)' };
 

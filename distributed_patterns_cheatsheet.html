@@ -6,8 +6,7 @@
 <title>分布式系统模式 · 速查表</title>
 <style>
 :root {
-  --c-comm: #3b82f6; --c-transaction: #10b981; --c-data: #f59e0b; --c-fault: #ef4444;
-  --c-cache: #8b5cf6; --c-arch: #06b6d4;
+  --c-arch: #667eea; --c-code: #f472b6; --c-ops: #4ecdc4; --c-core: #ff6b6b;
   --bg: #f0f2f5; --card: #ffffff; --text: #2d3436; --muted: #636e72;
   --shadow: 0 4px 20px rgba(0,0,0,0.08); --radius: 16px;
 }
@@ -28,12 +27,10 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 .filter-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
 .filter-btn.active { color: white; }
 .filter-btn[data-cat="all"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
-.filter-btn[data-cat="comm"].active { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
-.filter-btn[data-cat="transaction"].active { background: linear-gradient(135deg, #10b981, #34d399); }
-.filter-btn[data-cat="data"].active { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
-.filter-btn[data-cat="fault"].active { background: linear-gradient(135deg, #ef4444, #f87171); }
-.filter-btn[data-cat="cache"].active { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
-.filter-btn[data-cat="arch"].active { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+.filter-btn[data-cat="core"].active { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+.filter-btn[data-cat="arch"].active { background: linear-gradient(135deg, #667eea, #764ba2); }
+.filter-btn[data-cat="code"].active { background: linear-gradient(135deg, #f472b6, #ec4899); }
+.filter-btn[data-cat="ops"].active { background: linear-gradient(135deg, #4ecdc4, #26b0a1); }
 
 .search-box { max-width: 500px; margin: 0 auto 16px; padding: 0 16px; }
 .search-box input { width: 100%; padding: 14px 24px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 1rem; outline: none; transition: all 0.3s; background: white; }
@@ -45,17 +42,15 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
 
-.card { background: var(--card); border-radius: var(--radius); padding: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: var(--shadow); position: relative; overflow: hidden; border: 1px solid #f0f0f0; }
-.card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: #667eea; }
+.card { background: var(--card); border-radius: var(--radius); padding: 24px; transition: all 0.3s ease; box-shadow: var(--shadow); position: relative; overflow: hidden; border: 1px solid #f0f0f0; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); border-color: #667eea; }
 .card.hidden { display: none !important; }
 
 .card-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-.card-badge.comm { background: #e8f4fd; color: #3b82f6; }
-.card-badge.transaction { background: #e8f8f5; color: #10b981; }
-.card-badge.data { background: #fff8e1; color: #f59e0b; }
-.card-badge.fault { background: #ffeaea; color: #ef4444; }
-.card-badge.cache { background: #f0e8ff; color: #8b5cf6; }
-.card-badge.arch { background: #e0f7ff; color: #06b6d4; }
+.card-badge.arch { background: #eef2ff; color: #4f46e5; }
+.card-badge.code { background: #fce7f3; color: #db2777; }
+.card-badge.ops { background: #e6fffa; color: #0d9488; }
+.card-badge.core { background: #ffeaea; color: #d63031; margin-left: 8px; }
 
 .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .card-header .emoji { font-size: 2.2rem; }
@@ -68,240 +63,673 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 .card .memory-anchor { font-size: 0.85rem; color: #888; margin-bottom: 14px; padding: 8px 12px; background: #fffbe6; border-radius: 8px; border: 1px dashed #ffd93d; }
 .card .memory-anchor strong { color: #e65100; }
 
-.card .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.card .summary { font-size: 0.9rem; color: #555; line-height: 1.6; margin-bottom: 12px; }
+.card .summary strong { color: #667eea; }
+
+.card .pros-cons-mini { display: flex; gap: 12px; margin-top: 10px; font-size: 0.82rem; }
+.card .pros-mini { background: #e8f8f5; padding: 8px 12px; border-radius: 8px; flex: 1; }
+.card .cons-mini { background: #fff0f0; padding: 8px 12px; border-radius: 8px; flex: 1; }
+.card .pros-mini h5 { color: #00b894; font-size: 0.78rem; margin-bottom: 4px; }
+.card .cons-mini h5 { color: #d63031; font-size: 0.78rem; margin-bottom: 4px; }
+.card .pros-mini ul, .card .cons-mini ul { padding-left: 14px; }
+.card .pros-mini li, .card .cons-mini li { margin: 2px 0; color: #444; }
+
+.card .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
 .card .card-footer .scene-tag { font-size: 0.78rem; color: #888; background: #f0f0f0; padding: 4px 10px; border-radius: 20px; }
-.card .card-footer .click-hint { font-size: 0.8rem; color: #667eea; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-.card .card-footer .click-hint::after { content: '›'; font-size: 1.1rem; }
-.card:hover .card-footer .click-hint { color: #764ba2; }
+.card .card-footer .link-to-guide { font-size: 0.8rem; color: #667eea; font-weight: 600; text-decoration: none; }
+.card .card-footer .link-to-guide:hover { color: #764ba2; text-decoration: underline; }
 
-.card-comm { border-left: 4px solid var(--c-comm); }
-.card-transaction { border-left: 4px solid var(--c-transaction); }
-.card-data { border-left: 4px solid var(--c-data); }
-.card-fault { border-left: 4px solid var(--c-fault); }
-.card-cache { border-left: 4px solid var(--c-cache); }
 .card-arch { border-left: 4px solid var(--c-arch); }
+.card-code { border-left: 4px solid var(--c-code); }
+.card-ops { border-left: 4px solid var(--c-ops); }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-.modal-overlay.show { display: flex; }
-.modal { background: white; border-radius: var(--radius); max-width: 850px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.3); animation: modalIn 0.3s ease; }
-@keyframes modalIn { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-.modal-header { padding: 28px 32px 20px; border-bottom: 1px solid #f0f0f0; position: relative; }
-.modal-header .pattern-id { font-size: 0.8rem; color: #999; margin-bottom: 6px; }
-.modal-header h2 { font-size: 1.8rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.modal-header .close-btn { position: absolute; top: 16px; right: 20px; width: 40px; height: 40px; border-radius: 50%; border: none; background: #f5f5f5; cursor: pointer; font-size: 1.4rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-.modal-header .close-btn:hover { background: #ff6b6b; color: white; }
-
-.modal-body { padding: 24px 32px 32px; }
-
-.memory-section { background: linear-gradient(135deg, #fffbe6 0%, #fff3cd 100%); border: 2px solid #ffd93d; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
-.memory-section h4 { font-size: 0.95rem; color: #e65100; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.memory-section .link-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-.memory-section .link-row .arrow { font-size: 1.2rem; color: #ccc; }
-.memory-section .link-box { background: white; padding: 10px 16px; border-radius: 10px; border: 1px solid #e0e0e0; font-size: 0.92rem; flex: 1; min-width: 200px; }
-.memory-section .link-box.name { border-color: #667eea; color: #667eea; font-weight: 700; font-size: 1rem; }
-.memory-section .link-box.analogy { border-color: #ff6b6b; color: #444; }
-.memory-section .link-box.core { border-color: #4ecdc4; color: #444; }
-.memory-section .link-box .label { font-size: 0.72rem; color: #999; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
-.memory-section .memory-tip { margin-top: 14px; padding: 12px 16px; background: white; border-radius: 8px; font-size: 0.9rem; color: #666; border-left: 3px solid #ffd93d; }
-.memory-section .memory-tip strong { color: #e65100; }
-
-.parts-section { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
-.parts-section h4 { font-size: 0.95rem; color: #16a34a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.parts-section .parts-list { list-style: none; padding: 0; }
-.parts-section .parts-list li { padding: 10px 14px; background: white; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #22c55e; font-size: 0.9rem; color: #444; }
-.parts-section .parts-list li strong { color: #16a34a; }
-
-.steps-section { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 20px 24px; margin-bottom: 24px; }
-.steps-section h4 { font-size: 0.95rem; color: #2563eb; margin-bottom: 12px; }
-.steps-section .steps-list { padding-left: 20px; }
-.steps-section .steps-list li { padding: 10px 0; font-size: 0.9rem; color: #444; line-height: 1.7; border-bottom: 1px dashed #dbeafe; }
-.steps-section .steps-list li:last-child { border-bottom: none; }
-.steps-section .steps-list li::marker { color: #3b82f6; font-weight: 700; }
-
-.when-to-use { background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 18px 24px; margin: 20px 0; }
-.when-to-use h4 { font-size: 0.95rem; color: #2563eb; margin-bottom: 10px; }
-.when-to-use p { font-size: 0.93rem; color: #444; line-height: 1.8; }
-.when-to-use .trigger { display: inline-block; background: #dbeafe; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; margin: 2px 4px; }
-
-.modal-body .code-section { margin: 20px 0; }
-.modal-body pre { background: #1e1e2e; color: #cdd6f4; padding: 18px; border-radius: 12px; overflow-x: auto; font-size: 0.82rem; line-height: 1.7; }
-.modal-body code { font-family: 'Consolas', 'Monaco', monospace; }
-.modal-body .scene-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 20px; }
-.modal-body .scene-tag { background: #f0f0f0; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; color: #555; }
-
-.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
-@media (max-width: 600px) { .pros-cons { grid-template-columns: 1fr; } .cards-grid { grid-template-columns: 1fr; } header h1 { font-size: 1.8rem; } }
-.pros, .cons { padding: 16px; border-radius: 12px; }
-.pros { background: #e8f8f5; }
-.cons { background: #fff0f0; }
-.pros h5 { color: #00b894; margin-bottom: 8px; font-size: 0.9rem; }
-.cons h5 { color: #d63031; margin-bottom: 8px; font-size: 0.9rem; }
-.pros ul, .cons ul { padding-left: 18px; font-size: 0.88rem; color: #444; }
-.pros li, .cons li { margin: 6px 0; }
+.card .core-star { position: absolute; top: 10px; right: 10px; background: #ff6b6b; color: white; font-size: 0.7rem; padding: 3px 8px; border-radius: 12px; font-weight: 700; }
 
 .section-title { max-width: 1200px; margin: 0 auto; padding: 0 20px 16px; font-size: 1.1rem; font-weight: 700; color: var(--muted); }
+.status-bar { max-width: 1200px; margin: 10px auto 20px; padding: 0 20px; text-align: center; color: #999; font-size: 0.85rem; }
 </style>
 </head>
 <body>
 
 <header>
   <h1>☁️ 分布式系统模式 · 速查表</h1>
-  <p>解决分布式系统的通信、事务、容错、一致性难题</p>
+  <p>25 个模式，按架构/代码/运维三层分类，快速查阅类比、核心、优缺点</p>
 </header>
 
 <div class="nav-bar">
-  <a href="index.html">← 返回首页</a>
-  <a href="distributed_patterns_guide.html">查看详细讲解 →</a>
+  <a href="index.html">🏠 首页</a>
+  <a href="distributed_patterns_guide.html">📖 详细讲解</a>
+  <a href="design_patterns_cheatsheet.html">🚀 GoF 23种模式</a>
 </div>
 
 <div class="quick-tip">
-  <h3>💡 记忆口诀</h3>
-  <p>通信要防断 · 事务要一致 · 故障要隔离 · 缓存要同步</p>
+  <h3>💡 速查口诀</h3>
+  <p><strong>架构层</strong> = 系统怎么拆？　<strong>代码层</strong> = 故障怎么扛？　<strong>运维层</strong> = 环境怎么管？</p>
 </div>
 
 <div class="search-box">
-  <input type="text" id="searchInput" placeholder="🔍 搜索模式、场景或关键词..." />
+  <input type="text" id="searchInput" placeholder="🔍 搜索模式名称、类比或应用场景..." />
 </div>
 
 <div class="filter-bar">
-  <button class="filter-btn active" data-cat="all">全部</button>
-  <button class="filter-btn" data-cat="comm">服务通信</button>
-  <button class="filter-btn" data-cat="transaction">分布式事务</button>
-  <button class="filter-btn" data-cat="data">数据一致性</button>
-  <button class="filter-btn" data-cat="fault">容错弹性</button>
-  <button class="filter-btn" data-cat="cache">缓存策略</button>
-  <button class="filter-btn" data-cat="arch">架构模式</button>
+  <button class="filter-btn active" data-cat="all">📚 全部 25 种</button>
+  <button class="filter-btn" data-cat="core">🔴 14 个核心</button>
+  <button class="filter-btn" data-cat="arch">🏗️ 架构设计层 (8)</button>
+  <button class="filter-btn" data-cat="code">💻 代码实现层 (8)</button>
+  <button class="filter-btn" data-cat="ops">🔧 运维保障层 (9)</button>
 </div>
 
-<div class="cards-grid" id="cardsGrid"></div>
+<div class="section-title" id="sectionTitle">📚 全部 25 种分布式模式 — 快速查阅</div>
+<div class="status-bar" id="statusBar">加载中...</div>
+<div class="cards-grid" id="cardsGrid">
 
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modal"></div>
+<!-- 架构设计层 (8) -->
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="1">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">📖</span>
+    <div class="name-area">
+      <h3>Saga 长事务</h3>
+      <span class="en">Saga</span>
+    </div>
+  </div>
+  <p class="analogy">订外卖：下单→付款→商家接单→配送。如果商家不接单，退款取消订单。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>Saga = 外卖流程 → 每一步有补偿 → 失败就回退 → 长事务拆分</div>
+  <div class="summary"><strong>核心：</strong>将跨服务事务拆分为多个本地事务，失败时按相反顺序执行补偿。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>避免分布式锁阻塞</li><li>适合长流程</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>实现复杂</li><li>补偿设计困难</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 电商订单、旅游预订、金融转账</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="2">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">📜</span>
+    <div class="name-area">
+      <h3>事件溯源</h3>
+      <span class="en">Event Sourcing</span>
+    </div>
+  </div>
+  <p class="analogy">银行账本：不记录余额，只记录每笔存取，余额是算出来的。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>事件溯源 = 银行账本 → 记录事件 → 状态由事件推导 → 可回溯</div>
+  <div class="summary"><strong>核心：</strong>不存储当前状态，只存储状态变化的事件序列，状态通过重放事件推导。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>完整审计</li><li>状态可溯</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>存储巨大</li><li>查询复杂</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 审计追踪、状态重建、时间旅行</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="3">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">⚡</span>
+    <div class="name-area">
+      <h3>CQRS 读写分离</h3>
+      <span class="en">Command Query Separation</span>
+    </div>
+  </div>
+  <p class="analogy">餐厅：厨师负责做菜（写），服务员负责上菜（读），分工明确。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>CQRS = 读写分离 → 命令和查询分开 → 各自优化 → 不互相影响</div>
+  <div class="summary"><strong>核心：</strong>将读操作和写操作分离到不同模型，各自独立优化。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>读写优化</li><li>独立扩展</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>数据延迟</li><li>复杂度增加</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 高并发读写、复杂查询、报表系统</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="4">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🚪</span>
+    <div class="name-area">
+      <h3>API 网关</h3>
+      <span class="en">API Gateway</span>
+    </div>
+  </div>
+  <p class="analogy">酒店前台：客人来了先找前台，前台再分配房间、处理登记、解答问题。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>API网关 = 酒店前台 → 统一入口 → 过滤/路由/聚合 → 不直接找服务员</div>
+  <div class="summary"><strong>核心：</strong>为微服务集群提供统一入口，负责请求路由、协议转换、认证授权。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>统一入口</li><li>解耦客户端</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>单点风险</li><li>额外延迟</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务入口、统一认证、流量聚合</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="5">
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🚌</span>
+    <div class="name-area">
+      <h3>事件总线</h3>
+      <span class="en">Event Bus</span>
+    </div>
+  </div>
+  <p class="analogy">公司公告栏：有人发布消息，所有人都能看见，不用一个个通知。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>事件总线 = 公告栏 → 发布订阅 → 松耦合 → 广播通知</div>
+  <div class="summary"><strong>核心：</strong>通过事件驱动实现服务间通信，发布者发布事件，订阅者异步消费。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>松耦合</li><li>异步通信</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>最终一致性</li><li>调试困难</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 服务间通信、状态变更通知</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="6">
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🗄️</span>
+    <div class="name-area">
+      <h3>服务独享数据库</h3>
+      <span class="en">Database per Service</span>
+    </div>
+  </div>
+  <p class="analogy">每家公司都有自己的账本，互不干涉。你要查账只能找对方公司。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>独享数据库 = 各自账本 → 不共享数据 → 通过API通信 → 独立演进</div>
+  <div class="summary"><strong>核心：</strong>每个微服务拥有独立数据库，不与其他服务共享数据存储。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>数据自治</li><li>独立演进</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>一致困难</li><li>查询复杂</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务拆分、数据自治、技术异构</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="7">
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🔪</span>
+    <div class="name-area">
+      <h3>数据分片</h3>
+      <span class="en">Sharding</span>
+    </div>
+  </div>
+  <p class="analogy">图书馆按字母分书：A-F放一楼，G-L放二楼，不用在一层楼找所有书。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>数据分片 = 图书馆分区 → 按规则拆分 → 均匀分布 → 分散压力</div>
+  <div class="summary"><strong>核心：</strong>将大数据集按规则（哈希/范围）拆分到多个节点。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>水平扩展</li><li>分散压力</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>跨片查询复杂</li><li>热点问题</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 大表拆分、水平扩展、分布式数据库</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="0" data-id="8">
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🥪</span>
+    <div class="name-area">
+      <h3>分层缓存</h3>
+      <span class="en">Cache Hierarchy</span>
+    </div>
+  </div>
+  <p class="analogy">办公室：桌上→抽屉→文件柜，常用文件放最近处。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>分层缓存 = 桌面/抽屉/文件柜 → 越近越快 → 命中率高 → 分层命中</div>
+  <div class="summary"><strong>核心：</strong>缓存分为多个层级（L1本地/L2分布式/L3 CDN），热点数据放最近层。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>命中率高</li><li>性能优化</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>一致性复杂</li><li>管理成本</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 L1/L2/L3缓存、Redis、CDN</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<!-- 代码实现层 (8) -->
+<div class="card card-code" data-cat="code" data-core="1" data-id="9">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔌</span>
+    <div class="name-area">
+      <h3>熔断器</h3>
+      <span class="en">Circuit Breaker</span>
+    </div>
+  </div>
+  <p class="analogy">电路保险丝：电流过载时自动断开，防止烧毁电器。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>熔断器 = 保险丝 → 故障过多自动断开 → 保护系统不被拖垮</div>
+  <div class="summary"><strong>核心：</strong>当服务调用失败率达到阈值时，自动断开连接，防止故障扩散。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>防止故障扩散</li><li>自动恢复</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>增加复杂度</li><li>需要调参</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务调用、第三方API</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="1" data-id="10">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🚦</span>
+    <div class="name-area">
+      <h3>限流</h3>
+      <span class="en">Rate Limiting</span>
+    </div>
+  </div>
+  <p class="analogy">高速收费站：每秒只放行固定数量车辆，防止拥堵。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>限流 = 收费站 → 控制流速 → 超过就排队或拒绝 → 保护系统</div>
+  <div class="summary"><strong>核心：</strong>控制请求速率或并发数，防止系统过载。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>保护系统</li><li>公平分配</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>影响体验</li><li>需要调参</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 API网关、接口防刷、抢购</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="1" data-id="11">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔄</span>
+    <div class="name-area">
+      <h3>重试</h3>
+      <span class="en">Retry</span>
+    </div>
+  </div>
+  <p class="analogy">打电话对方占线，过一会儿再打，不是永远等下去。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>重试 = 占线再打 → 不是立即放弃 → 有策略地重试</div>
+  <div class="summary"><strong>核心：</strong>调用失败时按策略重试，避免偶发故障影响整体。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>提高可用性</li><li>自动恢复</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>增加延迟</li><li>幂等性要求</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 网络请求、消息发送</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="1" data-id="12">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">⏱️</span>
+    <div class="name-area">
+      <h3>超时</h3>
+      <span class="en">Timeout</span>
+    </div>
+  </div>
+  <p class="analogy">微波炉定时：设10分钟，到时间就自动停止，不会无限加热。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>超时 = 微波炉定时 → 到点就停 → 防止无限等待</div>
+  <div class="summary"><strong>核心：</strong>为每个远程调用设置最大等待时间，超时后立即返回。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>防止资源耗尽</li><li>快速失败</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>需要合理设置</li><li>可能误杀</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 RPC调用、HTTP请求、数据库查询</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="1" data-id="13">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🛳️</span>
+    <div class="name-area">
+      <h3>舱壁隔离</h3>
+      <span class="en">Bulkhead</span>
+    </div>
+  </div>
+  <p class="analogy">轮船防水舱：一个舱进水，其他舱不受影响，船不会沉。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>舱壁隔离 = 防水舱 → 故障隔离 → 互不影响 → 局部问题</div>
+  <div class="summary"><strong>核心：</strong>将资源划分为独立池，局部故障不会影响整体系统。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>故障隔离</li><li>局部保护</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>资源利用率</li><li>配置复杂</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 线程池隔离、服务分组</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="0" data-id="14">
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔽</span>
+    <div class="name-area">
+      <h3>降级</h3>
+      <span class="en">Degradation</span>
+    </div>
+  </div>
+  <p class="analogy">医院急诊：病人太多时，优先救治危重病人，轻症暂缓。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>降级 = 急诊分诊 → 保核心 → 非核心暂停 → 有损服务</div>
+  <div class="summary"><strong>核心：</strong>系统过载时关闭非核心功能，保证核心业务可用。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>保证核心</li><li>有损服务</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>体验下降</li><li>策略设计</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 大促活动、服务过载</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="1" data-id="15">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">♻️</span>
+    <div class="name-area">
+      <h3>幂等</h3>
+      <span class="en">Idempotency</span>
+    </div>
+  </div>
+  <p class="analogy">电梯按钮：按一次和按十次效果一样，电梯只来一趟。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>幂等 = 电梯按钮 → 重复操作结果一样 → 按多少次都一样</div>
+  <div class="summary"><strong>核心：</strong>重复执行同一操作不会产生副作用，保证重试安全。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>安全可靠</li><li>防止重复</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>存储开销</li><li>设计复杂</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 支付回调、接口重试</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-code" data-cat="code" data-core="0" data-id="16">
+  <span class="card-badge code">代码实现层</span>
+  <div class="card-header">
+    <span class="emoji">🔐</span>
+    <div class="name-area">
+      <h3>分布式锁</h3>
+      <span class="en">Distributed Lock</span>
+    </div>
+  </div>
+  <p class="analogy">公共厕所：有人进去就锁门，外面的人必须等待。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>分布式锁 = 厕所锁门 → 互斥访问 → 防止争抢 → 排队</div>
+  <div class="summary"><strong>核心：</strong>在分布式环境下实现互斥访问，防止多个进程同时操作共享资源。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>互斥访问</li><li>防止竞争</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>性能开销</li><li>死锁风险</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 库存扣减、订单防重</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<!-- 运维保障层 (9) -->
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="17">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔍</span>
+    <div class="name-area">
+      <h3>服务发现</h3>
+      <span class="en">Service Discovery</span>
+    </div>
+  </div>
+  <p class="analogy">医院导诊台：新医生来了登记，病人来了问导诊台找哪个医生。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>服务发现 = 导诊台 → 注册/查询 → 动态发现 → 不用硬编码地址</div>
+  <div class="summary"><strong>核心：</strong>服务启动时注册自己，客户端通过服务名动态发现可用实例。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>动态发现</li><li>自动扩缩容</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>注册中心单点</li><li>心跳开销</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 微服务注册、K8s服务</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="18">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">⚖️</span>
+    <div class="name-area">
+      <h3>负载均衡</h3>
+      <span class="en">Load Balancing</span>
+    </div>
+  </div>
+  <p class="analogy">超市收银台：多个柜台分流顾客，避免某个柜台排太长队。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>负载均衡 = 多收银台 → 分流排队 → 均匀分配 → 不扎堆</div>
+  <div class="summary"><strong>核心：</strong>将请求均匀分配到多个服务实例，避免单点过载。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>提高吞吐量</li><li>消除单点</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>额外跳转</li><li>会话保持复杂</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 网关分发、服务集群</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="19">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">💓</span>
+    <div class="name-area">
+      <h3>健康探针</h3>
+      <span class="en">Health Probe</span>
+    </div>
+  </div>
+  <p class="analogy">体检中心：定期给人做检查，有问题早发现早治疗。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>健康探针 = 体检 → 定期检测 → 不健康剔除 → 自动恢复</div>
+  <div class="summary"><strong>核心：</strong>定期检测服务健康状态，不健康的实例从流量中剔除。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>自动发现故障</li><li>快速恢复</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>探针开销</li><li>误判风险</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s存活检查、自动重启</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="20">
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔁</span>
+    <div class="name-area">
+      <h3>调和回路</h3>
+      <span class="en">Reconciliation Loop</span>
+    </div>
+  </div>
+  <p class="analogy">扫地机器人：设定目标（全扫一遍），不断调整路径直到完成。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>调和回路 = 扫地机器人 → 实际vs期望 → 持续修正 → 自动对齐</div>
+  <div class="summary"><strong>核心：</strong>持续比较实际状态与期望状态，自动执行操作使两者对齐。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>自动修复</li><li>声明式管理</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>延迟问题</li><li>震荡风险</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s控制器、配置漂移修复</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="21">
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🐦</span>
+    <div class="name-area">
+      <h3>金丝雀发布</h3>
+      <span class="en">Canary Release</span>
+    </div>
+  </div>
+  <p class="analogy">煤矿工人带金丝雀下矿：先放小鸟探路，安全了人再下去。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>金丝雀 = 先派鸟探路 → 小流量验证 → 没问题再全量 → 风险控制</div>
+  <div class="summary"><strong>核心：</strong>新版本先发布给少量用户，验证无问题后再逐步扩大流量。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>降低风险</li><li>快速回滚</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>部署复杂</li><li>监控成本高</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 版本发布、A/B测试</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="22">
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📋</span>
+    <div class="name-area">
+      <h3>GitOps</h3>
+      <span class="en">GitOps</span>
+    </div>
+  </div>
+  <p class="analogy">装修图纸：设计师画好图纸，工人按图施工，装修完跟图纸一致。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>GitOps = 装修图纸 → Git是唯一真相 → 自动部署 → 状态一致</div>
+  <div class="summary"><strong>核心：</strong>以 Git 为唯一真相来源，配置变更自动同步到运行时。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>版本控制</li><li>审计追踪</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>学习曲线</li><li>Secret处理</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s部署、基础设施管理</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="23">
+  <span class="core-star">🔴 核心</span>
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">🔬</span>
+    <div class="name-area">
+      <h3>分布式追踪</h3>
+      <span class="en">Distributed Tracing</span>
+    </div>
+  </div>
+  <p class="analogy">快递跟踪：从发货到签收，每个中转站都扫码记录，全程可追踪。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>分布式追踪 = 快递跟踪 → 每个节点记录 → 串联全链路 → 定位问题</div>
+  <div class="summary"><strong>核心：</strong>为请求分配唯一 Trace ID，串联全链路调用，定位延迟和故障点。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>全链路可见</li><li>快速定位</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>采样开销</li><li>存储成本</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 性能分析、故障定位</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="24">
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📝</span>
+    <div class="name-area">
+      <h3>结构化日志</h3>
+      <span class="en">Structured Logging</span>
+    </div>
+  </div>
+  <p class="analogy">表格登记：不是手写笔记，而是统一表格，方便分类查找。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>结构化日志 = 统一表格 → 标准化格式 → 可检索分析 → 日志即数据</div>
+  <div class="summary"><strong>核心：</strong>使用统一键值对格式（JSON）记录日志，便于机器解析和分析。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>可检索</li><li>可分析</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>存储成本</li><li>格式约束</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 日志聚合、ELK/Loki</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
+<div class="card card-ops" data-cat="ops" data-core="0" data-id="25">
+  <span class="card-badge ops">运维保障层</span>
+  <div class="card-header">
+    <span class="emoji">📜</span>
+    <div class="name-area">
+      <h3>声明式配置</h3>
+      <span class="en">Declarative Config</span>
+    </div>
+  </div>
+  <p class="analogy">点外卖：你说"我要一份宫保鸡丁"，不用管厨房怎么炒。</p>
+  <div class="memory-anchor"><strong>🔑 记忆：</strong>声明式配置 = 点外卖 → 描述期望 → 系统自动达成 → 不用关心过程</div>
+  <div class="summary"><strong>核心：</strong>描述系统的期望状态，由系统自动执行操作达成目标。</div>
+  <div class="pros-cons-mini">
+    <div class="pros-mini"><h5>✅ 优点</h5><ul><li>简洁易懂</li><li>自动化执行</li></ul></div>
+    <div class="cons-mini"><h5>❌ 缺点</h5><ul><li>抽象层复杂</li><li>调试困难</li></ul></div>
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 K8s YAML、Terraform</span>
+    <a href="distributed_patterns_guide.html" class="link-to-guide">📖 查看详细讲解 →</a>
+  </div>
+</div>
+
 </div>
 
 <script>
-const data = [
-  { id: 1, cat: 'comm', name: '熔断器', en: 'Circuit Breaker', emoji: '🔌', analogy: '电路跳闸保护', anchor: '断路 = 保护 = 级联故障', scene: '第三方调用' },
-  { id: 2, cat: 'comm', name: '重试退避', en: 'Retry with Backoff', emoji: '🔄', analogy: '打电话没人接，隔久一点再打', anchor: '重试 = 指数退避 = 瞬态失败', scene: '网络不稳定' },
-  { id: 3, cat: 'comm', name: '超时控制', en: 'Timeout', emoji: '⏱️', analogy: '等人不能超过10分钟', anchor: '上限 = 阻塞 = 资源保护', scene: '远程调用' },
-  { id: 4, cat: 'comm', name: '幂等性', en: 'Idempotency', emoji: '🔁', analogy: '按电梯按钮多次，结果一样', anchor: '重复 = 防重 = 网络抖动', scene: '支付接口' },
-  { id: 5, cat: 'transaction', name: 'Saga 模式', en: 'Saga', emoji: '📜', analogy: '旅行订房失败，取消机票', anchor: '补偿 = 回滚 = 最终一致', scene: '跨服务事务' },
-  { id: 6, cat: 'transaction', name: 'TCC 事务', en: 'TCC', emoji: '🤝', analogy: '先冻结资金，成功再扣款', anchor: '预留 = 确认 = 取消', scene: '电商下单' },
-  { id: 7, cat: 'transaction', name: '两阶段提交', en: '2PC', emoji: '🗳️', analogy: '大家举手表决，一致再执行', anchor: '强一致 = 阻塞 = 协调者', scene: '数据库事务' },
-  { id: 8, cat: 'data', name: '事件溯源', en: 'Event Sourcing', emoji: '📨', analogy: '记账本只记流水，不记余额', anchor: '事件流 = 回放 = 审计', scene: '审计追踪' },
-  { id: 9, cat: 'data', name: 'CQRS', en: 'CQRS', emoji: '📖', analogy: '前台和后台用不同账本', anchor: '读写分离 = 优化 = 不同模型', scene: '读写差异大' },
-  { id: 10, cat: 'data', name: 'Outbox', en: 'Outbox', emoji: '📬', analogy: '写信先放草稿箱，再统一发', anchor: '事务 = 消息 = 一致', scene: '消息发布' },
-  { id: 11, cat: 'data', name: '最终一致性', en: 'Eventual Consistency', emoji: '⏳', analogy: '同步需要时间，最终会一致', anchor: '暂时不一致 = 同步 = 延迟', scene: '分布式数据' },
-  { id: 12, cat: 'fault', name: '舱壁隔离', en: 'Bulkhead', emoji: '🛡️', analogy: '船舱隔离，进水不沉全船', anchor: '隔离 = 资源池 = 故障扩散', scene: '资源保护' },
-  { id: 13, cat: 'fault', name: '限流', en: 'Rate Limiting', emoji: '🚦', analogy: '收费站限流，防止拥堵', anchor: '限速 = 保护 = 流量控制', scene: '高并发保护' },
-  { id: 14, cat: 'fault', name: '降级', en: 'Graceful Degradation', emoji: '🔽', analogy: '主灯坏了，开备用灯', anchor: '保核心 = 简化 = 有损服务', scene: '故障应对' },
-  { id: 15, cat: 'fault', name: '故障转移', en: 'Failover', emoji: '🔄', analogy: '主唱生病，替补上场', anchor: '高可用 = 备份 = 自动切换', scene: '高可用架构' },
-  { id: 16, cat: 'cache', name: 'Cache-Aside', en: 'Cache-Aside', emoji: '📦', analogy: '自己管抽屉，用不到的不拿', anchor: '应用管理 = 补充 = 常用', scene: '缓存策略' },
-  { id: 17, cat: 'cache', name: 'Write-Through', en: 'Write-Through', emoji: '✍️', analogy: '记账同时写两份', anchor: '强一致 = 同步写 = 实时', scene: '缓存一致性' },
-  { id: 18, cat: 'cache', name: 'Write-Behind', en: 'Write-Behind', emoji: '📝', analogy: '先记便签，下班再整理', anchor: '异步 = 批量 = 性能', scene: '写性能优化' },
-  { id: 19, cat: 'arch', name: 'API 网关', en: 'API Gateway', emoji: '🚪', analogy: '酒店前台，统一接待', anchor: '统一入口 = 聚合 = 屏蔽', scene: '微服务入口' },
-  { id: 20, cat: 'arch', name: 'BFF', en: 'BFF', emoji: '🎭', analogy: '为不同客人定制菜单', anchor: '前端定制 = 聚合 = 适配', scene: '前端适配' },
-  { id: 21, cat: 'arch', name: '主节点选举', en: 'Leader Election', emoji: '👑', analogy: '选班长，只有一个班长', anchor: '协调 = 决策 = 一致性', scene: '集群协调' },
-  { id: 22, cat: 'arch', name: '配置中心', en: 'Config Center', emoji: '⚙️', analogy: '公告栏，大家都能看到', anchor: '集中 = 动态 = 同步', scene: '配置管理' }
-];
+const catNames = { all: '全部 25 种', core: '14 个核心', arch: '架构设计层 (8)', code: '代码实现层 (8)', ops: '运维保障层 (9)' };
 
-const catNames = { all: '全部', comm: '服务通信', transaction: '分布式事务', data: '数据一致性', fault: '容错弹性', cache: '缓存策略', arch: '架构模式' };
+let activeFilter = 'all';
 
-const catBadges = { comm: 'comm', transaction: 'transaction', data: 'data', fault: 'fault', cache: 'cache', arch: 'arch' };
-const catCards = { comm: 'comm', transaction: 'transaction', data: 'data', fault: 'fault', cache: 'cache', arch: 'arch' };
-
-const cardsGrid = document.getElementById('cardsGrid');
-
-function renderCards(filter = 'all') {
-  cardsGrid.innerHTML = '';
-  data.forEach(item => {
-    if (filter !== 'all' && item.cat !== filter) return;
-    const card = document.createElement('div');
-    card.className = `card card-${catCards[item.cat]}`;
-    card.setAttribute('data-cat', item.cat);
-    card.innerHTML = `
-      <div class="card-badge ${catBadges[item.cat]}">${catNames[item.cat]}</div>
-      <div class="card-header">
-        <div class="emoji">${item.emoji}</div>
-        <div class="name-area">
-          <h3>${item.name}</h3>
-          <div class="en">${item.en}</div>
-        </div>
-      </div>
-      <div class="analogy">${item.analogy}</div>
-      <div class="memory-anchor"><strong>💡 记忆锚点：</strong>${item.anchor}</div>
-      <div class="card-footer">
-        <span class="scene-tag">${item.scene}</span>
-        <span class="click-hint">点击详情 ›</span>
-      </div>
-    `;
-    card.addEventListener('click', () => openModal(item.id));
-    cardsGrid.appendChild(card);
-  });
-}
-
-const modalOverlay = document.getElementById('modalOverlay');
-const modal = document.getElementById('modal');
-
-function openModal(id) {
-  const item = data.find(d => d.id === id);
-  if (!item) return;
-  modal.innerHTML = `
-    <div class="modal-header">
-      <div class="pattern-id">DISTRIBUTED · ${catNames[item.cat]}</div>
-      <h2><span style="font-size:2.2rem">${item.emoji}</span> <span style="color:#3b82f6">${item.name}</span> <span style="font-size:0.85rem;color:#999">${item.en}</span></h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="memory-section">
-        <h4><span class="icon">🔗</span> 记忆锚点</h4>
-        <div class="link-row">
-          <div class="link-box name">${item.name}</div>
-          <div class="arrow">→</div>
-          <div class="link-box analogy">${item.analogy}</div>
-        </div>
-        <div class="memory-tip"><strong>💡 记忆口诀：</strong>${item.anchor}</div>
-      </div>
-      <div class="when-to-use">
-        <h4>🤔 什么时候用它？</h4>
-        <p>${item.scene}</p>
-      </div>
-      <div class="code-section">
-        <h4>💻 极简代码</h4>
-        <pre><code>// ${item.name} 的 JavaScript 实现示例
-// 详见 distributed_patterns_guide.html</code></pre>
-      </div>
-    </div>
-  `;
-  modalOverlay.classList.add('show');
-}
-
-function closeModal() { modalOverlay.classList.remove('show'); }
-modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
-
-// Filter
 const filterBtns = document.querySelectorAll('.filter-btn');
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderCards(btn.dataset.cat);
+for (let i = 0; i < filterBtns.length; i++) {
+  filterBtns[i].addEventListener('click', function() {
+    for (let j = 0; j < filterBtns.length; j++) { filterBtns[j].classList.remove('active'); }
+    this.classList.add('active');
+    activeFilter = this.getAttribute('data-cat');
+    document.getElementById('sectionTitle').textContent = '📚 ' + catNames[activeFilter] + ' 分布式模式';
+    applyFilter();
   });
-});
+}
 
-// Search
-document.getElementById('searchInput').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase().trim();
+function applyFilter() {
+  const input = document.getElementById('searchInput');
+  const q = input ? input.value.trim().toLowerCase() : '';
   const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    card.classList.toggle('hidden', q && !text.includes(q));
-  });
-});
+  let visibleCount = 0;
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    const matchCat = activeFilter === 'all' || activeFilter === 'core' || card.getAttribute('data-cat') === activeFilter;
+    const matchCore = activeFilter !== 'core' || card.getAttribute('data-core') === '1';
+    const matchSearch = !q || card.textContent.toLowerCase().indexOf(q) !== -1;
+    if (matchCat && matchCore && matchSearch) { card.classList.remove('hidden'); visibleCount++; }
+    else { card.classList.add('hidden'); }
+  }
+  const status = document.getElementById('statusBar');
+  if (visibleCount === 0) { status.textContent = '🔍 没有找到匹配的分布式模式'; }
+  else { status.textContent = '✅ 显示 ' + visibleCount + ' / 25 种分布式模式'; }
+}
 
-renderCards();
+const searchInput = document.getElementById('searchInput');
+if (searchInput) { searchInput.addEventListener('input', applyFilter); }
+
+applyFilter();
 </script>
-
 </body>
 </html>

@@ -83,7 +83,7 @@
 </div>
 
 <h1>☁️ 分布式系统模式 · 一句话速查表</h1>
-<p class="subtitle">25个模式，从架构设计到代码实现到运维保障，三层分类快速查阅</p>
+<p class="subtitle">26个模式，从架构设计到代码实现到运维保障，三层分类快速查阅</p>
 
 <div class="search-box">
   <input type="text" id="searchInput" placeholder="🔍 搜索名称、类比或关键词..." />
@@ -423,6 +423,18 @@
     <td class="oneliner">描述系统的期望状态，由系统自动执行操作达成目标。</td>
     <td class="keywords">
       <span class="kw">K8s YAML</span><span class="kw">Terraform</span><span class="kw">自动化部署</span>
+    </td>
+  </tr>
+  <tr data-cat="arch" data-core="1">
+    <td><span class="type-tag arch">架构</span></td>
+    <td>
+      <div class="name-cell"><span class="emoji">🏍️</span> Sidecar / 服务网格 <span class="core-badge">🔴</span></div>
+      <div class="en">Sidecar / Service Mesh</div>
+    </td>
+    <td class="analogy">酒店房间旁边的管家房：主房住客人，管家房住服务员，互不影响。</td>
+    <td class="oneliner">将日志、监控、安全等非业务功能从主服务抽离，放到独立 Sidecar 代理中统一管理。</td>
+    <td class="keywords">
+      <span class="kw">Istio</span><span class="kw">Linkerd</span><span class="kw">Envoy</span><span class="kw">服务网格</span>
     </td>
   </tr>
 

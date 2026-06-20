@@ -164,7 +164,7 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 
 <header>
   <h1>☁️ 分布式系统模式 · 详细讲解</h1>
-  <p>基于 5 本经典著作，从架构设计到代码实现到运维保障，25 个核心模式逐层拆解</p>
+  <p>基于 5 本经典著作，从架构设计到代码实现到运维保障，26 个核心模式逐层拆解</p>
 </header>
 
 <div class="roadmap">
@@ -184,7 +184,7 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
 </div>
 
 <div class="search-box">
-  <input type="text" id="searchInput" placeholder="🔍 搜索模式名称、类比或应用场景..." />
+  <input type="text" id="searchInput" placeholder="🔍 搜索模式名称、类比或应用场景...（支持中英文：Saga, Circuit Breaker, 熔断器）" />
 </div>
 
 <div class="filter-bar">
@@ -331,7 +331,7 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
     <span class="click-hint">点击学习</span>
   </div>
 </div>
-<div class="card card-arch" data-cat="arch" data-core="0" data-id="8">
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="8">
   
   <span class="card-badge arch">架构设计层</span>
   <div class="card-header">
@@ -569,7 +569,7 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
     <span class="click-hint">点击学习</span>
   </div>
 </div>
-<div class="card card-ops" data-cat="ops" data-core="0" data-id="20">
+<div class="card card-ops" data-cat="ops" data-core="1" data-id="20">
   
   <span class="card-badge ops">运维保障层</span>
   <div class="card-header">
@@ -682,6 +682,25 @@ header p { font-size: 1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; posi
   </div>
   <div class="card-footer">
     <span class="scene-tag">🎯 K8s YAML、Terraform、基础设施编排、自动化部署</span>
+    <span class="click-hint">点击学习</span>
+  </div>
+</div>
+
+<div class="card card-arch" data-cat="arch" data-core="1" data-id="26">
+  <span class="card-badge arch">架构设计层</span>
+  <div class="card-header">
+    <span class="emoji">🏍️</span>
+    <div class="name-area">
+      <h3>Sidecar / 服务网格</h3>
+      <span class="en">Sidecar / Service Mesh</span>
+    </div>
+  </div>
+  <p class="analogy">酒店房间旁边的管家房：主房住客人，管家房住服务员，互不影响。</p>
+  <div class="memory-anchor">
+    <strong>🔑 记忆：</strong>Sidecar = 管家房 → 业务在主卧 → 基础设施在隔壁 → 互不干扰
+  </div>
+  <div class="card-footer">
+    <span class="scene-tag">🎯 Istio、Linkerd、Envoy、微服务通信、非业务功能抽离</span>
     <span class="click-hint">点击学习</span>
   </div>
 </div>
@@ -3424,10 +3443,140 @@ logger.info({
     <div class="pros"><h5>✅ 优点</h5><ul><li>可检索（按字段快速搜索）</li><li>可分析（统计、聚合、趋势分析）</li><li>标准化（所有服务格式统一）</li></ul></div>
     <div class="cons"><h5>❌ 缺点</h5><ul><li>存储成本（JSON 比文本大）</li><li>格式约束（需要严格遵守字段定义）</li><li>迁移成本（旧系统需要改造）</li></ul></div>
   </div>
+</div>`,
+"26": `<div class="modal-header">
+  <div class="pattern-id">架构设计层 &middot; 第 26 个模式</div>
+  <h2>
+    <span style="font-size:2.2rem">🏍️</span>
+    <span style="color:#667eea">Sidecar / 服务网格</span>
+    <span style="font-size:0.85rem;color:#999">Sidecar / Service Mesh</span>
+    <span style="display:inline-block;padding:4px 14px;border-radius:20px;background:#667eea15;color:#667eea;font-size:0.75rem;vertical-align:middle;margin-left:10px;border:1px solid #667eea30">🔴 核心</span>
+  </h2>
+</div>
+<div class="modal-body">
+  <div class="memory-section">
+    <h4><span class="icon">🔗</span> 记忆锚点：名字 + 类比 + 概念</h4>
+    <div class="link-row">
+      <div class="link-box name">
+        <span class="label label-name">模式名称</span>
+Sidecar / 服务网格
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box analogy">
+        <span class="label label-analogy">生活类比</span>
+酒店房间旁边的管家房：主房住客人，管家房住服务员，互不影响。
+      </div>
+      <div class="arrow">→</div>
+      <div class="link-box core">
+        <span class="label label-core">核心概念</span>
+将日志、鉴权、重试、链路追踪等非业务功能从主服务中抽离，放到独立的 Sidecar 代理中，通过 Service Mesh 统一管理。
+      </div>
+    </div>
+    <div class="memory-tip">
+      <strong>💡 记忆口诀：</strong>Sidecar = 管家房 → 业务在主卧 → 基础设施在隔壁 → 互不干扰
+    </div>
+  </div>
+
+  <h4>📌 一句话是什么</h4>
+  <p style="background:#f0f7ff;padding:12px 16px;border-radius:8px;border-left:4px solid #667eea;"><strong>Sidecar 将日志、监控、安全等非业务功能从主服务中抽离，放到独立的代理中。Service Mesh 统一管理这些代理，实现透明的服务间通信。</strong></p>
+
+  <h4>🛒 具体例子：不用它 vs 用它</h4>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:14px 0;">
+    <div style="background:#fff0f0;border:1px solid #ffcdd2;border-radius:12px;padding:16px;">
+      <h5 style="color:#d32f2f;margin-bottom:10px;font-size:0.95rem;">❌ 不用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">没有 Sidecar（非业务功能耦合在主服务中）：订单服务代码里同时包含：业务逻辑（创建订单）+ 日志记录 + 服务发现 + 负载均衡 + 熔断逻辑 + 链路追踪 + TLS 加密。代码臃肿，换技术栈困难，每个服务重复实现相同功能。</p>
+    </div>
+    <div style="background:#f0fff0;border:1px solid #c8e6c9;border-radius:12px;padding:16px;">
+      <h5 style="color:#388e3c;margin-bottom:10px;font-size:0.95rem;">✅ 用它</h5>
+      <p style="font-size:0.88rem;line-height:1.8;margin:0;">有 Sidecar（非业务功能独立）：订单服务只关注业务逻辑。旁边运行一个 Envoy Sidecar 代理，自动处理：日志、监控、服务发现、负载均衡、熔断、链路追踪、TLS。业务代码干净，基础设施统一升级。</p>
+    </div>
+  </div>
+
+  <h4>🔄 核心流程</h4>
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务发送请求 → 本地 localhost:15001（Sidecar 代理）
+                → Sidecar 自动处理：
+                  1. 服务发现（查找支付服务地址）
+                  2. 负载均衡（选择健康的支付实例）
+                  3. 建立 mTLS 加密连接
+                  4. 记录链路追踪 Span
+                  5. 发送请求到目标服务
+                → 目标服务的 Sidecar 接收请求
+                → 解密、鉴权、转发给主服务
+                → 返回响应（经过同样的 Sidecar 链路）
+
+业务服务完全无感知，通信由 Sidecar 透明处理</pre>
+
+  <h4>🆚 为什么需要它</h4>
+  <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 Sidecar</th><th style="border:1px solid #ddd;padding:8px;">用 Sidecar</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">代码复杂度</td><td style="border:1px solid #ddd;padding:8px;">每个服务重复实现日志、监控、安全</td><td style="border:1px solid #ddd;padding:8px;">业务代码干净，基础设施统一</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">技术升级</td><td style="border:1px solid #ddd;padding:8px;">换日志库？所有服务改代码</td><td style="border:1px solid #ddd;padding:8px;">升级 Sidecar 代理，服务无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">多语言服务</td><td style="border:1px solid #ddd;padding:8px;">每种语言都要实现一套基础设施</td><td style="border:1px solid #ddd;padding:8px;">Sidecar 独立于语言，一次部署</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">安全</td><td style="border:1px solid #ddd;padding:8px;">每个服务自己实现 TLS</td><td style="border:1px solid #ddd;padding:8px;">Sidecar 自动加密，证书统一轮换</td></tr></table>
+
+  <h4>💻 核心代码</h4>
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># Sidecar 模式：独立代理处理非业务功能
+
+# 主服务（业务代码干净，只关注业务逻辑）
+class OrderService:
+    def create_order(self, user_id, items):
+        # 纯业务逻辑：创建订单，不处理日志、加密、服务发现
+        order = Order(user_id=user_id, items=items)
+        return order
+
+# Sidecar 代理（独立进程，与主服务同机部署）
+class SidecarProxy:
+    def __init__(self, service_name):
+        self.service_name = service_name
+        self.discovery = ServiceDiscovery()  # 服务发现
+        self.tracer = Tracer()                # 链路追踪
+        self.encryptor = MTLSHandler()         # mTLS 加密
+    
+    def forward_request(self, target_service, request):
+        # 1. 服务发现：查找目标服务地址
+        instances = self.discovery.find(target_service)
+        target = self.load_balance(instances)
+        
+        # 2. 链路追踪：生成 Trace ID，记录 Span
+        span = self.tracer.start_span(f"call_{target_service}")
+        
+        # 3. 安全加密：建立 mTLS 连接
+        conn = self.encryptor.connect(target)
+        
+        # 4. 发送请求（业务请求通过 Sidecar 代理转发）
+        response = conn.send(request)
+        
+        # 5. 记录日志和监控指标
+        logger.info(f"Request to {target_service}: status={response.status}")
+        metrics.record_latency(target_service, span.duration)
+        
+        return response
+
+# 使用：主服务通过 localhost 调用 Sidecar
+order_service = OrderService()
+# 订单服务调用支付服务时，请求先发给本地 Sidecar
+sidecar = SidecarProxy("order-service")
+response = sidecar.forward_request("payment-service", {"action": "charge"})
+# Sidecar 自动处理：发现 → 负载均衡 → 加密 → 转发 → 监控</code></pre>
+
+  <div class="parts-section">
+    <h4>📦 3 个关键部件</h4>
+    <ul class="parts-list"><li><strong>Sidecar Proxy</strong> — 独立代理进程，处理非业务功能（日志、监控、安全）（酒店管家房）</li><li><strong>Service Mesh Control Plane</strong> — 管理所有 Sidecar 代理的配置和策略（如 Istio Pilot）（酒店管家主管）</li><li><strong>Data Plane</strong> — 所有 Sidecar 代理组成的网络层，实际处理服务间通信（酒店管家网络）</li></ul>
+  </div>
+
+  <div class="steps-section">
+    <h4>🔨 5 个搭建步骤</h4>
+    <ol class="steps-list"><li>1 为每个服务部署 Sidecar 代理（如 Envoy），与主服务同机运行</li><li>2 配置 Service Mesh 控制平面（如 Istio），统一管理代理策略</li><li>3 将非业务功能（日志、监控、安全、服务发现）从主服务迁移到 Sidecar</li><li>4 配置服务间通信规则：路由、负载均衡、熔断、重试</li><li>5 监控 Sidecar 性能和健康状态，确保代理不成为瓶颈</li></ol>
+  </div>
+
+  <div class="when-to-use">
+    <h4>🤔 什么时候用它</h4>
+    <p style="margin-top:8px"><span class="trigger">微服务通信</span><span class="trigger">多语言服务</span><span class="trigger">统一基础设施</span><span class="trigger">服务安全</span></p>
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><h5>✅ 优点</h5><ul><li>业务代码干净（非业务功能抽离，服务专注业务）</li><li>语言无关（Sidecar 独立于服务语言，一次实现多语言复用）</li><li>统一升级（升级 Sidecar 代理，所有服务自动获得新功能）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源开销（每个服务多运行一个 Sidecar 进程，占用 CPU/内存）</li><li>网络延迟（请求多一跳，增加延迟）</li><li>调试复杂（请求经过代理，问题排查更困难）</li></ul></div>
+  </div>
 </div>`
 }
 
-const catNames = { all: '全部 25 种', core: '14 个核心', arch: '架构设计层 (8)', code: '代码实现层 (8)', ops: '运维保障层 (9)' };
+const catNames = { all: '全部 26 种', core: '14 个核心', arch: '架构设计层 (9)', code: '代码实现层 (8)', ops: '运维保障层 (9)' };
 
 const allCards = document.querySelectorAll('.card');
 for (let i = 0; i < allCards.length; i++) {
@@ -3480,7 +3629,7 @@ function applyFilter() {
   }
   const status = document.getElementById('statusBar');
   if (visibleCount === 0) { status.textContent = '🔍 没有找到匹配的分布式模式'; }
-  else { status.textContent = '✅ 显示 ' + visibleCount + ' / 25 种分布式模式 — 点击卡片查看搭建指南'; }
+  else { status.textContent = '✅ 显示 ' + visibleCount + ' / 26 种分布式模式 — 点击卡片查看搭建指南'; }
 }
 
 const searchInput = document.getElementById('searchInput');

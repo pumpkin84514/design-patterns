@@ -742,7 +742,7 @@ Saga 事务协调
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Step 1: 创建订单 → 成功 checkmark
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Step 1: 创建订单 → 成功 checkmark
 Step 2: 扣库存   → 成功 checkmark
 Step 3: 扣款     → 失败 cross
 → 触发补偿（反向撤销）
@@ -755,7 +755,7 @@ Compensate 1: 取消订单
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 Saga</th><th style="border:1px solid #ddd;padding:8px;">用 Saga</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">跨服务事务</td><td style="border:1px solid #ddd;padding:8px;">2PC 锁表时间长</td><td style="border:1px solid #ddd;padding:8px;">异步，无全局锁</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">某服务失败</td><td style="border:1px solid #ddd;padding:8px;">数据不一致</td><td style="border:1px solid #ddd;padding:8px;">自动补偿，数据干净</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务可用性</td><td style="border:1px solid #ddd;padding:8px;">一个服务慢，全部等</td><td style="border:1px solid #ddd;padding:8px;">各服务独立执行</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class SagaOrchestrator:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class SagaOrchestrator:
     def execute(self, steps):
         completed = []
         for step in steps:
@@ -844,7 +844,7 @@ result = SagaOrchestrator().execute(steps)</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单 → 生成事件 OrderCreated → 存入事件库（只追加，不修改）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单 → 生成事件 OrderCreated → 存入事件库（只追加，不修改）
 用户支付 → 生成事件 PaymentReceived → 存入事件库
 仓库发货 → 生成事件 OrderShipped → 存入事件库
 
@@ -858,7 +858,7 @@ result = SagaOrchestrator().execute(steps)</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用事件溯源</th><th style="border:1px solid #ddd;padding:8px;">用事件溯源</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户说没付款</td><td style="border:1px solid #ddd;padding:8px;">无法证明，扯皮</td><td style="border:1px solid #ddd;padding:8px;">查事件记录，精确到秒</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">审计这单怎么算</td><td style="border:1px solid #ddd;padding:8px;">只能看最终结果</td><td style="border:1px solid #ddd;padding:8px;">重放事件，每一步清晰</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚到昨天</td><td style="border:1px solid #ddd;padding:8px;">昨晚备份，丢失今天</td><td style="border:1px solid #ddd;padding:8px;">重放到昨天，精确恢复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">新服务需要历史</td><td style="border:1px solid #ddd;padding:8px;">没有，从零开始</td><td style="border:1px solid #ddd;padding:8px;">重放历史事件，自动有完整数据</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">@dataclass
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">@dataclass
 class OrderCreated:
     order_id: str
     amount: float
@@ -953,7 +953,7 @@ CQRS 读写分离
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单（Command）→ 命令模型验证 → 生成事件 → 存入 Event Store
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户下单（Command）→ 命令模型验证 → 生成事件 → 存入 Event Store
                     ↓
               事件总线同步 → 查询模型更新（Elasticsearch）
                     ↓
@@ -965,7 +965,7 @@ CQRS 读写分离
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 CQRS</th><th style="border:1px solid #ddd;padding:8px;">用 CQRS</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">高并发写入</td><td style="border:1px solid #ddd;padding:8px;">读写互相阻塞，锁冲突</td><td style="border:1px solid #ddd;padding:8px;">写走命令模型，无锁竞争</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">复杂查询</td><td style="border:1px solid #ddd;padding:8px;">查询拖慢写入</td><td style="border:1px solid #ddd;padding:8px;">读走查询模型，预聚合优化</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">读多写少</td><td style="border:1px solid #ddd;padding:8px;">写操作冗余验证</td><td style="border:1px solid #ddd;padding:8px;">读模型缓存，写模型精简</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">团队协作</td><td style="border:1px solid #ddd;padding:8px;">Schema 变更互相影响</td><td style="border:1px solid #ddd;padding:8px;">读写模型独立演进</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CommandHandler:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CommandHandler:
     def handle(self, cmd):
         order = Order.create(cmd.user_id, cmd.items)
         event = OrderCreated(order.id, order.items)
@@ -1049,7 +1049,7 @@ API 网关
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">客户端请求 → API Gateway
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">客户端请求 → API Gateway
                 → 认证（JWT 验证）
                 → 限流（每秒 1000 请求）
                 → 路由（/users/* → 用户服务）
@@ -1062,7 +1062,7 @@ API 网关
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用网关</th><th style="border:1px solid #ddd;padding:8px;">用网关</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务地址变更</td><td style="border:1px solid #ddd;padding:8px;">客户端全部改代码</td><td style="border:1px solid #ddd;padding:8px;">只改网关配置，客户端无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">认证授权</td><td style="border:1px solid #ddd;padding:8px;">每个服务各自实现</td><td style="border:1px solid #ddd;padding:8px;">网关统一处理，一次搞定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">限流熔断</td><td style="border:1px solid #ddd;padding:8px;">每个服务各自实现</td><td style="border:1px solid #ddd;padding:8px;">网关统一配置，全局生效</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应聚合</td><td style="border:1px solid #ddd;padding:8px;">客户端调用 N 次</td><td style="border:1px solid #ddd;padding:8px;">网关并行调用，一次返回</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ApiGateway:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ApiGateway:
     def handle(self, request):
         if not self.authenticate(request):
             return 401
@@ -1147,7 +1147,7 @@ response = gateway.handle(request)</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务完成下单 → 发布事件 OrderCreated
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务完成下单 → 发布事件 OrderCreated
                     ↓
               事件总线（Kafka）
                     ↓
@@ -1161,7 +1161,7 @@ response = gateway.handle(request)</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用事件总线</th><th style="border:1px solid #ddd;padding:8px;">用事件总线</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务间通信</td><td style="border:1px solid #ddd;padding:8px;">HTTP 直接调用，紧耦合</td><td style="border:1px solid #ddd;padding:8px;">事件驱动，松耦合</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">A 挂了 B 也挂</td><td style="border:1px solid #ddd;padding:8px;">A 发完事件就结束，不影响 B</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">新增服务</td><td style="border:1px solid #ddd;padding:8px;">要改 A 的代码加调用</td><td style="border:1px solid #ddd;padding:8px;">新服务订阅事件即可，A 不用改</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能</td><td style="border:1px solid #ddd;padding:8px;">同步调用，阻塞等待</td><td style="border:1px solid #ddd;padding:8px;">异步消费，不阻塞</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class EventBus:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class EventBus:
     def publish(self, event):
         kafka.send(event.topic, event.to_json())
 
@@ -1248,7 +1248,7 @@ def on_order_created(event):
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务需要用户信息 → 调用用户服务 API
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务需要用户信息 → 调用用户服务 API
                     ↓
               用户服务查自己的 user_db
                     ↓
@@ -1260,7 +1260,7 @@ def on_order_created(event):
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">共享数据库</th><th style="border:1px solid #ddd;padding:8px;">独享数据库</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">Schema 变更</td><td style="border:1px solid #ddd;padding:8px;">一个团队改，所有团队受影响</td><td style="border:1px solid #ddd;padding:8px;">各团队独立变更，互不干扰</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">技术选型</td><td style="border:1px solid #ddd;padding:8px;">必须用同一种数据库</td><td style="border:1px solid #ddd;padding:8px;">各服务可选最适合的数据库</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据安全</td><td style="border:1px solid #ddd;padding:8px;">所有服务都能读所有数据</td><td style="border:1px solid #ddd;padding:8px;">只有服务自己能访问自己的数据</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障隔离</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，所有服务全挂</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，只影响一个服务</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class UserService:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class UserService:
     def get_user(self, user_id):
         return self.user_db.query(user_id)  # 只访问自己的数据库
 
@@ -1342,7 +1342,7 @@ class OrderService:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户查询订单 → 计算 user_id % 4 = 2
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户查询订单 → 计算 user_id % 4 = 2
                     ↓
               路由到数据库节点 C
                     ↓
@@ -1356,7 +1356,7 @@ class OrderService:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不分片</th><th style="border:1px solid #ddd;padding:8px;">分片</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">单表数据量</td><td style="border:1px solid #ddd;padding:8px;">10 亿条，查询慢</td><td style="border:1px solid #ddd;padding:8px;">2.5 亿条/节点，查询快 4 倍</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">并发写入</td><td style="border:1px solid #ddd;padding:8px;">单节点 CPU 100%</td><td style="border:1px solid #ddd;padding:8px;">4 个节点分担，每个 25%</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">存储容量</td><td style="border:1px solid #ddd;padding:8px;">单节点磁盘满</td><td style="border:1px solid #ddd;padding:8px;">4 个节点，容量 4 倍</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障影响</td><td style="border:1px solid #ddd;padding:8px;">数据库挂了，全部数据不可用</td><td style="border:1px solid #ddd;padding:8px;">只影响 1/4 的数据</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ShardRouter:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ShardRouter:
     def route(self, user_id):
         shard = user_id % 4  # 哈希取模
         return f"db_node_{shard}"
@@ -1439,7 +1439,7 @@ result = router.query(user_id=10001, "SELECT * FROM orders WHERE user_id = 10001
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → L1 本地缓存（Caffeine，1ms）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → L1 本地缓存（Caffeine，1ms）
          → 未命中 → L2 Redis（5ms）
          → 未命中 → L3 CDN（20ms）
          → 未命中 → 数据库（100ms）
@@ -1451,7 +1451,7 @@ result = router.query(user_id=10001, "SELECT * FROM orders WHERE user_id = 10001
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">没有缓存</th><th style="border:1px solid #ddd;padding:8px;">分层缓存</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">热点数据查询</td><td style="border:1px solid #ddd;padding:8px;">每次都查数据库，100ms</td><td style="border:1px solid #ddd;padding:8px;">L1 命中，1ms</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库压力</td><td style="border:1px solid #ddd;padding:8px;">10000 QPS 直接打到数据库</td><td style="border:1px solid #ddd;padding:8px;">95% 在缓存命中，数据库 500 QPS</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">成本</td><td style="border:1px solid #ddd;padding:8px;">数据库扩容贵</td><td style="border:1px solid #ddd;padding:8px;">本地缓存免费，Redis 便宜</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户距离</td><td style="border:1px solid #ddd;padding:8px;">数据库在机房，用户在全国各地</td><td style="border:1px solid #ddd;padding:8px;">CDN 在用户家门口</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LayeredCache:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LayeredCache:
     def __init__(self):
         self.l1 = CaffeineCache()  # 本地内存
         self.l2 = RedisCache()      # 分布式缓存
@@ -1551,7 +1551,7 @@ product = cache.get("product:12345")</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用支付服务 → 熔断器记录失败次数
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用支付服务 → 熔断器记录失败次数
                      → 失败率超过阈值（如 50%）
                      → 熔断器打开，直接返回降级响应
                      → 不调用支付服务，保护系统
@@ -1564,7 +1564,7 @@ product = cache.get("product:12345")</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用熔断器</th><th style="border:1px solid #ddd;padding:8px;">用熔断器</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">请求排队等待，拖垮整个系统</td><td style="border:1px solid #ddd;padding:8px;">快速失败，保护系统</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应时间</td><td style="border:1px solid #ddd;padding:8px;">超时 5 秒后才返回</td><td style="border:1px solid #ddd;padding:8px;">毫秒级返回降级响应</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">线程资源</td><td style="border:1px solid #ddd;padding:8px;">线程被占满，无法处理新请求</td><td style="border:1px solid #ddd;padding:8px;">不占用线程，资源充足</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障扩散</td><td style="border:1px solid #ddd;padding:8px;">一个服务故障，其他服务也挂</td><td style="border:1px solid #ddd;padding:8px;">故障隔离，不影响其他服务</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CircuitBreaker:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CircuitBreaker:
     def __init__(self):
         self.state = "CLOSED"  # 关闭=正常
         self.failure_count = 0
@@ -1669,7 +1669,7 @@ result = cb.call(lambda: payment_service.charge())</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">10000 请求同时到达 → 限流器检查计数器
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">10000 请求同时到达 → 限流器检查计数器
                      → 当前 1000/1000，已超限
                      → 请求 1001：返回 429（Too Many Requests）
                      → 请求 1002：进入队列，等待处理
@@ -1682,7 +1682,7 @@ result = cb.call(lambda: payment_service.charge())</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用限流</th><th style="border:1px solid #ddd;padding:8px;">用限流</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">突发流量</td><td style="border:1px solid #ddd;padding:8px;">系统被压垮，全部请求超时</td><td style="border:1px solid #ddd;padding:8px;">系统稳定，超出请求被拒绝或排队</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">响应时间</td><td style="border:1px solid #ddd;padding:8px;">所有请求都慢（5000ms）</td><td style="border:1px solid #ddd;padding:8px;">正常请求很快（50ms）</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库压力</td><td style="border:1px solid #ddd;padding:8px;">连接池占满，数据库崩溃</td><td style="border:1px solid #ddd;padding:8px;">连接池正常，数据库稳定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">全部请求失败或超时</td><td style="border:1px solid #ddd;padding:8px;">大部分请求正常，部分提示稍后重试</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class RateLimiter:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class RateLimiter:
     def __init__(self, limit=1000, window=1):
         self.limit = limit
         self.window = window
@@ -1776,7 +1776,7 @@ else:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">调用支付服务 → 失败（网络超时）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">调用支付服务 → 失败（网络超时）
             → 等待 1 秒，重试第 1 次 → 失败
             → 等待 2 秒，重试第 2 次 → 失败
             → 等待 4 秒，重试第 3 次 → 成功！
@@ -1789,7 +1789,7 @@ else:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用重试</th><th style="border:1px solid #ddd;padding:8px;">用重试</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">网络抖动</td><td style="border:1px solid #ddd;padding:8px;">直接失败，用户体验差</td><td style="border:1px solid #ddd;padding:8px;">自动重试，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">瞬时故障</td><td style="border:1px solid #ddd;padding:8px;">偶发故障被当成永久故障</td><td style="border:1px solid #ddd;padding:8px;">自动恢复，提高可用性</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">看到错误页面，需要手动刷新</td><td style="border:1px solid #ddd;padding:8px;">自动恢复，不用手动刷新</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">开发成本</td><td style="border:1px solid #ddd;padding:8px;">每个调用都要写重试逻辑</td><td style="border:1px solid #ddd;padding:8px;">统一重试框架，一行装饰器</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import time
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import time
 import random
 
 def retry(max_attempts=3, backoff=1):
@@ -1882,7 +1882,7 @@ result = call_payment_service()  # 失败自动重试</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用库存服务 → 启动定时器（2 秒）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">订单服务调用库存服务 → 启动定时器（2 秒）
                     → 2 秒内返回 → 取消定时器，正常处理
                     → 2 秒超时 → 触发超时回调
                     → 返回降级响应（默认有货/缓存数据）
@@ -1894,7 +1894,7 @@ result = call_payment_service()  # 失败自动重试</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用超时</th><th style="border:1px solid #ddd;padding:8px;">用超时</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务挂了</td><td style="border:1px solid #ddd;padding:8px;">请求永远等待，线程占满</td><td style="border:1px solid #ddd;padding:8px;">2 秒后返回降级，线程释放</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">页面一直 loading，用户不知道发生了什么</td><td style="border:1px solid #ddd;padding:8px;">快速返回，提示服务繁忙</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪一步卡住了</td><td style="border:1px solid #ddd;padding:8px;">超时日志明确记录</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">级联故障</td><td style="border:1px solid #ddd;padding:8px;">一个服务慢，拖垮所有服务</td><td style="border:1px solid #ddd;padding:8px;">超时隔离，不影响其他服务</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import requests
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import requests
 
 def call_service_with_timeout(url, timeout=2):
     try:
@@ -1978,7 +1978,7 @@ result = call_service_with_timeout("http://inventory-service/check", timeout=2)
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求订单服务 → 订单线程池（30/30 空闲）→ 正常处理
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求订单服务 → 订单线程池（30/30 空闲）→ 正常处理
 用户请求支付服务 → 支付线程池（20/30 空闲）→ 正常处理
 用户请求商品服务 → 商品线程池（20/20 满）→ 商品服务故障
                     → 商品请求被拒绝，不影响其他服务
@@ -1989,7 +1989,7 @@ result = call_service_with_timeout("http://inventory-service/check", timeout=2)
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用舱壁隔离</th><th style="border:1px solid #ddd;padding:8px;">用舱壁隔离</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">一个服务拖垮所有服务</td><td style="border:1px solid #ddd;padding:8px;">只影响故障服务</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">资源竞争</td><td style="border:1px solid #ddd;padding:8px;">所有服务抢同一资源</td><td style="border:1px solid #ddd;padding:8px;">各服务资源独立</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪个服务导致的</td><td style="border:1px solid #ddd;padding:8px;">一眼看出是商品服务问题</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">系统可用性</td><td style="border:1px solid #ddd;padding:8px;">全部服务不可用</td><td style="border:1px solid #ddd;padding:8px;">核心服务（订单、支付）仍然可用</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Bulkhead:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Bulkhead:
     def __init__(self, pool_size):
         self.semaphore = Semaphore(pool_size)
 
@@ -2081,7 +2081,7 @@ product_pool.execute(lambda: product_service.get_detail())
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">系统检测 CPU > 90% → 触发降级
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">系统检测 CPU > 90% → 触发降级
                     → 关闭推荐（返回空列表）
                     → 关闭评论（返回暂无评论）
                     → 简化商品详情（只返回基本信息）
@@ -2094,7 +2094,7 @@ product_pool.execute(lambda: product_service.get_detail())
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用降级</th><th style="border:1px solid #ddd;padding:8px;">用降级</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">大促活动</td><td style="border:1px solid #ddd;padding:8px;">系统崩溃，全部功能不可用</td><td style="border:1px solid #ddd;padding:8px;">核心功能可用，非核心关闭</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户体验</td><td style="border:1px solid #ddd;padding:8px;">所有功能都慢，无法完成购买</td><td style="border:1px solid #ddd;padding:8px;">能完成购买，只是看不到推荐</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">系统可用性</td><td style="border:1px solid #ddd;padding:8px;">全部挂掉</td><td style="border:1px solid #ddd;padding:8px;">核心功能稳定</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">收入影响</td><td style="border:1px solid #ddd;padding:8px;">零订单</td><td style="border:1px solid #ddd;padding:8px;">订单正常，只是推荐减少</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class DegradationService:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class DegradationService:
     def __init__(self):
         self.health = HealthMonitor()
 
@@ -2186,7 +2186,7 @@ product_pool.execute(lambda: product_service.get_detail())
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户点击支付 → 生成幂等键（如 pay-uuid-123）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户点击支付 → 生成幂等键（如 pay-uuid-123）
             → 发送请求到支付服务
             → 支付服务检查 Redis：这个键存在吗？
             → 不存在 → 执行扣款 → 存储键和结果到 Redis
@@ -2202,7 +2202,7 @@ product_pool.execute(lambda: product_service.get_detail())
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用幂等</th><th style="border:1px solid #ddd;padding:8px;">用幂等</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">网络超时重试</td><td style="border:1px solid #ddd;padding:8px;">重复扣款、重复下单</td><td style="border:1px solid #ddd;padding:8px;">只执行一次，重复请求返回相同结果</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户多次点击</td><td style="border:1px solid #ddd;padding:8px;">产生多个订单</td><td style="border:1px solid #ddd;padding:8px;">同一个请求，只产生一个订单</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">消息队列重复消费</td><td style="border:1px solid #ddd;padding:8px;">重复处理消息</td><td style="border:1px solid #ddd;padding:8px;">去重，只处理一次</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据一致性</td><td style="border:1px solid #ddd;padding:8px;">脏数据</td><td style="border:1px solid #ddd;padding:8px;">数据干净，无副作用</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class IdempotencyService:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class IdempotencyService:
     def __init__(self, redis):
         self.redis = redis
 
@@ -2293,7 +2293,7 @@ result = service.process("pay-uuid-123", lambda: payment_service.charge(5000))
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户 A 请求扣库存 → 获取分布式锁（Redis SETNX）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户 A 请求扣库存 → 获取分布式锁（Redis SETNX）
                   → 获取成功 → 查询库存 = 1
                   → 扣减库存 → 库存 = 0
                   → 释放锁
@@ -2309,7 +2309,7 @@ result = service.process("pay-uuid-123", lambda: payment_service.charge(5000))
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用分布式锁</th><th style="border:1px solid #ddd;padding:8px;">用分布式锁</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">库存扣减</td><td style="border:1px solid #ddd;padding:8px;">超卖（卖出比库存多）</td><td style="border:1px solid #ddd;padding:8px;">精确扣减，不超卖</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">订单生成</td><td style="border:1px solid #ddd;padding:8px;">重复订单号</td><td style="border:1px solid #ddd;padding:8px;">全局唯一订单号</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">定时任务</td><td style="border:1px solid #ddd;padding:8px;">多个节点同时执行</td><td style="border:1px solid #ddd;padding:8px;">只有一个节点执行</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">全局唯一 ID</td><td style="border:1px solid #ddd;padding:8px;">重复 ID</td><td style="border:1px solid #ddd;padding:8px;">唯一 ID</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import redis
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import redis
 
 class DistributedLock:
     def __init__(self, redis_client, key, expire=10):
@@ -2410,7 +2410,7 @@ else:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">支付服务启动 → 向 Eureka 注册（IP: 192.168.1.100:8080）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">支付服务启动 → 向 Eureka 注册（IP: 192.168.1.100:8080）
             → 定期发送心跳（每 30 秒）
 
 订单服务调用支付服务 → 查询 Eureka：payment-service 实例列表？
@@ -2425,7 +2425,7 @@ else:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用服务发现</th><th style="border:1px solid #ddd;padding:8px;">用服务发现</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务扩容</td><td style="border:1px solid #ddd;padding:8px;">改代码、重新发布所有客户端</td><td style="border:1px solid #ddd;padding:8px;">自动发现，无需修改</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务迁移</td><td style="border:1px solid #ddd;padding:8px;">改 IP 地址，重新发布</td><td style="border:1px solid #ddd;padding:8px;">自动更新，无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">流量仍打到死节点</td><td style="border:1px solid #ddd;padding:8px;">自动剔除不健康实例</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置管理</td><td style="border:1px solid #ddd;padding:8px;">配置文件到处分散</td><td style="border:1px solid #ddd;padding:8px;">注册中心统一管理</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ServiceRegistry:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class ServiceRegistry:
     def __init__(self):
         self.services = {}
 
@@ -2521,7 +2521,7 @@ client.call("payment-service", "charge", amount=5000)</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → 负载均衡器（Nginx）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求 → 负载均衡器（Nginx）
          → 轮询算法
          → 实例 A（健康）→ 处理请求
          → 实例 B（健康）→ 处理请求
@@ -2534,7 +2534,7 @@ client.call("payment-service", "charge", amount=5000)</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用负载均衡</th><th style="border:1px solid #ddd;padding:8px;">用负载均衡</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">请求分配</td><td style="border:1px solid #ddd;padding:8px;">全部打到一台，单点过载</td><td style="border:1px solid #ddd;padding:8px;">均匀分配，每台压力相同</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障处理</td><td style="border:1px solid #ddd;padding:8px;">死节点仍接收流量</td><td style="border:1px solid #ddd;padding:8px;">不健康实例自动剔除</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">扩容</td><td style="border:1px solid #ddd;padding:8px;">新机器无法接入</td><td style="border:1px solid #ddd;padding:8px;">新机器自动加入分配</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能</td><td style="border:1px solid #ddd;padding:8px;">单点响应慢</td><td style="border:1px solid #ddd;padding:8px;">多台并行，响应快</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LoadBalancer:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class LoadBalancer:
     def __init__(self, instances):
         self.instances = instances
         self.index = 0
@@ -2631,7 +2631,7 @@ for request in requests:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">K8s 每 10 秒探测服务 → 发送 HTTP GET /health
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">K8s 每 10 秒探测服务 → 发送 HTTP GET /health
                 → 返回 200 → 健康，继续接收流量
                 → 连续 3 次失败 → 不健康
                 → 从负载均衡中剔除
@@ -2644,7 +2644,7 @@ for request in requests:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用健康探针</th><th style="border:1px solid #ddd;padding:8px;">用健康探针</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务挂了</td><td style="border:1px solid #ddd;padding:8px;">流量仍打到死节点，用户报错</td><td style="border:1px solid #ddd;padding:8px;">自动剔除，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障发现</td><td style="border:1px solid #ddd;padding:8px;">人工排查，耗时久</td><td style="border:1px solid #ddd;padding:8px;">自动检测，秒级发现</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">自动恢复</td><td style="border:1px solid #ddd;padding:8px;">死节点一直接收流量</td><td style="border:1px solid #ddd;padding:8px;">恢复后自动重新加入</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">资源浪费</td><td style="border:1px solid #ddd;padding:8px;">死节点占用资源处理错误请求</td><td style="border:1px solid #ddd;padding:8px;">资源只分配给健康节点</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">from flask import Flask, jsonify
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">from flask import Flask, jsonify
 app = Flask(__name__)
 
 @app.route('/health')
@@ -2730,7 +2730,7 @@ def health():
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">声明期望状态：3 个 Pod
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">声明期望状态：3 个 Pod
             ↓
 控制器检测实际状态：2 个 Pod
             ↓
@@ -2746,7 +2746,7 @@ def health():
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用调和回路</th><th style="border:1px solid #ddd;padding:8px;">用调和回路</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置漂移</td><td style="border:1px solid #ddd;padding:8px;">人工发现，手动修复，慢且易遗漏</td><td style="border:1px solid #ddd;padding:8px;">自动检测，自动修复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">服务故障</td><td style="border:1px solid #ddd;padding:8px;">需要人工创建新实例</td><td style="border:1px solid #ddd;padding:8px;">自动创建，秒级恢复</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">扩容</td><td style="border:1px solid #ddd;padding:8px;">手动操作，容易出错</td><td style="border:1px solid #ddd;padding:8px;">自动调整，无需人工</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">一致性</td><td style="border:1px solid #ddd;padding:8px;">实际和期望不一致</td><td style="border:1px solid #ddd;padding:8px;">始终保持一致</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Controller:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class Controller:
     def __init__(self, desired_state):
         self.desired = desired_state
 
@@ -2843,7 +2843,7 @@ ctrl.run()  # 持续运行，保持 3 个 Pod</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">发布新版本 → 金丝雀路由：1% 流量 → 新版本
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">发布新版本 → 金丝雀路由：1% 流量 → 新版本
                      99% 流量 → 旧版本
             ↓
 指标收集器监控：错误率、延迟、业务指标
@@ -2857,7 +2857,7 @@ ctrl.run()  # 持续运行，保持 3 个 Pod</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用金丝雀</th><th style="border:1px solid #ddd;padding:8px;">用金丝雀</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">新版本 Bug</td><td style="border:1px solid #ddd;padding:8px;">100% 用户受影响</td><td style="border:1px solid #ddd;padding:8px;">只影响 1% 用户</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚成本</td><td style="border:1px solid #ddd;padding:8px;">紧急回滚，影响大量用户</td><td style="border:1px solid #ddd;padding:8px;">快速回滚，影响小</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">验证难度</td><td style="border:1px solid #ddd;padding:8px;">生产环境无法验证</td><td style="border:1px solid #ddd;padding:8px;">小流量验证真实场景</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">用户信任</td><td style="border:1px solid #ddd;padding:8px;">频繁故障降低信任</td><td style="border:1px solid #ddd;padding:8px;">稳定发布提升信任</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CanaryRouter:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class CanaryRouter:
     def __init__(self, new_version_weight=1):
         self.weight = new_version_weight
 
@@ -2954,7 +2954,7 @@ router.increase_weight(5)  # 1% → 5%</code></pre>
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">蓝色环境运行旧版 ← 100% 流量
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">蓝色环境运行旧版 ← 100% 流量
 绿色环境部署新版 ← 0% 流量（内部测试）
             ↓
 测试通过 → 负载均衡器切换：100% 流量 → 绿色
@@ -2969,7 +2969,7 @@ router.increase_weight(5)  # 1% → 5%</code></pre>
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用蓝绿部署</th><th style="border:1px solid #ddd;padding:8px;">用蓝绿部署</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">发布停机</td><td style="border:1px solid #ddd;padding:8px;">停机 5 分钟，用户无法访问</td><td style="border:1px solid #ddd;padding:8px;">零停机，用户无感知</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">发布失败</td><td style="border:1px solid #ddd;padding:8px;">回滚又停机</td><td style="border:1px solid #ddd;padding:8px;">瞬间切回旧版</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">测试环境</td><td style="border:1px solid #ddd;padding:8px;">测试环境不代表生产</td><td style="border:1px solid #ddd;padding:8px;">在生产环境测试（绿环境接真实流量前验证）</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">数据库变更</td><td style="border:1px solid #ddd;padding:8px;">新旧版本共用数据库，兼容性难处理</td><td style="border:1px solid #ddd;padding:8px;">可配合数据库迁移策略</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class BlueGreenDeployer:
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">class BlueGreenDeployer:
     def __init__(self, blue_env, green_env):
         self.blue = blue_env
         self.green = green_env
@@ -3068,7 +3068,7 @@ GitOps
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Git 仓库（配置即代码）→ ArgoCD 监控
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">Git 仓库（配置即代码）→ ArgoCD 监控
                     → 检测到变更
                     → 自动应用到 K8s 集群
                     → 实际状态与 Git 状态对比
@@ -3081,7 +3081,7 @@ GitOps
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用 GitOps</th><th style="border:1px solid #ddd;padding:8px;">用 GitOps</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">配置管理</td><td style="border:1px solid #ddd;padding:8px;">配置分散，没有统一来源</td><td style="border:1px solid #ddd;padding:8px;">Git 是统一来源，版本化管理</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">变更审计</td><td style="border:1px solid #ddd;padding:8px;">不知道谁改了什么</td><td style="border:1px solid #ddd;padding:8px;">Git 记录每次变更，精确到人和时间</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">回滚</td><td style="border:1px solid #ddd;padding:8px;">手动回滚，容易出错</td><td style="border:1px solid #ddd;padding:8px;">git revert 即可回滚</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">环境一致性</td><td style="border:1px solid #ddd;padding:8px;">测试和生产配置不同</td><td style="border:1px solid #ddd;padding:8px;">同一份配置应用到所有环境</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># GitOps 工作流（ArgoCD 配置）
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python"># GitOps 工作流（ArgoCD 配置）
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -3170,7 +3170,7 @@ spec:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求进入 → 生成 Trace ID（如 abc123）
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">用户请求进入 → 生成 Trace ID（如 abc123）
             → 经过订单服务 → 记录 Span（耗时 50ms）
             → 传递 Trace ID 到支付服务
             → 经过支付服务 → 记录 Span（耗时 3000ms）
@@ -3185,7 +3185,7 @@ spec:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用分布式追踪</th><th style="border:1px solid #ddd;padding:8px;">用分布式追踪</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">性能排查</td><td style="border:1px solid #ddd;padding:8px;">不知道哪个服务慢</td><td style="border:1px solid #ddd;padding:8px;">一眼看出瓶颈服务</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障定位</td><td style="border:1px solid #ddd;padding:8px;">日志分散，无法串联</td><td style="border:1px solid #ddd;padding:8px;">完整调用链路，快速定位</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">超时分析</td><td style="border:1px solid #ddd;padding:8px;">不知道在哪一步超时</td><td style="border:1px solid #ddd;padding:8px;">精确到每个服务的耗时</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">依赖分析</td><td style="border:1px solid #ddd;padding:8px;">不知道服务间调用关系</td><td style="border:1px solid #ddd;padding:8px;">可视化展示完整调用链</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import opentracing
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import opentracing
 from jaeger_client import Config
 
 # 初始化 tracer
@@ -3275,7 +3275,7 @@ with tracer.start_span("create_order") as span:
   </div>
 
   <h4>🔄 核心流程</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">服务产生日志 → 输出 JSON 格式
+  <pre style="background:#eef4ff;color:#1e293b;padding:12px;border-radius:8px;font-size:0.85rem;line-height:1.8;">服务产生日志 → 输出 JSON 格式
             → 日志聚合器（Filebeat）收集
             → 发送到 Elasticsearch
             → Kibana 建立索引
@@ -3289,7 +3289,7 @@ with tracer.start_span("create_order") as span:
 <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;"><tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px;">场景</th><th style="border:1px solid #ddd;padding:8px;">不用结构化日志</th><th style="border:1px solid #ddd;padding:8px;">用结构化日志</th></tr><tr><td style="border:1px solid #ddd;padding:8px;">日志查询</td><td style="border:1px solid #ddd;padding:8px;">grep 文本，慢且不准确</td><td style="border:1px solid #ddd;padding:8px;">按字段搜索，毫秒级返回</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">日志分析</td><td style="border:1px solid #ddd;padding:8px;">无法做聚合统计</td><td style="border:1px solid #ddd;padding:8px;">按字段聚合，秒级分析</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">故障排查</td><td style="border:1px solid #ddd;padding:8px;">正则匹配，容易漏</td><td style="border:1px solid #ddd;padding:8px;">精确查询，不遗漏</td></tr><tr><td style="border:1px solid #ddd;padding:8px;">监控告警</td><td style="border:1px solid #ddd;padding:8px;">人工查看日志</td><td style="border:1px solid #ddd;padding:8px;">自动告警，错误率 > 1% 报警</td></tr></table>
 
   <h4>💻 核心代码</h4>
-  <pre style="background:#f8f9fa;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import json
+  <pre style="background:#1e293b;color:#e2e8f0;padding:12px;border-radius:8px;font-size:0.85rem;overflow-x:auto;"><code class="language-python">import json
 import logging
 
 class StructuredFormatter(logging.Formatter):

@@ -806,13 +806,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Event Store（事件库）</strong>— 只追加不修改的数据库，按顺序记录所有事件</li><li><strong>Event Publisher（事件发布器）</strong>— 新事件发生时，通知所有订阅者</li><li><strong>State Projector（状态投影器）</strong>— 读取事件库，重放事件算出当前状态</li><li><strong>Event Store</strong>— 事件存储，按顺序记录所有领域事件</li><li><strong>Event Publisher</strong>— 事件发布器，将事件广播给订阅者</li><li><strong>State Projector</strong>— 状态投影器，通过重放事件构建当前状态</li></ul>
+    <ul class="parts-list"><li><strong>Event Store（事件库）</strong>— 只追加不修改的数据库，按顺序记录所有事件</li><li><strong>Event Publisher（事件发布器）</strong>— 新事件发生时，通知所有订阅者</li><li><strong>State Projector（状态投影器）</strong>— 读取事件库，重放事件算出当前状态</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentReceived、StockDeducted）</li><li>② 业务操作不直接改数据库，而是生成一个事件存到事件库</li><li>③ 事件库 Append-only（只追加），历史永不删除</li><li>④ 需要读取状态时，从事件库开头重放所有事件，算出当前状态</li><li>⑤ 需要历史状态时，重放到任意时间点即可</li><li>① 定义领域事件（如 OrderCreated, PaymentReceived）</li><li>② 业务操作只生成事件，不修改状态</li><li>③ 事件存储到事件库（Append-only）</li><li>④ 通过事件投影构建读模型</li><li>⑤ 可按时间点重放事件，重建任意时刻状态</li></ol>
+    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentReceived、StockDeducted）</li><li>② 业务操作不直接改数据库，而是生成一个事件存到事件库</li><li>③ 事件库 Append-only（只追加），历史永不删除</li><li>④ 需要读取状态时，从事件库开头重放所有事件，算出当前状态</li><li>⑤ 需要历史状态时，重放到任意时间点即可</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -840,8 +840,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>完整审计（知道每笔钱的来龙去脉）</li><li>状态可回溯（可回到任意历史时刻）</li><li>事件天然驱动（新事件触发后续流程）</li><li>完整审计</li><li>状态可溯</li><li>事件驱动</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储巨大（不删历史，只追加）</li><li>查询慢（需要重放事件计算状态）</li><li>需要投影视图优化读性能</li><li>存储巨大</li><li>查询复杂</li><li>性能开销</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>完整审计（知道每笔钱的来龙去脉）</li><li>状态可回溯（可回到任意历史时刻）</li><li>事件天然驱动（新事件触发后续流程）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储巨大（不删历史，只追加）</li><li>查询慢（需要重放事件计算状态）</li><li>需要投影视图优化读性能</li></ul></div>
   </div>
 </div>`,
 "3": `<div class="modal-header">
@@ -880,13 +880,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Command Handler（命令处理器）</strong>— 处理写操作，验证业务规则，生成事件</li><li><strong>Query Handler（查询处理器）</strong>— 处理读操作，直接查优化过的读模型</li><li><strong>Event Bus（事件总线）</strong>— 写操作产生的事件，同步给读模型更新</li><li><strong>Command Handler</strong>— 命令处理器，处理写操作，触发领域事件</li><li><strong>Query Handler</strong>— 查询处理器，处理读操作，直接返回数据</li><li><strong>Event Bus</strong>— 事件总线，同步命令端和查询端的数据</li></ul>
+    <ul class="parts-list"><li><strong>Command Handler（命令处理器）</strong>— 处理写操作，验证业务规则，生成事件</li><li><strong>Query Handler（查询处理器）</strong>— 处理读操作，直接查优化过的读模型</li><li><strong>Event Bus（事件总线）</strong>— 写操作产生的事件，同步给读模型更新</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 分离命令模型（写）和查询模型（读）</li><li>② 写操作通过 Command Handler 处理，验证后生成事件</li><li>③ 事件通过总线发送到查询端</li><li>④ 查询端更新自己的读模型（如 Elasticsearch、物化视图）</li><li>⑤ 处理读写延迟（读模型最终一致）</li><li>① 分离命令模型和查询模型</li><li>② 命令端处理写操作，触发领域事件</li><li>③ 事件通过总线同步到查询端</li><li>④ 查询端优化读性能（如物化视图）</li><li>⑤ 处理读写延迟，保证最终一致性</li></ol>
+    <ol class="steps-list"><li>① 分离命令模型（写）和查询模型（读）</li><li>② 写操作通过 Command Handler 处理，验证后生成事件</li><li>③ 事件通过总线发送到查询端</li><li>④ 查询端更新自己的读模型（如 Elasticsearch、物化视图）</li><li>⑤ 处理读写延迟（读模型最终一致）</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -914,8 +914,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>读写各自优化，性能提升</li><li>读模型可以针对查询优化（如预聚合）</li><li>写模型专注业务规则，不掺杂查询逻辑</li><li>读写优化</li><li>独立扩展</li><li>清晰分离</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>读写数据有延迟（不是立刻一致）</li><li>系统复杂度增加（维护两套模型）</li><li>需要处理一致性问题</li><li>数据延迟</li><li>复杂度增加</li><li>一致性问题</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>读写各自优化，性能提升</li><li>读模型可以针对查询优化（如预聚合）</li><li>写模型专注业务规则，不掺杂查询逻辑</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>读写数据有延迟（不是立刻一致）</li><li>系统复杂度增加（维护两套模型）</li><li>需要处理一致性问题</li></ul></div>
   </div>
 </div>`,
 "4": `<div class="modal-header">
@@ -954,13 +954,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Router（路由器）</strong>— 按 URL 路径或 Header 将请求分发到对应后端服务</li><li><strong>Aggregator（聚合器）</strong>— 一个请求需要多个服务数据时，网关并行调用后合并返回</li><li><strong>Filter Chain（过滤器链）</strong>— 处理认证、限流、日志、熔断等横切逻辑</li><li><strong>Router</strong>— 路由器，按路径/规则分发请求到后端服务</li><li><strong>Aggregator</strong>— 聚合器，合并多个服务的响应为单一响应</li><li><strong>Filter Chain</strong>— 过滤器链，处理认证、限流、日志等横切逻辑</li></ul>
+    <ul class="parts-list"><li><strong>Router（路由器）</strong>— 按 URL 路径或 Header 将请求分发到对应后端服务</li><li><strong>Aggregator（聚合器）</strong>— 一个请求需要多个服务数据时，网关并行调用后合并返回</li><li><strong>Filter Chain（过滤器链）</strong>— 处理认证、限流、日志、熔断等横切逻辑</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 部署网关作为唯一入口</li><li>② 配置路由规则（/users/* → 用户服务，/orders/* → 订单服务）</li><li>③ 配置过滤器链（JWT 认证、限流、日志）</li><li>④ 需要聚合时，网关并行调用多个服务，合并响应</li><li>⑤ 监控网关性能和健康状态</li><li>① 接收客户端请求</li><li>② 通过过滤器链处理认证、限流等</li><li>③ 根据路由规则分发到后端服务</li><li>④ 聚合多个服务的响应（如需要）</li><li>⑤ 返回统一格式的响应给客户端</li></ol>
+    <ol class="steps-list"><li>① 部署网关作为唯一入口</li><li>② 配置路由规则（/users/* → 用户服务，/orders/* → 订单服务）</li><li>③ 配置过滤器链（JWT 认证、限流、日志）</li><li>④ 需要聚合时，网关并行调用多个服务，合并响应</li><li>⑤ 监控网关性能和健康状态</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -988,8 +988,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>统一入口，客户端只认网关</li><li>解耦服务地址，后端服务自由变动</li><li>横切逻辑集中管理（认证、限流等）</li><li>统一入口</li><li>解耦客户端</li><li>集中治理</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>网关是单点（需要高可用）</li><li>增加一层跳转，延迟增加</li><li>网关本身复杂，需要维护</li><li>单点风险</li><li>额外延迟</li><li>复杂度增加</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>统一入口，客户端只认网关</li><li>解耦服务地址，后端服务自由变动</li><li>横切逻辑集中管理（认证、限流等）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>网关是单点（需要高可用）</li><li>增加一层跳转，延迟增加</li><li>网关本身复杂，需要维护</li></ul></div>
   </div>
 </div>`,
 "5": `<div class="modal-header">
@@ -1028,13 +1028,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Publisher（发布者）</strong>— 服务产生事件，发到总线</li><li><strong>Subscriber（订阅者）</strong>— 服务注册感兴趣的事件类型，收到后处理</li><li><strong>Event Bus（事件总线）</strong>— 消息中间件（如 Kafka、RabbitMQ），负责事件路由和持久化</li><li><strong>Publisher</strong>— 发布者，发布事件到总线</li><li><strong>Subscriber</strong>— 订阅者，消费感兴趣的事件</li><li><strong>Event Bus</strong>— 事件总线，负责事件的路由和分发</li></ul>
+    <ul class="parts-list"><li><strong>Publisher（发布者）</strong>— 服务产生事件，发到总线</li><li><strong>Subscriber（订阅者）</strong>— 服务注册感兴趣的事件类型，收到后处理</li><li><strong>Event Bus（事件总线）</strong>— 消息中间件（如 Kafka、RabbitMQ），负责事件路由和持久化</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentCompleted）</li><li>② 服务完成业务操作后，发布事件到总线</li><li>③ 总线将事件分发给所有订阅者</li><li>④ 订阅者异步处理事件，执行自己的业务逻辑</li><li>⑤ 处理失败重试、死信队列、事件顺序</li><li>① 定义领域事件</li><li>② 服务发布事件到总线</li><li>③ 总线路由事件给订阅者</li><li>④ 订阅者异步处理事件</li><li>⑤ 处理失败重试和死信</li></ol>
+    <ol class="steps-list"><li>① 定义领域事件（如 OrderCreated、PaymentCompleted）</li><li>② 服务完成业务操作后，发布事件到总线</li><li>③ 总线将事件分发给所有订阅者</li><li>④ 订阅者异步处理事件，执行自己的业务逻辑</li><li>⑤ 处理失败重试、死信队列、事件顺序</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1062,8 +1062,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>服务间松耦合（不需要知道对方存在）</li><li>异步处理，不阻塞主流程</li><li>容易扩展新服务（新服务订阅即可）</li><li>松耦合</li><li>异步通信</li><li>可扩展</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>最终一致性（事件有延迟）</li><li>调试困难（调用链不可见）</li><li>需要处理消息丢失和重复</li><li>最终一致性</li><li>调试困难</li><li>消息丢失风险</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>服务间松耦合（不需要知道对方存在）</li><li>异步处理，不阻塞主流程</li><li>容易扩展新服务（新服务订阅即可）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>最终一致性（事件有延迟）</li><li>调试困难（调用链不可见）</li><li>需要处理消息丢失和重复</li></ul></div>
   </div>
 </div>`,
 "6": `<div class="modal-header">
@@ -1102,13 +1102,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Service DB（服务数据库）</strong>— 每个服务独立的数据库，独立 Schema</li><li><strong>API（服务接口）</strong>— 服务对外暴露 API，其他服务通过 API 获取数据</li><li><strong>Data Sync（数据同步）</strong>— 通过事件或 API 同步跨服务的数据</li><li><strong>Service DB</strong>— 服务自己的数据库，独立 Schema</li><li><strong>API</strong>— 服务对外暴露的 API，用于数据交换</li><li><strong>Data Sync</strong>— 数据同步机制（如事件）</li></ul>
+    <ul class="parts-list"><li><strong>Service DB（服务数据库）</strong>— 每个服务独立的数据库，独立 Schema</li><li><strong>API（服务接口）</strong>— 服务对外暴露 API，其他服务通过 API 获取数据</li><li><strong>Data Sync（数据同步）</strong>— 通过事件或 API 同步跨服务的数据</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 为每个服务分配独立数据库</li><li>② 服务通过 API 暴露数据（不直接暴露数据库）</li><li>③ 需要跨服务数据时，调用 API 或订阅事件</li><li>④ 禁止直接访问其他服务的数据库</li><li>⑤ 独立进行数据库迁移、优化和升级</li><li>① 为每个服务分配独立数据库</li><li>② 服务通过 API 暴露数据</li><li>③ 需要跨服务数据时，调用 API 或订阅事件</li><li>④ 避免直接访问其他服务的数据库</li><li>⑤ 独立进行数据库迁移和优化</li></ol>
+    <ol class="steps-list"><li>① 为每个服务分配独立数据库</li><li>② 服务通过 API 暴露数据（不直接暴露数据库）</li><li>③ 需要跨服务数据时，调用 API 或订阅事件</li><li>④ 禁止直接访问其他服务的数据库</li><li>⑤ 独立进行数据库迁移、优化和升级</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1136,8 +1136,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>数据自治（团队独立管理自己的数据）</li><li>技术异构（不同服务可以用不同数据库）</li><li>独立演进（Schema 变更不影响其他服务）</li><li>数据自治</li><li>独立演进</li><li>技术异构</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>数据一致性困难（跨服务数据需要同步）</li><li>查询复杂（需要聚合多个服务的数据）</li><li>需要 Saga 或事件处理跨服务事务</li><li>数据一致困难</li><li>查询复杂</li><li>跨服务事务</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>数据自治（团队独立管理自己的数据）</li><li>技术异构（不同服务可以用不同数据库）</li><li>独立演进（Schema 变更不影响其他服务）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>数据一致性困难（跨服务数据需要同步）</li><li>查询复杂（需要聚合多个服务的数据）</li><li>需要 Saga 或事件处理跨服务事务</li></ul></div>
   </div>
 </div>`,
 "7": `<div class="modal-header">
@@ -1176,13 +1176,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Shard Key（分片键）</strong>— 决定数据去哪的字段（如 user_id），分片规则基于它</li><li><strong>Shard Router（分片路由器）</strong>— 根据 Shard Key 计算目标节点，把请求发到正确节点</li><li><strong>Rebalancer（再平衡器）</strong>— 监控各节点负载，自动迁移数据到负载低的节点</li><li><strong>Shard Key</strong>— 分片键，决定数据分配到哪个节点</li><li><strong>Shard Router</strong>— 分片路由器，根据 Key 路由到对应节点</li><li><strong>Rebalancer</strong>— 再平衡器，动态调整分片分布</li></ul>
+    <ul class="parts-list"><li><strong>Shard Key（分片键）</strong>— 决定数据去哪的字段（如 user_id），分片规则基于它</li><li><strong>Shard Router（分片路由器）</strong>— 根据 Shard Key 计算目标节点，把请求发到正确节点</li><li><strong>Rebalancer（再平衡器）</strong>— 监控各节点负载，自动迁移数据到负载低的节点</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 选择分片键（如 user_id，保证均匀分布）</li><li>② 定义分片规则（哈希取模、范围分片）</li><li>③ 写入时按分片键路由到对应节点</li><li>④ 按分片键查询时直接命中对应节点</li><li>⑤ 跨片查询时聚合多个节点结果</li><li>① 选择分片键（如 user_id）</li><li>② 定义分片规则（哈希/范围）</li><li>③ 数据写入时按规则路由到对应节点</li><li>④ 查询时路由到对应节点，或聚合多个节点</li><li>⑤ 监控分片负载，必要时再平衡</li></ol>
+    <ol class="steps-list"><li>① 选择分片键（如 user_id，保证均匀分布）</li><li>② 定义分片规则（哈希取模、范围分片）</li><li>③ 写入时按分片键路由到对应节点</li><li>④ 按分片键查询时直接命中对应节点</li><li>⑤ 跨片查询时聚合多个节点结果</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1210,8 +1210,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>水平扩展（加机器就能扩容）</li><li>分散读写压力</li><li>查询局部化（按分片键查询只需查一个节点）</li><li>水平扩展</li><li>分散压力</li><li>查询局部化</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>跨片查询复杂（需要聚合多个节点）</li><li>热点分片（某些分片数据特别多）</li><li>再平衡时数据迁移开销大</li><li>跨片查询复杂</li><li>热点问题</li><li>再平衡开销</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>水平扩展（加机器就能扩容）</li><li>分散读写压力</li><li>查询局部化（按分片键查询只需查一个节点）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>跨片查询复杂（需要聚合多个节点）</li><li>热点分片（某些分片数据特别多）</li><li>再平衡时数据迁移开销大</li></ul></div>
   </div>
 </div>`,
 "8": `<div class="modal-header">
@@ -1250,13 +1250,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>L1 Cache（本地缓存）</strong>— 应用服务器内存（如 Caffeine），最快但容量小，单机有效</li><li><strong>L2 Cache（分布式缓存）</strong>— Redis/Memcached，容量大，多机共享，但走网络</li><li><strong>L3 Cache（边缘缓存）</strong>— CDN，最接近用户，缓存静态资源</li><li><strong>L1 Cache</strong>— 本地缓存（如 Caffeine），最快但容量小</li><li><strong>L2 Cache</strong>— 分布式缓存（如 Redis），容量大但网络开销</li><li><strong>L3 Cache</strong>— CDN / 边缘缓存，最接近用户</li></ul>
+    <ul class="parts-list"><li><strong>L1 Cache（本地缓存）</strong>— 应用服务器内存（如 Caffeine），最快但容量小，单机有效</li><li><strong>L2 Cache（分布式缓存）</strong>— Redis/Memcached，容量大，多机共享，但走网络</li><li><strong>L3 Cache（边缘缓存）</strong>— CDN，最接近用户，缓存静态资源</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 分析数据访问频率，识别热点数据</li><li>② 最热数据放 L1 本地缓存（TTL 短，更新快）</li><li>③ 次热数据放 L2 Redis（TTL 中等，多机共享）</li><li>④ 静态资源放 L3 CDN（长期缓存，地理就近）</li><li>⑤ 未命中时逐层回源，查到的数据更新到缓存</li><li>① 分析数据访问频率</li><li>② 最热数据放 L1 本地缓存</li><li>③ 次热数据放 L2 分布式缓存</li><li>④ 静态资源放 L3 CDN</li><li>⑤ 未命中时逐层回源，更新缓存</li></ol>
+    <ol class="steps-list"><li>① 分析数据访问频率，识别热点数据</li><li>② 最热数据放 L1 本地缓存（TTL 短，更新快）</li><li>③ 次热数据放 L2 Redis（TTL 中等，多机共享）</li><li>④ 静态资源放 L3 CDN（长期缓存，地理就近）</li><li>⑤ 未命中时逐层回源，查到的数据更新到缓存</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1284,8 +1284,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>命中率分层提升</li><li>成本平衡（本地便宜，Redis 中等，CDN 贵但快）</li><li>大幅减少数据库压力</li><li>命中率高</li><li>性能优化</li><li>成本平衡</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>缓存一致性复杂（多层数据不同步）</li><li>缓存失效策略复杂</li><li>需要监控命中率，调整分层策略</li><li>一致性复杂</li><li>缓存失效</li><li>管理成本</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>命中率分层提升</li><li>成本平衡（本地便宜，Redis 中等，CDN 贵但快）</li><li>大幅减少数据库压力</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>缓存一致性复杂（多层数据不同步）</li><li>缓存失效策略复杂</li><li>需要监控命中率，调整分层策略</li></ul></div>
   </div>
 </div>`,
 "9": `<div class="modal-header">
@@ -1324,13 +1324,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Circuit Breaker（熔断器）</strong>— 维护三种状态：关闭（正常）、半开（试探）、开放（拒绝）</li><li><strong>Failure Counter（失败计数器）</strong>— 统计连续失败次数和失败率</li><li><strong>State Monitor（状态监控器）</strong>— 超时后自动转为半开，试探请求成功后关闭</li><li><strong>Circuit Breaker</strong>— 熔断器，维护关闭/半开/开放三种状态</li><li><strong>Failure Counter</strong>— 失败计数器，统计连续失败次数</li><li><strong>State Monitor</strong>— 状态监控器，检测服务恢复后自动闭合</li></ul>
+    <ul class="parts-list"><li><strong>Circuit Breaker（熔断器）</strong>— 维护三种状态：关闭（正常）、半开（试探）、开放（拒绝）</li><li><strong>Failure Counter（失败计数器）</strong>— 统计连续失败次数和失败率</li><li><strong>State Monitor（状态监控器）</strong>— 超时后自动转为半开，试探请求成功后关闭</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义熔断器状态：关闭、半开、开放</li><li>② 设置失败阈值（如 50%）和超时时间（如 30 秒）</li><li>③ 调用失败时计数，超过阈值切换为开放状态</li><li>④ 开放状态下直接返回降级响应，不调用远程服务</li><li>⑤ 超时后转为半开，允许少量试探请求，成功则关闭</li><li>① 定义熔断器状态：关闭（正常）、半开（试探）、开放（拒绝）</li><li>② 设置失败阈值和超时时间</li><li>③ 调用失败时计数，超过阈值切换为开放状态</li><li>④ 开放状态下直接返回降级响应，不调用远程服务</li><li>⑤ 超时后转为半开，允许试探请求，成功则关闭</li></ol>
+    <ol class="steps-list"><li>① 定义熔断器状态：关闭、半开、开放</li><li>② 设置失败阈值（如 50%）和超时时间（如 30 秒）</li><li>③ 调用失败时计数，超过阈值切换为开放状态</li><li>④ 开放状态下直接返回降级响应，不调用远程服务</li><li>⑤ 超时后转为半开，允许少量试探请求，成功则关闭</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1358,8 +1358,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>防止故障扩散（保护调用方）</li><li>自动恢复（不需要人工干预）</li><li>给故障服务恢复时间</li><li>防止故障扩散</li><li>保护系统资源</li><li>自动恢复</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加系统复杂度</li><li>阈值需要调参（太高不保护，太低误伤）</li><li>可能误断（网络抖动导致误判）</li><li>增加复杂度</li><li>需要调参</li><li>可能误断</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止故障扩散（保护调用方）</li><li>自动恢复（不需要人工干预）</li><li>给故障服务恢复时间</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加系统复杂度</li><li>阈值需要调参（太高不保护，太低误伤）</li><li>可能误断（网络抖动导致误判）</li></ul></div>
   </div>
 </div>`,
 "10": `<div class="modal-header">
@@ -1398,13 +1398,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Rate Limiter（限流器）</strong>— 计算请求速率，判断是否超过阈值</li><li><strong>Counter Store（计数器存储）</strong>— 存储计数器（如 Redis），支持分布式限流</li><li><strong>Rejection Handler（拒绝处理器）</strong>— 超限请求的处理策略（排队、拒绝、降级）</li><li><strong>Rate Limiter</strong>— 限流器，计算请求速率</li><li><strong>Counter Store</strong>— 计数器存储（如 Redis）</li><li><strong>Rejection Handler</strong>— 拒绝处理器，处理超限请求</li></ul>
+    <ul class="parts-list"><li><strong>Rate Limiter（限流器）</strong>— 计算请求速率，判断是否超过阈值</li><li><strong>Counter Store（计数器存储）</strong>— 存储计数器（如 Redis），支持分布式限流</li><li><strong>Rejection Handler（拒绝处理器）</strong>— 超限请求的处理策略（排队、拒绝、降级）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义限流规则（如每秒 1000 请求，或并发 100 个）</li><li>② 每次请求检查计数器，未超限则放行</li><li>③ 超限请求根据策略处理（排队等待、返回 429、返回降级内容）</li><li>④ 定期重置计数器（时间窗口滑动）</li><li>⑤ 监控限流效果，调整阈值</li><li>① 定义限流规则（QPS/并发数）</li><li>② 每次请求检查计数器</li><li>③ 未超限则处理请求</li><li>④ 超限则拒绝或排队</li><li>⑤ 定期重置计数器</li></ol>
+    <ol class="steps-list"><li>① 定义限流规则（如每秒 1000 请求，或并发 100 个）</li><li>② 每次请求检查计数器，未超限则放行</li><li>③ 超限请求根据策略处理（排队等待、返回 429、返回降级内容）</li><li>④ 定期重置计数器（时间窗口滑动）</li><li>⑤ 监控限流效果，调整阈值</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1432,8 +1432,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>保护系统不被突发流量压垮</li><li>公平分配（每个用户/IP 限流）</li><li>防止恶意请求</li><li>保护系统</li><li>公平分配</li><li>易于实现</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>影响用户体验（请求被拒绝）</li><li>阈值需要反复调优</li><li>可能误伤正常请求（如秒杀时）</li><li>影响体验</li><li>需要调参</li><li>误伤正常</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保护系统不被突发流量压垮</li><li>公平分配（每个用户/IP 限流）</li><li>防止恶意请求</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>影响用户体验（请求被拒绝）</li><li>阈值需要反复调优</li><li>可能误伤正常请求（如秒杀时）</li></ul></div>
   </div>
 </div>`,
 "11": `<div class="modal-header">
@@ -1472,13 +1472,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Retry Policy（重试策略）</strong>— 定义最大重试次数、重试间隔</li><li><strong>Backoff Strategy（退避策略）</strong>— 固定间隔或指数退避（1s→2s→4s），避免雪崩</li><li><strong>Failure Detector（失败检测器）</strong>— 判断哪些错误可重试（网络超时）vs 不可重试（业务错误）</li><li><strong>Retry Policy</strong>— 重试策略，定义次数和间隔</li><li><strong>Backoff Strategy</strong>— 退避策略，线性或指数退避</li><li><strong>Failure Detector</strong>— 失败检测器，判断哪些错误可重试</li></ul>
+    <ul class="parts-list"><li><strong>Retry Policy（重试策略）</strong>— 定义最大重试次数、重试间隔</li><li><strong>Backoff Strategy（退避策略）</strong>— 固定间隔或指数退避（1s→2s→4s），避免雪崩</li><li><strong>Failure Detector（失败检测器）</strong>— 判断哪些错误可重试（网络超时）vs 不可重试（业务错误）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 捕获调用异常</li><li>② 判断错误类型（网络超时/连接失败可重试，业务逻辑错误不重试）</li><li>③ 按退避策略等待（指数退避 + 随机抖动）</li><li>④ 重试调用直到成功或达到最大次数</li><li>⑤ 最终失败时记录日志，返回降级响应</li><li>① 捕获调用异常</li><li>② 判断异常类型是否可重试</li><li>③ 按退避策略等待</li><li>④ 重试调用直到成功或达到最大次数</li><li>⑤ 记录重试日志</li></ol>
+    <ol class="steps-list"><li>① 捕获调用异常</li><li>② 判断错误类型（网络超时/连接失败可重试，业务逻辑错误不重试）</li><li>③ 按退避策略等待（指数退避 + 随机抖动）</li><li>④ 重试调用直到成功或达到最大次数</li><li>⑤ 最终失败时记录日志，返回降级响应</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1506,8 +1506,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>提高可用性（偶发故障自动恢复）</li><li>用户体验更好（不用手动刷新）</li><li>简单实现（装饰器模式即可）</li><li>提高可用性</li><li>自动恢复</li><li>简单实现</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加延迟（重试需要时间）</li><li>可能放大问题（下游已故障，重试加重负担）</li><li>需要幂等性（重试不能重复扣款）</li><li>增加延迟</li><li>可能放大问题</li><li>幂等性要求</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>提高可用性（偶发故障自动恢复）</li><li>用户体验更好（不用手动刷新）</li><li>简单实现（装饰器模式即可）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>增加延迟（重试需要时间）</li><li>可能放大问题（下游已故障，重试加重负担）</li><li>需要幂等性（重试不能重复扣款）</li></ul></div>
   </div>
 </div>`,
 "12": `<div class="modal-header">
@@ -1546,13 +1546,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Timer（定时器）</strong>— 监控调用耗时，触发超时</li><li><strong>Timeout Value（超时阈值）</strong>— 根据服务 SLA 设定（如 P99 响应时间 + 20% 缓冲）</li><li><strong>Fallback Handler（降级处理器）</strong>— 超时后的响应（返回缓存、返回默认值、抛异常）</li><li><strong>Timer</strong>— 定时器，监控调用耗时</li><li><strong>Timeout Value</strong>— 超时阈值，根据 SLA 设定</li><li><strong>Fallback Handler</strong>— 降级处理器，超时后的响应</li></ul>
+    <ul class="parts-list"><li><strong>Timer（定时器）</strong>— 监控调用耗时，触发超时</li><li><strong>Timeout Value（超时阈值）</strong>— 根据服务 SLA 设定（如 P99 响应时间 + 20% 缓冲）</li><li><strong>Fallback Handler（降级处理器）</strong>— 超时后的响应（返回缓存、返回默认值、抛异常）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 根据历史响应时间设定超时阈值（不要太短误杀，也不要太长等待）</li><li>② 调用前启动定时器</li><li>③ 调用完成时取消定时器</li><li>④ 超时触发时，中断调用线程，返回降级响应</li><li>⑤ 记录超时指标，用于监控和报警</li><li>① 根据服务响应时间设定超时阈值</li><li>② 在调用前启动定时器</li><li>③ 调用完成或超时触发</li><li>④ 超时后返回降级响应</li><li>⑤ 记录超时指标</li></ol>
+    <ol class="steps-list"><li>① 根据历史响应时间设定超时阈值（不要太短误杀，也不要太长等待）</li><li>② 调用前启动定时器</li><li>③ 调用完成时取消定时器</li><li>④ 超时触发时，中断调用线程，返回降级响应</li><li>⑤ 记录超时指标，用于监控和报警</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1580,8 +1580,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>防止资源耗尽（线程不阻塞）</li><li>快速失败（用户不用无限等待）</li><li>保护调用方（不因为下游慢而拖垮自己）</li><li>防止资源耗尽</li><li>快速失败</li><li>保护调用方</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>阈值需要合理设定（太短误杀正常请求）</li><li>可能误杀慢查询（大数据查询确实慢）</li><li>需要结合熔断器使用（超时频发说明下游有问题）</li><li>需要合理设置</li><li>可能误杀</li><li>实现复杂</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>防止资源耗尽（线程不阻塞）</li><li>快速失败（用户不用无限等待）</li><li>保护调用方（不因为下游慢而拖垮自己）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>阈值需要合理设定（太短误杀正常请求）</li><li>可能误杀慢查询（大数据查询确实慢）</li><li>需要结合熔断器使用（超时频发说明下游有问题）</li></ul></div>
   </div>
 </div>`,
 "13": `<div class="modal-header">
@@ -1620,13 +1620,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Resource Pool（资源池）</strong>— 给每个服务或功能分配独立的线程池/连接池</li><li><strong>Isolation Enforcer（隔离执行器）</strong>— 强制执行资源隔离，不允许跨池使用</li><li><strong>Failure Monitor（故障监控器）</strong>— 监控各池使用情况，报警和自动扩容</li><li><strong>Resource Pool</strong>— 资源池，分配给不同服务或功能</li><li><strong>Isolation Enforcer</strong>— 隔离执行器，强制执行资源隔离</li><li><strong>Failure Monitor</strong>— 故障监控器，监控故障传播</li></ul>
+    <ul class="parts-list"><li><strong>Resource Pool（资源池）</strong>— 给每个服务或功能分配独立的线程池/连接池</li><li><strong>Isolation Enforcer（隔离执行器）</strong>— 强制执行资源隔离，不允许跨池使用</li><li><strong>Failure Monitor（故障监控器）</strong>— 监控各池使用情况，报警和自动扩容</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 划分资源池（按服务、按功能、按优先级）</li><li>② 每个服务使用自己的池，不共享</li><li>③ 某池耗尽时，只影响该服务，不影响其他服务</li><li>④ 监控各池使用率，动态调整池大小</li><li>⑤ 设置池满时的拒绝策略（拒绝、排队、降级）</li><li>① 划分资源池（线程/连接/队列）</li><li>② 不同服务使用不同资源池</li><li>③ 某池耗尽不影响其他池</li><li>④ 监控各池使用情况</li><li>⑤ 动态调整池大小</li></ol>
+    <ol class="steps-list"><li>① 划分资源池（按服务、按功能、按优先级）</li><li>② 每个服务使用自己的池，不共享</li><li>③ 某池耗尽时，只影响该服务，不影响其他服务</li><li>④ 监控各池使用率，动态调整池大小</li><li>⑤ 设置池满时的拒绝策略（拒绝、排队、降级）</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1654,8 +1654,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>故障隔离（局部问题不影响全局）</li><li>资源控制（防止一个服务占满所有资源）</li><li>优先级保护（核心服务分配更多资源）</li><li>故障隔离</li><li>局部保护</li><li>资源控制</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源利用率降低（每个池都有空闲）</li><li>配置复杂（需要为每个服务调优池大小）</li><li>监控困难（需要监控多个池）</li><li>资源利用率</li><li>配置复杂</li><li>监控困难</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>故障隔离（局部问题不影响全局）</li><li>资源控制（防止一个服务占满所有资源）</li><li>优先级保护（核心服务分配更多资源）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>资源利用率降低（每个池都有空闲）</li><li>配置复杂（需要为每个服务调优池大小）</li><li>监控困难（需要监控多个池）</li></ul></div>
   </div>
 </div>`,
 "14": `<div class="modal-header">
@@ -1694,13 +1694,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Degradation Router（降级路由器）</strong>— 根据系统负载和功能优先级，路由到降级实现</li><li><strong>Priority Config（优先级配置）</strong>— 定义功能优先级（核心/重要/非核心）</li><li><strong>Health Monitor（健康监控器）</strong>— 监控 CPU、内存、延迟，触发降级和恢复</li><li><strong>Degradation Router</strong>— 降级路由器，路由到降级实现</li><li><strong>Priority Config</strong>— 优先级配置，定义功能优先级</li><li><strong>Health Monitor</strong>— 健康监控器，监控系统状态</li></ul>
+    <ul class="parts-list"><li><strong>Degradation Router（降级路由器）</strong>— 根据系统负载和功能优先级，路由到降级实现</li><li><strong>Priority Config（优先级配置）</strong>— 定义功能优先级（核心/重要/非核心）</li><li><strong>Health Monitor（健康监控器）</strong>— 监控 CPU、内存、延迟，触发降级和恢复</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义功能优先级（支付 = 核心，推荐 = 非核心）</li><li>② 为每个功能准备降级实现（推荐关闭、详情页简化）</li><li>③ 监控负载指标，超过阈值时触发降级</li><li>④ 按优先级关闭非核心功能，保留核心功能</li><li>⑤ 负载恢复后自动关闭降级</li><li>① 定义功能优先级</li><li>② 监控系统负载指标</li><li>③ 负载超过阈值时触发降级</li><li>④ 关闭非核心功能</li><li>⑤ 恢复后自动开启</li></ol>
+    <ol class="steps-list"><li>① 定义功能优先级（支付 = 核心，推荐 = 非核心）</li><li>② 为每个功能准备降级实现（推荐关闭、详情页简化）</li><li>③ 监控负载指标，超过阈值时触发降级</li><li>④ 按优先级关闭非核心功能，保留核心功能</li><li>⑤ 负载恢复后自动关闭降级</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1728,8 +1728,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>保证核心功能可用（有损服务也比全挂好）</li><li>自动恢复（负载下降后自动恢复全功能）</li><li>用户体验可控（降级时提示用户）</li><li>保证核心</li><li>有损服务</li><li>自动恢复</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>用户体验下降（功能少了）</li><li>降级策略需要设计（哪些功能降级、降级成什么）</li><li>恢复时机不好判断（抖动可能导致频繁降级）</li><li>体验下降</li><li>策略设计</li><li>恢复时机</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>保证核心功能可用（有损服务也比全挂好）</li><li>自动恢复（负载下降后自动恢复全功能）</li><li>用户体验可控（降级时提示用户）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>用户体验下降（功能少了）</li><li>降级策略需要设计（哪些功能降级、降级成什么）</li><li>恢复时机不好判断（抖动可能导致频繁降级）</li></ul></div>
   </div>
 </div>`,
 "15": `<div class="modal-header">
@@ -1768,13 +1768,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Idempotency Key（幂等键）</strong>— 唯一标识请求（如 UUID），由客户端生成</li><li><strong>Deduplication Store（去重存储）</strong>— 存储已处理的 Key 和结果（如 Redis）</li><li><strong>Validator（验证器）</strong>— 检查 Key 是否已存在，存在则返回缓存结果</li><li><strong>Idempotency Key</strong>— 幂等键，唯一标识请求</li><li><strong>Deduplication Store</strong>— 去重存储，存储已处理请求</li><li><strong>Validator</strong>— 验证器，验证重复请求</li></ul>
+    <ul class="parts-list"><li><strong>Idempotency Key（幂等键）</strong>— 唯一标识请求（如 UUID），由客户端生成</li><li><strong>Deduplication Store（去重存储）</strong>— 存储已处理的 Key 和结果（如 Redis）</li><li><strong>Validator（验证器）</strong>— 检查 Key 是否已存在，存在则返回缓存结果</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 客户端生成唯一幂等键（每次请求不同）</li><li>② 业务操作前先查去重存储</li><li>③ 已存在则返回之前的结果（不执行业务）</li><li>④ 不存在则执行业务并存储结果</li><li>⑤ 设置过期时间（如 24 小时），清理旧 Key</li><li>① 生成唯一幂等键</li><li>② 执行业务前先检查是否已处理</li><li>③ 已处理则返回之前结果</li><li>④ 未处理则执行业务并记录</li><li>⑤ 返回结果</li></ol>
+    <ol class="steps-list"><li>① 客户端生成唯一幂等键（每次请求不同）</li><li>② 业务操作前先查去重存储</li><li>③ 已存在则返回之前的结果（不执行业务）</li><li>④ 不存在则执行业务并存储结果</li><li>⑤ 设置过期时间（如 24 小时），清理旧 Key</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1802,8 +1802,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>安全可靠（重复操作无影响）</li><li>支持重试（不怕网络超时）</li><li>简单实现（中间件即可）</li><li>安全可靠</li><li>防止重复</li><li>易于实现</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储开销（需要存储所有 Key）</li><li>过期处理（Key 何时删除？）</li><li>设计复杂（需要为每个接口考虑幂等）</li><li>存储开销</li><li>过期处理</li><li>设计复杂</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>安全可靠（重复操作无影响）</li><li>支持重试（不怕网络超时）</li><li>简单实现（中间件即可）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储开销（需要存储所有 Key）</li><li>过期处理（Key 何时删除？）</li><li>设计复杂（需要为每个接口考虑幂等）</li></ul></div>
   </div>
 </div>`,
 "16": `<div class="modal-header">
@@ -1842,13 +1842,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Lock Manager（锁管理器）</strong>— 管理锁的获取、续期、释放</li><li><strong>Lock Store（锁存储）</strong>— 存储锁状态（如 Redis、Zookeeper）</li><li><strong>Watchdog（看门狗）</strong>— 检测锁持有者是否存活，防止死锁</li><li><strong>Lock Manager</strong>— 锁管理器，管理锁生命周期</li><li><strong>Lock Store</strong>— 锁存储，存储锁状态（如 Redis）</li><li><strong>Watchdog</strong>— 看门狗，检测死锁并释放</li></ul>
+    <ul class="parts-list"><li><strong>Lock Manager（锁管理器）</strong>— 管理锁的获取、续期、释放</li><li><strong>Lock Store（锁存储）</strong>— 存储锁状态（如 Redis、Zookeeper）</li><li><strong>Watchdog（看门狗）</strong>— 检测锁持有者是否存活，防止死锁</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 客户端请求加锁（设置唯一标识）</li><li>② 锁服务检查是否可用（利用原子操作如 Redis SETNX）</li><li>③ 可用则创建锁，设置过期时间（防止死锁）</li><li>④ 执行业务操作</li><li>⑤ 操作完成后释放锁（检查标识，防止误释放别人的锁）</li><li>① 客户端请求加锁</li><li>② 锁服务检查是否可用</li><li>③ 可用则创建锁，设置过期时间</li><li>④ 执行业务操作</li><li>⑤ 操作完成后释放锁</li></ol>
+    <ol class="steps-list"><li>① 客户端请求加锁（设置唯一标识）</li><li>② 锁服务检查是否可用（利用原子操作如 Redis SETNX）</li><li>③ 可用则创建锁，设置过期时间（防止死锁）</li><li>④ 执行业务操作</li><li>⑤ 操作完成后释放锁（检查标识，防止误释放别人的锁）</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1876,8 +1876,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>互斥访问（保证数据安全）</li><li>通用方案（各种场景都适用）</li><li>实现简单（基于 Redis 即可）</li><li>互斥访问</li><li>防止竞争</li><li>通用方案</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>性能开销（加锁解锁需要时间）</li><li>死锁风险（锁持有者挂了，锁不释放）</li><li>实现复杂（需要处理锁续期、误释放等）</li><li>性能开销</li><li>死锁风险</li><li>实现复杂</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>互斥访问（保证数据安全）</li><li>通用方案（各种场景都适用）</li><li>实现简单（基于 Redis 即可）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>性能开销（加锁解锁需要时间）</li><li>死锁风险（锁持有者挂了，锁不释放）</li><li>实现复杂（需要处理锁续期、误释放等）</li></ul></div>
   </div>
 </div>`,
 "17": `<div class="modal-header">
@@ -1916,13 +1916,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Registry（注册中心）</strong>— 存储服务实例信息（如 Eureka、Consul、Zookeeper）</li><li><strong>Service Provider（服务提供者）</strong>— 服务启动时注册自己，定期发送心跳保持健康</li><li><strong>Service Consumer（服务消费者）</strong>— 通过服务名查询注册中心，获取可用实例列表</li><li><strong>Registry</strong>— 注册中心，存储服务实例信息</li><li><strong>Service Provider</strong>— 服务提供者，启动时注册自己</li><li><strong>Service Consumer</strong>— 服务消费者，查询注册中心获取地址</li></ul>
+    <ul class="parts-list"><li><strong>Registry（注册中心）</strong>— 存储服务实例信息（如 Eureka、Consul、Zookeeper）</li><li><strong>Service Provider（服务提供者）</strong>— 服务启动时注册自己，定期发送心跳保持健康</li><li><strong>Service Consumer（服务消费者）</strong>— 通过服务名查询注册中心，获取可用实例列表</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 服务启动时向注册中心注册（IP、端口、健康状态）</li><li>② 定期发送心跳，保持健康状态</li><li>③ 客户端通过服务名查询注册中心</li><li>④ 注册中心返回可用实例列表（不健康实例已剔除）</li><li>⑤ 服务下线时注销，客户端自动刷新列表</li><li>① 服务启动时向注册中心注册</li><li>② 定期发送心跳保持健康</li><li>③ 客户端通过服务名查询注册中心</li><li>④ 注册中心返回可用实例列表</li><li>⑤ 服务下线时注销</li></ol>
+    <ol class="steps-list"><li>① 服务启动时向注册中心注册（IP、端口、健康状态）</li><li>② 定期发送心跳，保持健康状态</li><li>③ 客户端通过服务名查询注册中心</li><li>④ 注册中心返回可用实例列表（不健康实例已剔除）</li><li>⑤ 服务下线时注销，客户端自动刷新列表</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1950,8 +1950,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>动态发现（服务地址变化客户端无感知）</li><li>支持自动扩缩容（新实例自动注册）</li><li>无需硬编码地址</li><li>动态发现</li><li>自动扩缩容</li><li>无需硬编码</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>注册中心是单点（需要高可用部署）</li><li>心跳开销（定期发送占用资源）</li><li>查询延迟（注册中心有同步延迟）</li><li>注册中心单点</li><li>心跳开销</li><li>延迟问题</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>动态发现（服务地址变化客户端无感知）</li><li>支持自动扩缩容（新实例自动注册）</li><li>无需硬编码地址</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>注册中心是单点（需要高可用部署）</li><li>心跳开销（定期发送占用资源）</li><li>查询延迟（注册中心有同步延迟）</li></ul></div>
   </div>
 </div>`,
 "18": `<div class="modal-header">
@@ -1990,13 +1990,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Load Balancer（负载均衡器）</strong>— 接收请求，按算法分发到后端实例</li><li><strong>Health Checker（健康检查器）</strong>— 定期检测后端实例状态，剔除不健康实例</li><li><strong>Algorithm（分配算法）</strong>— 轮询、随机、加权、最小连接、一致性哈希</li><li><strong>Load Balancer</strong>— 负载均衡器，接收请求并分配</li><li><strong>Health Checker</strong>— 健康检查器，检测后端服务状态</li><li><strong>Algorithm</strong>— 分配算法，轮询/随机/加权/一致性哈希</li></ul>
+    <ul class="parts-list"><li><strong>Load Balancer（负载均衡器）</strong>— 接收请求，按算法分发到后端实例</li><li><strong>Health Checker（健康检查器）</strong>— 定期检测后端实例状态，剔除不健康实例</li><li><strong>Algorithm（分配算法）</strong>— 轮询、随机、加权、最小连接、一致性哈希</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 维护可用服务实例列表（动态更新）</li><li>② 定期健康检查，剔除异常实例</li><li>③ 根据算法选择目标实例（轮询、随机、加权）</li><li>④ 转发请求到选中实例</li><li>⑤ 记录分发指标，动态调整权重</li><li>① 维护可用服务实例列表</li><li>② 定期健康检查，剔除异常实例</li><li>③ 根据算法选择目标实例</li><li>④ 转发请求到选中实例</li><li>⑤ 记录分发指标</li></ol>
+    <ol class="steps-list"><li>① 维护可用服务实例列表（动态更新）</li><li>② 定期健康检查，剔除异常实例</li><li>③ 根据算法选择目标实例（轮询、随机、加权）</li><li>④ 转发请求到选中实例</li><li>⑤ 记录分发指标，动态调整权重</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2024,8 +2024,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>提高吞吐量（多服务器并行处理）</li><li>消除单点（一台挂了不影响整体）</li><li>支持弹性伸缩（加机器自动加入）</li><li>提高吞吐量</li><li>消除单点</li><li>弹性伸缩</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>引入额外跳转（延迟增加）</li><li>会话保持复杂（请求可能分到不同服务器）</li><li>健康检查有开销</li><li>引入额外跳转</li><li>会话保持复杂</li><li>健康检查开销</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>提高吞吐量（多服务器并行处理）</li><li>消除单点（一台挂了不影响整体）</li><li>支持弹性伸缩（加机器自动加入）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>引入额外跳转（延迟增加）</li><li>会话保持复杂（请求可能分到不同服务器）</li><li>健康检查有开销</li></ul></div>
   </div>
 </div>`,
 "19": `<div class="modal-header">
@@ -2064,13 +2064,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Liveness Probe（存活探针）</strong>— 检测进程是否运行（未运行则重启）</li><li><strong>Readiness Probe（就绪探针）</strong>— 检测是否可接收流量（未就绪则摘除流量）</li><li><strong>Startup Probe（启动探针）</strong>— 检测启动是否完成（避免启动慢被误判为死）</li><li><strong>Liveness Probe</strong>— 存活探针，检测服务是否运行</li><li><strong>Readiness Probe</strong>— 就绪探针，检测服务是否可接受流量</li><li><strong>Startup Probe</strong>— 启动探针，检测服务启动完成</li></ul>
+    <ul class="parts-list"><li><strong>Liveness Probe（存活探针）</strong>— 检测进程是否运行（未运行则重启）</li><li><strong>Readiness Probe（就绪探针）</strong>— 检测是否可接收流量（未就绪则摘除流量）</li><li><strong>Startup Probe（启动探针）</strong>— 检测启动是否完成（避免启动慢被误判为死）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义探针端点（如 /health，返回 200 表示健康）</li><li>② 配置探针间隔（如每 10 秒检查一次）和失败阈值（如连续 3 次失败）</li><li>③ 定期发送探针请求</li><li>④ 不健康时从负载均衡中摘除</li><li>⑤ 恢复后重新加入负载均衡</li><li>① 定义探针端点（如 /health）</li><li>② 配置探针间隔和阈值</li><li>③ 定期发送探针请求</li><li>④ 不健康时剔除流量</li><li>⑤ 恢复后重新加入</li></ol>
+    <ol class="steps-list"><li>① 定义探针端点（如 /health，返回 200 表示健康）</li><li>② 配置探针间隔（如每 10 秒检查一次）和失败阈值（如连续 3 次失败）</li><li>③ 定期发送探针请求</li><li>④ 不健康时从负载均衡中摘除</li><li>⑤ 恢复后重新加入负载均衡</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2098,8 +2098,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>自动发现故障（无需人工）</li><li>快速恢复（自动重启或摘除流量）</li><li>减少人工运维</li><li>自动发现故障</li><li>快速恢复</li><li>减少人工</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>探针有开销（定期请求占用资源）</li><li>误判风险（探针失败但服务正常）</li><li>配置复杂（阈值、间隔、超时需要调优）</li><li>探针开销</li><li>误判风险</li><li>配置复杂</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>自动发现故障（无需人工）</li><li>快速恢复（自动重启或摘除流量）</li><li>减少人工运维</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>探针有开销（定期请求占用资源）</li><li>误判风险（探针失败但服务正常）</li><li>配置复杂（阈值、间隔、超时需要调优）</li></ul></div>
   </div>
 </div>`,
 "20": `<div class="modal-header">
@@ -2138,13 +2138,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 配置）</li><li><strong>Controller（控制器）</strong>— 持续比较实际和期望，执行差异操作</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的环境（如 K8s 集群）</li><li><strong>Desired State</strong>— 期望状态，定义系统应该是什么样</li><li><strong>Actual State</strong>— 实际状态，当前系统的真实状态</li><li><strong>Controller</strong>— 控制器，持续比较并执行修正</li></ul>
+    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 配置）</li><li><strong>Controller（控制器）</strong>— 持续比较实际和期望，执行差异操作</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的环境（如 K8s 集群）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义期望状态（如"部署 3 个 Pod，每个 1 核 2G"）</li><li>② 控制器定期获取实际状态（如当前只有 2 个 Pod）</li><li>③ 比较实际和期望的差异</li><li>④ 执行操作对齐（如创建第 3 个 Pod）</li><li>⑤ 持续循环，确保状态一致</li><li>① 定义期望状态（如部署 3 个 Pod）</li><li>② 定期获取实际状态</li><li>③ 比较实际与期望的差异</li><li>④ 执行操作使实际状态对齐</li><li>⑤ 重复上述过程</li></ol>
+    <ol class="steps-list"><li>① 定义期望状态（如"部署 3 个 Pod，每个 1 核 2G"）</li><li>② 控制器定期获取实际状态（如当前只有 2 个 Pod）</li><li>③ 比较实际和期望的差异</li><li>④ 执行操作对齐（如创建第 3 个 Pod）</li><li>⑤ 持续循环，确保状态一致</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2172,8 +2172,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>自动修复（配置漂移自动纠正）</li><li>声明式管理（只需描述期望，不用关心过程）</li><li>持续对齐（即使外部干扰也能恢复）</li><li>自动修复</li><li>声明式管理</li><li>持续对齐</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>有延迟（不是立即响应）</li><li>震荡风险（循环调整导致不稳定）</li><li>配置复杂（需要精确定义期望状态）</li><li>延迟问题</li><li>震荡风险</li><li>配置复杂</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>自动修复（配置漂移自动纠正）</li><li>声明式管理（只需描述期望，不用关心过程）</li><li>持续对齐（即使外部干扰也能恢复）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>有延迟（不是立即响应）</li><li>震荡风险（循环调整导致不稳定）</li><li>配置复杂（需要精确定义期望状态）</li></ul></div>
   </div>
 </div>`,
 "21": `<div class="modal-header">
@@ -2212,13 +2212,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Canary Router（金丝雀路由器）</strong>— 按比例分发流量（如 99% 旧版 + 1% 新版）</li><li><strong>Metrics Collector（指标收集器）</strong>— 监控新版本的错误率、延迟、业务指标</li><li><strong>Rollback Trigger（回滚触发器）</strong>— 异常时自动切回旧版</li><li><strong>Canary Router</strong>— 金丝雀路由器，按比例分发流量</li><li><strong>Metrics Collector</strong>— 指标收集器，监控新版本表现</li><li><strong>Rollback Trigger</strong>— 回滚触发器，异常时自动切回旧版</li></ul>
+    <ul class="parts-list"><li><strong>Canary Router（金丝雀路由器）</strong>— 按比例分发流量（如 99% 旧版 + 1% 新版）</li><li><strong>Metrics Collector（指标收集器）</strong>— 监控新版本的错误率、延迟、业务指标</li><li><strong>Rollback Trigger（回滚触发器）</strong>— 异常时自动切回旧版</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 部署新版本，只路由 1% 流量</li><li>② 监控错误率、延迟、业务指标</li><li>③ 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>④ 异常时自动回滚到旧版</li><li>⑤ 全量发布后持续观察</li><li>① 部署新版本，只路由 1% 流量</li><li>② 监控错误率、延迟、业务指标</li><li>③ 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>④ 异常时自动回滚</li><li>⑤ 全量发布后观察</li></ol>
+    <ol class="steps-list"><li>① 部署新版本，只路由 1% 流量</li><li>② 监控错误率、延迟、业务指标</li><li>③ 指标正常则逐步扩大流量（5%→20%→50%→100%）</li><li>④ 异常时自动回滚到旧版</li><li>⑤ 全量发布后持续观察</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2246,8 +2246,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>降低发布风险（只影响少量用户）</li><li>快速回滚（发现问题立即切换）</li><li>数据验证（真实用户流量验证）</li><li>降低风险</li><li>快速回滚</li><li>数据验证</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>部署复杂（需要两套环境同时运行）</li><li>流量管理复杂（需要按用户/IP/区域分流）</li><li>监控成本高（需要对比新旧版指标）</li><li>部署复杂</li><li>流量管理</li><li>监控成本高</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>降低发布风险（只影响少量用户）</li><li>快速回滚（发现问题立即切换）</li><li>数据验证（真实用户流量验证）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>部署复杂（需要两套环境同时运行）</li><li>流量管理复杂（需要按用户/IP/区域分流）</li><li>监控成本高（需要对比新旧版指标）</li></ul></div>
   </div>
 </div>`,
 "22": `<div class="modal-header">
@@ -2286,13 +2286,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Git Repository（Git 仓库）</strong>— 存储所有配置（YAML、Terraform），版本化管理</li><li><strong>Controller（控制器）</strong>— 监控 Git 变更，自动拉取并应用到运行时</li><li><strong>Runtime（运行时）</strong>— 应用配置的执行环境（如 K8s 集群）</li><li><strong>Git Repository</strong>— Git 仓库，存储所有配置</li><li><strong>Controller</strong>— 控制器，监控 Git 变更并同步</li><li><strong>Runtime</strong>— 运行时环境，应用配置的执行地</li></ul>
+    <ul class="parts-list"><li><strong>Git Repository（Git 仓库）</strong>— 存储所有配置（YAML、Terraform），版本化管理</li><li><strong>Controller（控制器）</strong>— 监控 Git 变更，自动拉取并应用到运行时</li><li><strong>Runtime（运行时）</strong>— 应用配置的执行环境（如 K8s 集群）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 将所有配置存入 Git 仓库（基础设施即代码）</li><li>② 控制器持续监控 Git 仓库</li><li>③ 配置变更时自动拉取并应用</li><li>④ 比较实际状态与 Git 状态，不一致时自动修复</li><li>⑤ 所有变更可追溯、可回滚</li><li>① 将所有配置存入 Git</li><li>② 控制器监控 Git 变更</li><li>③ 变更时自动拉取并应用</li><li>④ 比较实际状态与 Git 状态</li><li>⑤ 不一致时自动修复（调和回路）</li></ol>
+    <ol class="steps-list"><li>① 将所有配置存入 Git 仓库（基础设施即代码）</li><li>② 控制器持续监控 Git 仓库</li><li>③ 配置变更时自动拉取并应用</li><li>④ 比较实际状态与 Git 状态，不一致时自动修复</li><li>⑤ 所有变更可追溯、可回滚</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2320,8 +2320,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>版本控制（知道谁在什么时候改了什么）</li><li>审计追踪（完整的变更历史）</li><li>自动化部署（无需手动操作）</li><li>一致性（环境状态始终和 Git 一致）</li><li>版本控制</li><li>审计追踪</li><li>自动化部署</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>学习曲线（需要理解 Git 和 CI/CD）</li><li>Secret 管理（密码不能存 Git，需要额外方案）</li><li>权限管理（谁能改 Git 仓库？）</li><li>学习曲线</li><li>权限管理</li><li>Secret处理</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>版本控制（知道谁在什么时候改了什么）</li><li>审计追踪（完整的变更历史）</li><li>自动化部署（无需手动操作）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>学习曲线（需要理解 Git 和 CI/CD）</li><li>Secret 管理（密码不能存 Git，需要额外方案）</li><li>权限管理（谁能改 Git 仓库？）</li></ul></div>
   </div>
 </div>`,
 "23": `<div class="modal-header">
@@ -2360,13 +2360,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Trace ID（追踪 ID）</strong>— 唯一标识一次请求，全程传递</li><li><strong>Span（跨度）</strong>— 每个服务的处理单元，记录耗时、状态、标签</li><li><strong>Collector（收集器）</strong>— 聚合所有 Span，构建完整调用链路图</li><li><strong>Trace ID</strong>— 追踪 ID，唯一标识一次请求</li><li><strong>Span</strong>— 跨度，记录每个服务的处理信息</li><li><strong>Collector</strong>— 收集器，聚合所有 Span 构建完整链路</li></ul>
+    <ul class="parts-list"><li><strong>Trace ID（追踪 ID）</strong>— 唯一标识一次请求，全程传递</li><li><strong>Span（跨度）</strong>— 每个服务的处理单元，记录耗时、状态、标签</li><li><strong>Collector（收集器）</strong>— 聚合所有 Span，构建完整调用链路图</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 请求进入时生成 Trace ID（透传到所有下游服务）</li><li>② 每个服务处理时生成 Span（记录开始时间、耗时、标签）</li><li>③ 传递 Trace ID 到下游服务</li><li>④ 收集器聚合所有 Span</li><li>⑤ 可视化展示调用链路（如 Jaeger、Zipkin）</li><li>① 请求进入时生成 Trace ID</li><li>② 每个服务记录 Span（开始时间、结束时间、标签）</li><li>③ 传递 Trace ID 到下游服务</li><li>④ 收集器聚合所有 Span</li><li>⑤ 可视化展示完整调用链路</li></ol>
+    <ol class="steps-list"><li>① 请求进入时生成 Trace ID（透传到所有下游服务）</li><li>② 每个服务处理时生成 Span（记录开始时间、耗时、标签）</li><li>③ 传递 Trace ID 到下游服务</li><li>④ 收集器聚合所有 Span</li><li>⑤ 可视化展示调用链路（如 Jaeger、Zipkin）</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2394,8 +2394,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>全链路可见（一眼看到请求经过哪些服务）</li><li>快速定位（找到瓶颈服务）</li><li>性能优化（分析哪些服务耗时最长）</li><li>全链路可见</li><li>快速定位</li><li>性能优化</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>采样开销（全量采集性能影响大，需要采样）</li><li>存储成本（Trace 数据量大）</li><li>侵入性（代码需要埋点）</li><li>采样开销</li><li>存储成本</li><li>侵入性</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>全链路可见（一眼看到请求经过哪些服务）</li><li>快速定位（找到瓶颈服务）</li><li>性能优化（分析哪些服务耗时最长）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>采样开销（全量采集性能影响大，需要采样）</li><li>存储成本（Trace 数据量大）</li><li>侵入性（代码需要埋点）</li></ul></div>
   </div>
 </div>`,
 "24": `<div class="modal-header">
@@ -2434,13 +2434,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Log Format（日志格式）</strong>— 统一 JSON 结构，字段标准化</li><li><strong>Log Aggregator（日志聚合器）</strong>— 收集分散日志到中央存储（如 ELK、Loki）</li><li><strong>Log Analyzer（日志分析器）</strong>— 查询和统计（如 Kibana）</li><li><strong>Log Format</strong>— 日志格式，统一 JSON 结构</li><li><strong>Log Aggregator</strong>— 日志聚合器，收集分散日志</li><li><strong>Log Analyzer</strong>— 日志分析器，查询和统计</li></ul>
+    <ul class="parts-list"><li><strong>Log Format（日志格式）</strong>— 统一 JSON 结构，字段标准化</li><li><strong>Log Aggregator（日志聚合器）</strong>— 收集分散日志到中央存储（如 ELK、Loki）</li><li><strong>Log Analyzer（日志分析器）</strong>— 查询和统计（如 Kibana）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义统一日志格式（timestamp, level, service, message, context 等字段）</li><li>② 所有服务按格式输出日志</li><li>③ 聚合器收集分散日志到中央存储（如 Elasticsearch）</li><li>④ 建立索引便于检索</li><li>⑤ 通过分析工具查询和告警（如"错误率 > 1% 时报警"）</li><li>① 定义统一的日志格式（timestamp, level, service, message, context）</li><li>② 所有服务按格式输出日志</li><li>③ 聚合器收集分散日志到中央存储</li><li>④ 建立索引便于检索</li><li>⑤ 通过分析工具查询和告警</li></ol>
+    <ol class="steps-list"><li>① 定义统一日志格式（timestamp, level, service, message, context 等字段）</li><li>② 所有服务按格式输出日志</li><li>③ 聚合器收集分散日志到中央存储（如 Elasticsearch）</li><li>④ 建立索引便于检索</li><li>⑤ 通过分析工具查询和告警（如"错误率 > 1% 时报警"）</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2468,8 +2468,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>可检索（按字段快速搜索）</li><li>可分析（统计、聚合、趋势分析）</li><li>标准化（所有服务格式统一）</li><li>可检索</li><li>可分析</li><li>标准化</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储成本（JSON 比文本大）</li><li>格式约束（需要严格遵守字段定义）</li><li>迁移成本（旧系统需要改造）</li><li>存储成本</li><li>格式约束</li><li>迁移成本</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>可检索（按字段快速搜索）</li><li>可分析（统计、聚合、趋势分析）</li><li>标准化（所有服务格式统一）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>存储成本（JSON 比文本大）</li><li>格式约束（需要严格遵守字段定义）</li><li>迁移成本（旧系统需要改造）</li></ul></div>
   </div>
 </div>`,
 "25": `<div class="modal-header">
@@ -2508,13 +2508,13 @@ const modalTemplates = {
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成：</p>
-    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 文件）</li><li><strong>Controller（控制器）</strong>— 解释声明并执行操作（如 K8s 控制器）</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的基础设施（如 K8s 集群）</li><li><strong>Desired State</strong>— 期望状态，声明系统应该是什么样</li><li><strong>Controller</strong>— 控制器，解释声明并执行操作</li><li><strong>Runtime</strong>— 运行时，实际承载系统的基础设施</li></ul>
+    <ul class="parts-list"><li><strong>Desired State（期望状态）</strong>— 声明系统应该是什么样（如 YAML 文件）</li><li><strong>Controller（控制器）</strong>— 解释声明并执行操作（如 K8s 控制器）</li><li><strong>Runtime（运行时）</strong>— 实际承载系统的基础设施（如 K8s 集群）</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 编写声明式配置（如 YAML）描述期望状态</li><li>② 提交到控制器</li><li>③ 控制器解析声明，计算差异</li><li>④ 自动执行操作使实际状态对齐</li><li>⑤ 持续监控，保持状态一致</li><li>① 编写声明式配置（如 YAML）描述期望状态</li><li>② 提交到控制器</li><li>③ 控制器解析声明</li><li>④ 自动执行操作使实际状态对齐</li><li>⑤ 持续监控，保持状态一致</li></ol>
+    <ol class="steps-list"><li>① 编写声明式配置（如 YAML）描述期望状态</li><li>② 提交到控制器</li><li>③ 控制器解析声明，计算差异</li><li>④ 自动执行操作使实际状态对齐</li><li>⑤ 持续监控，保持状态一致</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2542,8 +2542,8 @@ const modalTemplates = {
   </div>
 
   <div class="pros-cons">
-    <div class="pros"><h5>✅ 优点</h5><ul><li>简洁易懂（只需描述结果，不用关心过程）</li><li>自动化执行（减少手动操作错误）</li><li>状态一致（系统始终和声明一致）</li><li>简洁易懂</li><li>自动化执行</li><li>状态一致</li></ul></div>
-    <div class="cons"><h5>❌ 缺点</h5><ul><li>抽象层复杂（需要理解控制器如何工作）</li><li>调试困难（声明和实际不一致时难排查）</li><li>灵活性受限（只能声明支持的配置）</li><li>抽象层复杂</li><li>调试困难</li><li>灵活性受限</li></ul></div>
+    <div class="pros"><h5>✅ 优点</h5><ul><li>简洁易懂（只需描述结果，不用关心过程）</li><li>自动化执行（减少手动操作错误）</li><li>状态一致（系统始终和声明一致）</li></ul></div>
+    <div class="cons"><h5>❌ 缺点</h5><ul><li>抽象层复杂（需要理解控制器如何工作）</li><li>调试困难（声明和实际不一致时难排查）</li><li>灵活性受限（只能声明支持的配置）</li></ul></div>
   </div>
 </div>`,
 };

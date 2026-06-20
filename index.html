@@ -696,17 +696,20 @@ const modalTemplates = {
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Singleton {
-  static instance = null;
+    <pre><code>// ① 单例类：确保全局只有一个实例
+class Singleton {
+  static instance = null;  // 静态变量，存储唯一实例
   constructor() {
+    // 如果已有实例，直接返回（阻止创建新实例）
     if (Singleton.instance) return Singleton.instance;
-    Singleton.instance = this;
+    Singleton.instance = this;  // 第一次创建时保存实例
   }
 }
 
+// ② 验证：两次 new 返回的是同一个对象
 const a = new Singleton();
 const b = new Singleton();
-console.log(a === b); // true</code></pre>
+console.log(a === b); // true ← 同一个实例</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -778,34 +781,39 @@ console.log(a === b); // true</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Product {
+    <pre><code>// ① 产品接口：定义所有产品的公共方法
+class Product {
   use() { throw new Error(&#x27;子类必须实现&#x27;); }
 }
 
+// ② 具体产品：每种产品独立实现
 class Burger extends Product {
-  use() { return &#x27;汉堡做好了&#x27;; }
+  use() { return &#x27;汉堡做好了&#x27;; }  // 汉堡
 }
 class Fries extends Product {
-  use() { return &#x27;薯条炸好了&#x27;; }
+  use() { return &#x27;薯条炸好了&#x27;; }  // 薯条
 }
 
+// ③ 创建者：定义工厂方法 + 使用产品的业务逻辑
 class Creator {
-  factoryMethod() { throw new Error(&#x27;子类必须实现&#x27;); }
+  factoryMethod() { throw new Error(&#x27;子类必须实现&#x27;); }  // 抽象方法，子类决定造什么
   create() {
-    const p = this.factoryMethod();
-    return p.use();
+    const p = this.factoryMethod();  // 调用工厂方法获取产品
+    return p.use();                  // 使用产品
   }
 }
 
+// ④ 具体创建者：每个子类决定生产什么产品
 class BurgerCreator extends Creator {
-  factoryMethod() { return new Burger(); }
+  factoryMethod() { return new Burger(); }  // 生产汉堡
 }
 class FriesCreator extends Creator {
-  factoryMethod() { return new Fries(); }
+  factoryMethod() { return new Fries(); }     // 生产薯条
 }
 
+// ⑤ 客户端：选择创建者，自动获得对应产品
 const kitchen = new BurgerCreator();
-console.log(kitchen.create());</code></pre>
+console.log(kitchen.create());  // "汉堡做好了"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -877,20 +885,23 @@ console.log(kitchen.create());</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class AbstractFactory {
+    <pre><code>// ① 抽象工厂：定义一套产品族的所有创建方法
+class AbstractFactory {
   createPhone() { throw new Error('子类必须实现'); }
   createTablet() { throw new Error('子类必须实现'); }
 }
 
+// ② 具体工厂：每个工厂实现一整套产品
 class AppleFactory extends AbstractFactory {
-  createPhone() { return 'iPhone'; }
-  createTablet() { return 'iPad'; }
+  createPhone() { return 'iPhone'; }   // 苹果工厂产 iPhone
+  createTablet() { return 'iPad'; }    // 苹果工厂产 iPad
 }
 class HuaweiFactory extends AbstractFactory {
-  createPhone() { return 'Mate'; }
-  createTablet() { return 'MatePad'; }
+  createPhone() { return 'Mate'; }      // 华为工厂产 Mate
+  createTablet() { return 'MatePad'; }  // 华为工厂产 MatePad
 }
 
+// ③ 客户端：传入工厂，整体获得配套产品
 function buildRoom(factory) {
   return {
     phone: factory.createPhone(),
@@ -898,7 +909,8 @@ function buildRoom(factory) {
   };
 }
 
-console.log(buildRoom(new AppleFactory()));</code></pre>
+// ④ 切换工厂 = 切换整套产品族
+console.log(buildRoom(new AppleFactory()));  // { phone: 'iPhone', tablet: 'iPad' }</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -970,21 +982,24 @@ console.log(buildRoom(new AppleFactory()));</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Computer {
+    <pre><code>// ① 产品类：最终要构建的复杂对象
+class Computer {
   constructor() { this.cpu = ''; this.ram = ''; }
-  show() { return \`CPU:${this.cpu}, RAM:${this.ram}\`; }
+  show() { return \`CPU:\${this.cpu}, RAM:\${this.ram}\`; }  // 展示配置
 }
 
+// ② 建造者：一步一步组装产品，返回 this 支持链式调用
 class ComputerBuilder {
   constructor() { this.computer = new Computer(); }
-  setCPU(cpu) { this.computer.cpu = cpu; return this; }
-  setRAM(ram) { this.computer.ram = ram; return this; }
-  build() { return this.computer; }
+  setCPU(cpu) { this.computer.cpu = cpu; return this; }  // 设置CPU，返回this继续链式调用
+  setRAM(ram) { this.computer.ram = ram; return this; }  // 设置内存，返回this继续链式调用
+  build() { return this.computer; }                         // 返回最终组装好的产品
 }
 
+// ③ 客户端：链式调用，一步步配出专属电脑
 const pc = new ComputerBuilder()
-  .setCPU('i9').setRAM('32GB').build();
-console.log(pc.show());</code></pre>
+  .setCPU('i9').setRAM('32GB').build();  // ← 像搭积木一样配电脑
+console.log(pc.show());  // "CPU:i9, RAM:32GB"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1056,30 +1071,35 @@ console.log(pc.show());</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Resume {
+    <pre><code>// ① 原型类：定义 clone 方法，返回自己的副本
+class Resume {
   constructor(template, sections) {
     this.template = template;
     this.sections = sections;
   }
   clone() {
+    // 浅拷贝：复制基础数据，数组用展开符复制新数组
     return new Resume(this.template, [...this.sections]);
   }
 }
 
+// ② 具体原型：继承并扩展，保留 clone 能力
 class MyResume extends Resume {
   constructor(template, sections, name) {
     super(template, sections);
     this.name = name;
   }
   clone() {
+    // 深拷贝：复制所有属性到新实例
     return new MyResume(this.template, [...this.sections], this.name);
   }
 }
 
+// ③ 客户端：基于模板克隆，修改副本不影响原模板
 const template = new MyResume('标准简历', ['教育', '工作经历']);
-const mine = template.clone();
-mine.name = '张三'; // 不影响模板
-console.log(mine.sections); // ['教育', '工作经历']</code></pre>
+const mine = template.clone();  // 复印一份
+mine.name = '张三';             // 只改副本，不影响模板
+console.log(mine.sections);     // ['教育', '工作经历'] ← 模板的内容复制过来了</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1151,21 +1171,25 @@ console.log(mine.sections); // ['教育', '工作经历']</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Printer {
+    <pre><code>// ① 目标接口：你期望使用的接口
+class Printer {
   print() { throw new Error(&#x27;子类必须实现 print 方法&#x27;); }
 }
 
+// ② 被适配者：已有的、不兼容的类
 class OldPrinter {
-  printOld() { return &#x27;老格式&#x27;; }
+  printOld() { return &#x27;老格式&#x27;; }  // 方法名不同，接口不兼容
 }
 
+// ③ 适配器：继承目标接口，内部调用被适配者
 class PrinterAdapter extends Printer {
-  constructor(old) { super(); this.old = old; }
-  print() { return this.old.printOld(); }
+  constructor(old) { super(); this.old = old; }  // 持有旧打印机引用
+  print() { return this.old.printOld(); }         // 新接口调用旧实现
 }
 
+// ④ 客户端：通过适配器使用旧设备
 const adapter = new PrinterAdapter(new OldPrinter());
-adapter.print(); // 新接口调用旧实现</code></pre>
+adapter.print(); // 新接口调用旧实现 → "老格式"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1237,34 +1261,39 @@ adapter.print(); // 新接口调用旧实现</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Beverage {
+    <pre><code>// ① 组件接口：所有对象（原始对象+装饰器）的公共接口
+class Beverage {
   cost() { throw new Error(&#x27;子类必须实现 cost 方法&#x27;); }
 }
 
+// ② 原始组件：被装饰的基础对象
 class Coffee extends Beverage {
-  cost() { return 10; }
+  cost() { return 10; }  // 美式咖啡 10 元
 }
 
+// ③ 装饰器基类：继承组件接口，持有另一个组件引用
 class Decorator extends Beverage {
   constructor(beverage) {
     super();
-    this.beverage = beverage;
+    this.beverage = beverage;  // 被装饰的对象
   }
-  cost() { return this.beverage.cost(); }
+  cost() { return this.beverage.cost(); }  // 默认：不加价，直接返回被装饰对象的价格
 }
 
+// ④ 具体装饰器：在 super.cost() 基础上添加额外功能
 class MilkDecorator extends Decorator {
-  cost() { return super.cost() + 3; }
+  cost() { return super.cost() + 3; }  // 加奶 +3 元
 }
 
 class SugarDecorator extends Decorator {
-  cost() { return super.cost() + 1; }
+  cost() { return super.cost() + 1; }  // 加糖 +1 元
 }
 
-let drink = new Coffee();
-drink = new MilkDecorator(drink);
-drink = new SugarDecorator(drink);
-console.log(drink.cost()); // 14</code></pre>
+// ⑤ 客户端：一层一层包装对象，每层加新功能
+let drink = new Coffee();             // 美式咖啡：10 元
+drink = new MilkDecorator(drink);     // 加奶：10 + 3 = 13 元
+drink = new SugarDecorator(drink);    // 加糖：13 + 1 = 14 元
+console.log(drink.cost()); // 14 ← 层层叠加，核心咖啡不变</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1336,24 +1365,30 @@ console.log(drink.cost()); // 14</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Interviewable {
+    <pre><code>// ① 主题接口：代理和真实对象都实现的接口
+class Interviewable {
   interview(request) { throw new Error(&#x27;子类必须实现 interview 方法&#x27;); }
 }
 
+// ② 真实对象：真正做事的业务对象
 class Star extends Interviewable {
   interview(request) { return &#x27;明星接受专访&#x27;; }
 }
 
+// ③ 代理：控制对真实对象的访问，前后加逻辑
 class AgentProxy extends Interviewable {
-  constructor(star) { super(); this.star = star; }
+  constructor(star) { super(); this.star = star; }  // 持有明星引用
   interview(request) {
+    // 前置控制：过滤不合适的请求
     if (request.fee &lt; 100000) return &#x27;拒绝&#x27;;
+    // 通过后才调用真实对象
     return this.star.interview(request);
   }
 }
 
+// ④ 客户端：通过代理访问，代理决定是否放行
 const agent = new AgentProxy(new Star());
-agent.interview({ fee: 200000 }); // 接受</code></pre>
+agent.interview({ fee: 200000 }); // 费用够 → "明星接受专访"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1425,22 +1460,25 @@ agent.interview({ fee: 200000 }); // 接受</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Projector { on() {} }
-class Curtain { close() {} }
-class Sound { on() {} }
-class MoviePlayer { play() {} }
+    <pre><code>// ① 子系统：多个复杂的独立组件
+class Projector { on() {} }     // 投影仪
+class Curtain { close() {} }    // 窗帘
+class Sound { on() {} }         // 音响
+class MoviePlayer { play() {} } // 播放器
 
+// ② 外观：封装所有子系统调用，提供简单入口
 class HomeTheater {
   watch() {
-    new Curtain().close();
-    new Projector().on();
-    new Sound().on();
-    new MoviePlayer().play();
+    new Curtain().close();        // 拉窗帘
+    new Projector().on();         // 开投影仪
+    new Sound().on();             // 开音响
+    new MoviePlayer().play();     // 播放影片
     return &#x27;开始观影!&#x27;;
   }
 }
 
-new HomeTheater().watch(); // 一键搞定</code></pre>
+// ③ 客户端：一键搞定，不用关心内部复杂步骤
+new HomeTheater().watch(); // 一键观影</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1512,15 +1550,18 @@ new HomeTheater().watch(); // 一键搞定</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Device {
+    <pre><code>// ① 实现者接口：定义底层实现的方法
+class Device {
   powerOn() { throw new Error(&#x27;子类必须实现&#x27;); }
 }
 
+// ② 抽象：高层接口，持有实现者引用，调用实现者方法
 class TV {
-  constructor(device) { this.device = device; }
-  turnOn() { return this.device.powerOn(); }
+  constructor(device) { this.device = device; }  // 接收任何 Device
+  turnOn() { return this.device.powerOn(); }        // 调用实现者的方法
 }
 
+// ③ 具体实现：不同的电视品牌
 class XiaomiTV extends Device {
   powerOn() { return &#x27;小米电视开机&#x27;; }
 }
@@ -1528,8 +1569,9 @@ class SonyTV extends Device {
   powerOn() { return &#x27;索尼电视开机&#x27;; }
 }
 
-const tv1 = new TV(new XiaomiTV());
-const tv2 = new TV(new SonyTV());</code></pre>
+// ④ 客户端：抽象和实现独立变化，任意组合
+const tv1 = new TV(new XiaomiTV());  // 小米电视
+const tv2 = new TV(new SonyTV());     // 索尼电视</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1601,31 +1643,35 @@ const tv2 = new TV(new SonyTV());</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Component {
+    <pre><code>// ① 组件接口：统一处理单对象和组合对象
+class Component {
   show() { throw new Error(&#x27;子类必须实现&#x27;); }
-  add(c) { /* 默认无操作 */ }
+  add(c) { /* 默认无操作，叶子节点不需要实现 */ }
 }
 
+// ② 叶子：最基本的元素，不能包含子元素
 class File extends Component {
   constructor(name) { super(); this.name = name; }
-  show(i=&#x27;&#x27;) { console.log(i + this.name); }
+  show(i=&#x27;&#x27;) { console.log(i + this.name); }  // 只显示自己
 }
 
+// ③ 组合：有 children 列表，可以包含叶子或其他组合
 class Folder extends Component {
   constructor(name) { super(); this.name = name; this.children = []; }
-  add(c) { this.children.push(c); }
+  add(c) { this.children.push(c); }  // 添加子元素
   show(i=&#x27;&#x27;) {
     console.log(i + &#x27;📁&#x27; + this.name);
-    this.children.forEach(c =&gt; c.show(i + &#x27;  &#x27;));
+    this.children.forEach(c =&gt; c.show(i + &#x27;  &#x27;));  // 递归调用每个子元素的 show
   }
 }
 
+// ④ 客户端：统一调用 root.show()，不用区分 File 还是 Folder
 const root = new Folder(&#x27;学习资料&#x27;);
 root.add(new File(&#x27;英语.docx&#x27;));
 const math = new Folder(&#x27;数学&#x27;);
 math.add(new File(&#x27;代数.pdf&#x27;));
 root.add(math);
-root.show();</code></pre>
+root.show();  // 递归打印整个树</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1672,13 +1718,13 @@ root.show();</code></pre>
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>4</strong> 个核心部件组成，缺一不可：</p>
-    <ul class="parts-list"><li><strong>Flyweight（享元接口）</strong>— 代码中对应 <code>CharFlyweight</code> 类（定义共享对象的属性）</li><li><strong>ConcreteFlyweight（具体享元）</strong>— 代码中对应 <code>CharFlyweight</code> 实例（内部状态 char 可共享）</li><li><strong>FlyweightFactory（工厂）</strong>— 代码中对应 <code>FlyweightFactory</code> 类（用 Map 缓存享元对象）</li><li><strong>UnsharedConcreteFlyweight（非共享）</strong>— 代码中未单独体现，外部状态由使用方管理</li></ul>
+    <ul class="parts-list"><li><strong>Flyweight（享元/共享对象）</strong>— 代码中对应 <code>TreeType</code> 类（存储<strong>内部状态</strong>：类型、颜色、纹理，所有树共享）</li><li><strong>FlyweightFactory（享元工厂）</strong>— 代码中对应 <code>TreeFactory</code> 类（用 Map 缓存享元对象，确保每种类型只创建一次）</li><li><strong>Context / 外部状态（对象引用）</strong>— 代码中对应 <code>TreeLight</code> 类（存储<strong>外部状态</strong>：位置 x, y，每棵树不同）</li><li><strong>Client（客户端）</strong>— 代码中对应创建 10000 棵树并验证 <code>type1 === type2</code> 的部分</li></ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义 Flyweight 接口或类</li><li>② 写 ConcreteFlyweight，只存内部状态（可共享的）</li><li>③ 写 FlyweightFactory，用 Map 做缓存池</li><li>④ Factory 的 get 方法：查缓存 → 有则返回，无则创建并存入</li><li>⑤ 使用时：总是通过 Factory.get() 获取，而不是 new</li></ol>
+    <ol class="steps-list"><li>① 分析哪些状态可以共享（内部状态：类型、颜色、纹理），哪些不能共享（外部状态：位置）</li><li>② 写 Flyweight 类（如 TreeType），只存内部状态，定义 draw(x,y) 方法接收外部状态</li><li>③ 写 FlyweightFactory，用 Map 缓存享元，key 为内部状态组合</li><li>④ Factory 的 get 方法：查缓存 → 有则返回共享对象，无则创建并存入</li><li>⑤ 写客户端类（如 TreeLight），存外部状态（x,y），内部持有 Flyweight 引用</li><li>⑥ 使用时：总是通过 Factory.get() 获取共享类型，再创建 TreeLight(x,y,type)</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -1692,29 +1738,60 @@ root.show();</code></pre>
 
   <div class="story-box">
     <span class="story-label">🎬 生活故事</span>
-    <p>文字编辑器处理100万字符。如果每个字符一个对象，内存爆炸。汉字只有几千个，同一字符可共享，只记位置差异。</p>
+    <p>你开发一个游戏，地图上有 10000 棵树。每棵树有颜色、纹理、位置。但只有 3 种树型（橡树/松树/柳树）。如果每棵树都存一份纹理图片，内存爆炸。享元模式：3 种树型共享，10000 棵树只存各自位置。</p>
   </div>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class CharFlyweight {
-  constructor(char) { this.char = char; }
-}
-
-class FlyweightFactory {
-  constructor() { this.pool = new Map(); }
-  get(char) {
-    if (!this.pool.has(char)) {
-      this.pool.set(char, new CharFlyweight(char));
-    }
-    return this.pool.get(char);
+    <pre><code>// 内部状态（共享）：树的类型、颜色、纹理
+class TreeType {
+  constructor(name, color, texture) {
+    this.name = name;
+    this.color = color;
+    this.texture = texture; // 图片对象，共享
+  }
+  draw(x, y) {
+    return \`在(\${x},\${y})画一棵\${this.color}的\${this.name}\`;
   }
 }
 
-const factory = new FlyweightFactory();
-const c1 = factory.get('A');
-const c2 = factory.get('A');
-console.log(c1 === c2); // true，同一个对象</code></pre>
+// 工厂：确保每种树类型只创建一次
+class TreeFactory {
+  constructor() { this.types = new Map(); }
+  getType(name, color, texture) {
+    const key = \`\${name}-\${color}\`;
+    if (!this.types.has(key)) {
+      this.types.set(key, new TreeType(name, color, texture));
+    }
+    return this.types.get(key);
+  }
+}
+
+// 外部状态（不共享）：树的位置
+class Tree {
+  constructor(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type; // 引用共享的 TreeType
+  }
+  draw() {
+    return this.type.draw(this.x, this.y);
+  }
+}
+
+// 创建 10000 棵树
+const factory = new TreeFactory();
+const forest = [];
+for (let i = 0; i &lt; 10000; i++) {
+  const type = factory.getType('橡树', '#228B22', 'oak.png');
+  forest.push(new Tree(i * 10, i * 5, type));
+}
+
+// 验证：同一个类型对象被共享
+const type1 = factory.getType('橡树', '#228B22', 'oak.png');
+const type2 = factory.getType('橡树', '#228B22', 'oak.png');
+console.log(type1 === type2); // true！同一个对象
+console.log('TreeType 数量:', factory.types.size); // 1，不是 10000</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1786,10 +1863,12 @@ console.log(c1 === c2); // true，同一个对象</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Strategy {
+    <pre><code>// ① 策略接口：定义算法的公共接口
+class Strategy {
   execute() { throw new Error('子类必须实现'); }
 }
 
+// ② 具体策略：每种算法独立实现
 class TaxiStrategy extends Strategy {
   execute() { return '打车，快但贵'; }
 }
@@ -1800,14 +1879,16 @@ class BikeStrategy extends Strategy {
   execute() { return '骑车，健康但慢'; }
 }
 
+// ③ 上下文：持有策略引用，执行时调用策略
 class Navigator {
-  setStrategy(strategy) { this.strategy = strategy; }
-  go() { return this.strategy.execute(); }
+  setStrategy(strategy) { this.strategy = strategy; }  // 运行时切换策略
+  go() { return this.strategy.execute(); }            // 调用当前策略
 }
 
+// ④ 客户端：根据需要切换策略
 const nav = new Navigator();
-nav.setStrategy(new SubwayStrategy());
-console.log(nav.go()); // 地铁，准时便宜</code></pre>
+nav.setStrategy(new SubwayStrategy());  // 今天坐地铁
+console.log(nav.go()); // "地铁，准时便宜"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1879,10 +1960,12 @@ console.log(nav.go()); // 地铁，准时便宜</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Observer {
+    <pre><code>// ① 观察者接口：定义收到通知时的响应方法
+class Observer {
   update(data) { throw new Error('子类必须实现'); }
 }
 
+// ② 具体观察者：实现各自的响应逻辑
 class FanA extends Observer {
   update(data) { console.log('粉丝A:', data); }
 }
@@ -1890,16 +1973,18 @@ class FanB extends Observer {
   update(data) { console.log('粉丝B:', data); }
 }
 
+// ③ 主题：被观察的对象，管理观察者列表
 class Subject {
-  constructor() { this.observers = []; }
-  subscribe(observer) { this.observers.push(observer); }
-  notify(data) { this.observers.forEach(o => o.update(data)); }
+  constructor() { this.observers = []; }           // 观察者列表
+  subscribe(observer) { this.observers.push(observer); }  // 订阅：加入观察者列表
+  notify(data) { this.observers.forEach(o => o.update(data)); }  // 广播：通知所有观察者
 }
 
+// ④ 客户端：订阅后等待自动通知
 const channel = new Subject();
-channel.subscribe(new FanA());
-channel.subscribe(new FanB());
-channel.notify('新文章发布了!');</code></pre>
+channel.subscribe(new FanA());  // 粉丝A关注
+channel.subscribe(new FanB());  // 粉丝B关注
+channel.notify('新文章发布了!');  // 自动推送给所有粉丝</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -1971,27 +2056,30 @@ channel.notify('新文章发布了!');</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class DrinkMaker {
+    <pre><code>// ① 抽象类：定义模板方法（固定流程），定好调用顺序
+class DrinkMaker {
   make() {
-    this.addBase();
-    this.addTea();
-    this.addTopping();
-    this.seal();
+    this.addBase();     // 步骤1：加底料（公共步骤）
+    this.addTea();      // 步骤2：加茶（子类必须实现）
+    this.addTopping();  // 步骤3：加配料（公共步骤）
+    this.seal();        // 步骤4：封口（公共步骤）
   }
-  addBase() { console.log('加底料'); }
-  addTea() { throw new Error(&#x27;子类必须实现&#x27;); }
-  addTopping() { console.log(&#x27;加默认配料&#x27;); }
-  seal() { console.log(&#x27;封口完成&#x27;); }
+  addBase() { console.log(&#x27;加底料&#x27;); }           // 公共步骤
+  addTea() { throw new Error(&#x27;子类必须实现&#x27;); }  // 抽象步骤，子类必须实现
+  addTopping() { console.log(&#x27;加默认配料&#x27;); }    // 公共步骤
+  seal() { console.log(&#x27;封口完成&#x27;); }             // 公共步骤
 }
 
+// ② 具体类：只重写差异步骤
 class MilkTea extends DrinkMaker {
-  addTea() { console.log(&#x27;加入牛奶&#x27;); }
+  addTea() { console.log(&#x27;加入牛奶&#x27;); }  // 奶茶用牛奶
 }
 class FruitTea extends DrinkMaker {
-  addTea() { console.log(&#x27;加入果汁&#x27;); }
+  addTea() { console.log(&#x27;加入果汁&#x27;); }  // 果茶用果汁
 }
 
-new MilkTea().make();</code></pre>
+// ③ 客户端：调用模板方法，自动执行整套流程
+new MilkTea().make();  // 加底料 → 加入牛奶 → 加默认配料 → 封口完成</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2036,15 +2124,28 @@ new MilkTea().make();</code></pre>
   </div>
 
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>4</strong> 个核心部件组成，缺一不可：</p>
-    <ul class="parts-list"><li><strong>Command（命令接口）</strong>— 代码中对应 <code>LightOnCommand</code> 类（定义 execute() 和 undo()）</li><li><strong>Receiver（接收者）</strong>— 代码中对应 <code>Light</code> 类（真正执行命令的对象，如灯）</li><li><strong>ConcreteCommand（具体命令）</strong>— 代码中对应 <code>LightOnCommand</code>（持有 Light，execute 中调用 light.on()）</li><li><strong>Invoker（调用者）</strong>— 代码中对应 <code>Remote</code> 类（触发命令的对象，如遥控器）</li></ul>
+    <h4>📦 关键部件：GoF 原版 5 个 vs 代码中 3 个</h4>
+    <p class="parts-intro"><strong>GoF 原版定义有 5 个参与者：</strong></p>
+    <ul class="parts-list">
+      <li><strong>1. Command（命令接口）</strong> — 声明 <code>execute()</code> / <code>undo()</code> 的接口。GoF 中通常是 <code>abstract class</code> 或 <code>interface</code>。</li>
+      <li><strong>2. ConcreteCommand（具体命令）</strong> — 实现 Command，持有 Receiver 引用，<code>execute()</code> 中调用 Receiver 的操作。</li>
+      <li><strong>3. Client（客户端）</strong> — 创建 ConcreteCommand，并设置其 Receiver。</li>
+      <li><strong>4. Invoker（调用者）</strong> — 要求命令执行该请求。如遥控器上的按钮。</li>
+      <li><strong>5. Receiver（接收者）</strong> — 知道如何执行操作。如灯、空调等。</li>
+    </ul>
+    <p class="parts-intro"><strong>JavaScript 实现（3 个类 + 1 段组装代码）：</strong></p>
+    <ul class="parts-list">
+      <li><strong>Command 接口 + ConcreteCommand → 合并</strong><br>— 代码中对应 <code>LightOnCommand</code> / <code>LightOffCommand</code>。<br><em>原因：JS 没有 interface，只要对象有 <code>execute()</code> 方法，它自然就是命令。不需要单独写接口类。</em></li>
+      <li><strong>Receiver → 独立写</strong><br>— 代码中对应 <code>Light</code>（真正执行命令的对象）。</li>
+      <li><strong>Invoker → 独立写</strong><br>— 代码中对应 <code>Remote</code>（管理按钮、按按钮触发命令）。</li>
+      <li><strong>Client → 不是类，是组装代码</strong><br>— 对应最后几行：<code>const remote = new Remote(); remote.bind(1, new LightOnCommand(light))</code>。<br><em>原因：Client 只是创建命令、设置接收者、绑定到调用者的组装逻辑。JS 里直接写在那几行代码中，不需要封装成类。</em></li>
+    </ul>
   </div>
 
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义 Command 接口（execute + undo）</li><li>② 写 Receiver 类（真正做事的对象，如 Light）</li><li>③ 写 ConcreteCommand，构造函数接收 Receiver</li><li>④ execute 中调用 this.light.on()，undo 中调用 this.light.off()</li><li>⑤ 写 Invoker（如 Remote），持有命令队列</li><li>⑥ 调用时：remote.press(new LightOnCommand(light))，之后可 undo()</li></ol>
+    <ol class="steps-list"><li>① 定义命令类（如 <code>LightOnCommand</code>），包含 <code>execute()</code> 和 <code>undo()</code> 方法</li><li>② 写 Receiver 类（如 <code>Light</code>），实现真正操作</li><li>③ 命令类的构造函数接收 Receiver，<code>execute()</code> 中调用 <code>light.on()</code></li><li>④ 写 Invoker（<code>Remote</code>），内部维护 <code>buttons</code> 对象（按钮槽位 → 命令映射）</li><li>⑤ Remote 提供 <code>bind(slot, command)</code> 方法，把命令绑定到按钮槽位</li><li>⑥ Remote 提供 <code>press(slot)</code> 方法，根据槽位取出命令执行，并记录到 history</li><li>⑦ 客户端组装：创建命令 → 绑定按钮 → 按按钮执行 → 撤销</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2058,37 +2159,56 @@ new MilkTea().make();</code></pre>
 
   <div class="story-box">
     <span class="story-label">🎬 生活故事</span>
-    <p>智能遥控器：红按钮=开灯，蓝按钮=开空调，绿按钮=播放音乐。每个按钮封装一个命令，还可按撤销取消上次操作。</p>
+    <p>智能遥控器有红按钮和蓝按钮。红按钮绑定"开灯"命令，蓝按钮绑定"关灯"命令。你按红按钮就开灯，按蓝按钮就关灯。按撤销键取消最近一次操作。</p>
   </div>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Light {
+    <pre><code>// ① 接收者：真正执行命令的对象（灯）
+class Light {
   on() { console.log('开灯'); }
   off() { console.log('关灯'); }
 }
 
+// ② 具体命令：封装"开灯"和"关灯"动作
 class LightOnCommand {
-  constructor(light) { this.light = light; }
-  execute() { this.light.on(); }
-  undo() { this.light.off(); }
+  constructor(light) { this.light = light; }  // 持有接收者引用
+  execute() { this.light.on(); }              // 执行：开灯
+  undo() { this.light.off(); }               // 撤销：关灯
 }
+
+class LightOffCommand {
+  constructor(light) { this.light = light; }
+  execute() { this.light.off(); }              // 执行：关灯
+  undo() { this.light.on(); }                 // 撤销：开灯
+}
+
+// ③ 调用者：管理按钮、执行命令、记录历史
 class Remote {
-  constructor() { this.history = []; }
-  press(button) {
-    this.history.push(button);
-    return button.execute();
+  constructor() { this.buttons = {}; this.history = []; }  // 按钮映射 + 操作历史
+  bind(slot, command) { this.buttons[slot] = command; }    // 绑定命令到按钮
+  press(slot) {
+    const cmd = this.buttons[slot];
+    if (!cmd) return '按钮未绑定';
+    this.history.push(cmd);      // 记录操作历史
+    return cmd.execute();        // 执行命令
   }
   undo() {
-    const btn = this.history.pop();
-    return btn ? btn.undo() : &#x27;无操作&#x27;;
+    const cmd = this.history.pop();  // 取出最近的操作
+    return cmd ? cmd.undo() : '无操作';  // 撤销
   }
 }
 
+// ④ 客户端：组装命令 → 绑定按钮 → 执行 → 撤销
 const light = new Light();
 const remote = new Remote();
-remote.press(new LightOnCommand(light));
-console.log(remote.undo()); // 关灯</code></pre>
+
+remote.bind(1, new LightOnCommand(light));   // 按钮1 = 开灯
+remote.bind(2, new LightOffCommand(light));  // 按钮2 = 关灯
+
+remote.press(1); // 开灯
+remote.press(2); // 关灯
+remote.undo();   // 撤销关灯 = 再次开灯</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2160,29 +2280,33 @@ console.log(remote.undo()); // 关灯</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class State {
+    <pre><code>// ① 状态接口：定义所有状态下的行为
+class State {
   insertCoin(machine) { throw new Error(&#x27;子类必须实现&#x27;); }
 }
 
+// ② 上下文：持有状态，行为委托给当前状态
 class VendingMachine {
-  constructor() { this.state = new NoCoinState(this); }
-  setState(s) { this.state = s; }
-  insertCoin() { return this.state.insertCoin(this); }
+  constructor() { this.state = new NoCoinState(this); }  // 初始状态：未投币
+  setState(s) { this.state = s; }                        // 切换状态
+  insertCoin() { return this.state.insertCoin(this); }   // 委托给状态
 }
 
+// ③ 具体状态：每个状态实现不同的行为
 class NoCoinState extends State {
   insertCoin(m) {
-    m.setState(new HasCoinState());
+    m.setState(new HasCoinState());  // 投币后切换到"已投币"状态
     return &#x27;投币成功&#x27;;
   }
 }
 class HasCoinState extends State {
-  insertCoin(m) { return &#x27;已经投过币了&#x27;; }
+  insertCoin(m) { return &#x27;已经投过币了&#x27;; }  // 已投币状态下不能再投币
 }
 
+// ④ 客户端：调用方法，状态自动切换
 const vm = new VendingMachine();
-console.log(vm.insertCoin()); // 投币成功
-console.log(vm.insertCoin()); // 已经投过币了</code></pre>
+console.log(vm.insertCoin()); // 第一次投币 → "投币成功"
+console.log(vm.insertCoin()); // 第二次投币 → "已经投过币了"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2229,7 +2353,7 @@ console.log(vm.insertCoin()); // 已经投过币了</code></pre>
   <div class="parts-section">
     <h4>📦 关键部件：你需要这几个类</h4>
     <p class="parts-intro">这个模式由 <strong>3</strong> 个核心部件组成，缺一不可：</p>
-    <ul class="parts-list"><li><strong>Handler（抽象处理者）</strong>— 代码中对应 <code>Handler</code> 类（定义 handle() 和 next 引用）</li><li><strong>ConcreteHandler A/B/C（具体处理者）</strong>— 代码中对应 <code>Leader</code>、<code>Manager</code>（判断能否处理，不能则传给 next）</li><li><strong>Client（客户端）</strong>— 代码中对应组装链条并调用 <code>leader.handle(5)</code> 的部分</li></ul>
+    <ul class="parts-list"><li><strong>Handler（抽象处理者）</strong>— 代码中对应 <code>Handler</code> 类（定义 handle() 和 next 引用）</li><li><strong>ConcreteHandler A/B/C（具体处理者）</strong>— 代码中对应 <code>Leader</code>（组长，批≤3天）、<code>Manager</code>（经理，批≤7天）、<code>Director</code>（总监，批≤15天）</li><li><strong>Client（客户端）</strong>— 代码中对应组装链条并调用 <code>leader.handle(5)</code> 的部分</li></ul>
   </div>
 
   <div class="steps-section">
@@ -2249,36 +2373,49 @@ console.log(vm.insertCoin()); // 已经投过币了</code></pre>
 
   <div class="story-box">
     <span class="story-label">🎬 生活故事</span>
-    <p>你请假：1天组长直接批，3天经理批，10天总监批。请假单沿着链一级一级走，直到有人能批。</p>
+    <p>你请假：3天以内组长直接批，7天以内经理批，15天以内总监批。请假单沿着链一级一级走，直到有人能批。</p>
   </div>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Handler {
-  setNext(next) { this.next = next; return next; }
+    <pre><code>// ① 抽象处理者：定义链式结构和默认传递行为
+class Handler {
+  setNext(next) { this.next = next; return next; }  // 设置下一个处理者，返回 next 支持链式调用
   handle(days) {
-    if (this.next) return this.next.handle(days);
+    if (this.next) return this.next.handle(days);  // 无法处理则传给下一个
     return &#x27;无人可批&#x27;;
   }
 }
 
+// ② 具体处理者：每个处理者有自己的审批范围
 class Leader extends Handler {
   handle(days) {
-    if (days &lt;= 3) return &#x27;组长批准&#x27; + days + &#x27;天&#x27;;
-    return super.handle(days);
+    if (days &lt;= 3) return &#x27;组长批准&#x27; + days + &#x27;天&#x27;;  // 组长批 ≤3 天
+    return super.handle(days);                        // 超出范围，传给上级
   }
 }
 class Manager extends Handler {
   handle(days) {
-    if (days &lt;= 7) return &#x27;经理批准&#x27; + days + &#x27;天&#x27;;
+    if (days &lt;= 7) return &#x27;经理批准&#x27; + days + &#x27;天&#x27;;  // 经理批 ≤7 天
+    return super.handle(days);
+  }
+}
+class Director extends Handler {
+  handle(days) {
+    if (days &lt;= 15) return &#x27;总监批准&#x27; + days + &#x27;天&#x27;;  // 总监批 ≤15 天
     return super.handle(days);
   }
 }
 
+// ③ 客户端：组装链条，发起请求
 const leader = new Leader();
 const manager = new Manager();
-leader.setNext(manager);
-console.log(leader.handle(5)); // 经理批准5天</code></pre>
+const director = new Director();
+leader.setNext(manager).setNext(director);  // 组装：组长 → 经理 → 总监
+
+console.log(leader.handle(2));  // 2天 → 组长批准
+console.log(leader.handle(5));  // 5天 → 组长无法处理 → 经理批准
+console.log(leader.handle(10)); // 10天 → 组长 → 经理 → 总监批准</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2350,32 +2487,52 @@ console.log(leader.handle(5)); // 经理批准5天</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Mediator {
+    <pre><code>// ① 中介者基类：定义同事间通信的方法
+class Mediator {
   send(msg, from) { throw new Error('子类必须实现'); }
 }
 
+// ② 具体中介者：聊天室，持有所有同事，负责转发消息
 class ChatRoom extends Mediator {
-  constructor() { super(); this.colleagues = []; }
-  register(colleague) { this.colleagues.push(colleague); colleague.mediator = this; }
+  constructor() { 
+    super(); 
+    this.colleagues = []; // 所有加入的同事列表
+  }
+  // 注册同事：同事加入列表，同时让同事持有自己的引用（mediator）
+  // 这样同事发送消息时，就能通过 this.mediator.send() 找到中介者
+  register(colleague) { 
+    this.colleagues.push(colleague);        // ① 加入同事列表
+    colleague.mediator = this;              // ② 告诉同事：我是你的中介者
+  }
+  // 转发消息：发给除发送者外的所有人
   send(msg, from) {
-    this.colleagues.forEach(c =&gt; {
-      if (c !== from) c.receive(msg, from);
+    this.colleagues.forEach(c => {
+      if (c !== from) c.receive(msg, from); // 不转发给自己
     });
   }
 }
 
+// ③ 同事类：每个同事只持有 Mediator 引用，不持有其他同事引用
 class Colleague {
-  constructor(name) { this.name = name; }
+  constructor(name) { 
+    this.name = name; 
+    this.mediator = null; // ← 显式声明：同事通过中介者发送消息
+  }
+  // 发送消息：自己不直接发给对方，而是交给中介者转发
   send(msg) { this.mediator.send(msg, this); }
+  // 接收消息：被中介者调用
   receive(msg, from) {
-    console.log(this.name + &#x27;收到&#x27; + from.name + &#x27;: &#x27; + msg);
+    console.log(this.name + '收到' + from.name + ': ' + msg);
   }
 }
 
-const room = new ChatRoom();
-const a = new Colleague('A'); const b = new Colleague('B');
-room.register(a); room.register(b);
-a.send('你好!');</code></pre>
+// ④ 客户端组装：创建中介者 → 创建同事 → 注册到中介者 → 发送消息
+const room = new ChatRoom();      // 创建聊天室（中介者）
+const a = new Colleague('A');     // 创建同事 A
+const b = new Colleague('B');     // 创建同事 B
+room.register(a);                 // A 加入聊天室
+room.register(b);                 // B 加入聊天室
+a.send('你好!');                  // A 发消息 → 中介者转发给 B</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2420,9 +2577,19 @@ a.send('你好!');</code></pre>
   </div>
 
   <div class="parts-section">
-    <h4>📦 关键部件：你需要这几个类</h4>
-    <p class="parts-intro">这个模式由 <strong>4</strong> 个核心部件组成，缺一不可：</p>
-    <ul class="parts-list"><li><strong>Iterator（迭代器接口）</strong>— 代码中对应 <code>SongIterator</code> 类（定义 next(), hasNext()）</li><li><strong>ConcreteIterator（具体迭代器）</strong>— 代码中对应 <code>SongIterator</code>（实现遍历逻辑，持有 index 索引）</li><li><strong>Aggregate（聚合接口）</strong>— 代码中对应 <code>SongList</code> 类的 [Symbol.iterator] 方法</li><li><strong>ConcreteAggregate（具体聚合）</strong>— 代码中对应 <code>SongList</code> 类（返回自己的迭代器）</li></ul>
+    <h4>📦 关键部件：GoF 原版 4 个 vs 代码中 2 个</h4>
+    <p class="parts-intro"><strong>GoF 原版定义有 4 个参与者：</strong></p>
+    <ul class="parts-list">
+      <li><strong>1. Iterator（迭代器接口）</strong> — 声明 <code>next()</code> / <code>hasNext()</code> / <code>current()</code> 的接口。</li>
+      <li><strong>2. ConcreteIterator（具体迭代器）</strong> — 实现 Iterator，持有聚合对象的引用和当前索引。</li>
+      <li><strong>3. Aggregate（聚合接口）</strong> — 声明 <code>createIterator()</code> 方法，返回一个迭代器。</li>
+      <li><strong>4. ConcreteAggregate（具体聚合）</strong> — 实现 Aggregate，内部存储数据，返回自己的迭代器。</li>
+    </ul>
+    <p class="parts-intro"><strong>JavaScript 实现（2 个类）：</strong></p>
+    <ul class="parts-list">
+      <li><strong>Iterator 接口 + ConcreteIterator → 合并</strong><br>— 代码中对应 <code>SongIterator</code>（直接实现 next/hasNext，不需要单独写接口）。<br><em>原因：JS 没有 interface，一个有 next() 和 hasNext() 的对象自然就是迭代器。</em></li>
+      <li><strong>Aggregate 接口 + ConcreteAggregate → 合并</strong><br>— 代码中对应 <code>SongList</code>（直接实现 createIterator()，不需要单独写接口）。<br><em>原因：JS 中只要对象有 createIterator() 方法，它自然就是聚合。</em></li>
+    </ul>
   </div>
 
   <div class="steps-section">
@@ -2447,22 +2614,38 @@ a.send('你好!');</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class SongIterator {
-  constructor(songs) { this.songs = songs; this.index = 0; }
+    <pre><code>// ① 迭代器：负责按顺序访问集合，不暴露集合内部结构
+class SongIterator {
+  constructor(songs) { 
+    this.songs = songs;   // 持有对集合的引用（但不直接暴露集合给外部）
+    this.index = 0;       // 当前遍历位置，从第 0 个开始
+  }
+  // 是否还有下一个元素？
   hasNext() { return this.index < this.songs.length; }
+  // 返回当前元素，并把索引 +1（移动到下一个位置）
   next() { return this.songs[this.index++]; }
 }
 
+// ② 集合（聚合）：存储数据，不暴露内部数组，只返回迭代器
 class SongList {
-  constructor() { this.songs = []; }
+  constructor() { this.songs = []; }  // 内部用数组存储，但外部不知道
   add(song) { this.songs.push(song); }
+  // 创建迭代器：把内部数组交给迭代器，外部只通过迭代器访问
   createIterator() { return new SongIterator(this.songs); }
 }
 
+// ③ 客户端使用：不用关心 SongList 内部是数组还是链表，只通过迭代器遍历
 const playlist = new SongList();
-playlist.add('晴天'); playlist.add('夜曲');
-const it = playlist.createIterator();
-while (it.hasNext()) console.log(it.next());</code></pre>
+playlist.add('晴天');
+playlist.add('夜曲');
+
+const it = playlist.createIterator();  // 获取迭代器
+while (it.hasNext()) {                 // 只要还有下一首
+  console.log(it.next());              // 取出来听
+}
+
+// 💡 对比：如果没有迭代器，你会直接写 playlist.songs.forEach()，
+//    这意味着你必须知道 SongList 内部是数组。换了迭代器，内部结构变了也不影响客户端。</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2529,35 +2712,48 @@ while (it.hasNext()) console.log(it.next());</code></pre>
 
   <div class="story-box">
     <span class="story-label">🎬 生活故事</span>
-    <p>医院体检中心：来了学生、老人、运动员。同一体检流程，但学生查视力，老人查血压。</p>
+    <p>医院体检中心：来了学生、老人、运动员。同一体检流程，但学生查视力，老人查血压，运动员查心肺功能。</p>
   </div>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Visitor {
+    <pre><code>// ① 访问者接口：为每种元素定义一个 visit 方法
+class Visitor {
   visitStudent(s) { throw new Error('子类必须实现'); }
   visitElder(e) { throw new Error('子类必须实现'); }
+  visitAthlete(a) { throw new Error('子类必须实现'); }
 }
 
+// ② 元素接口：所有元素都要实现 accept 方法
 class Visitable {
   accept(visitor) { throw new Error('子类必须实现'); }
 }
 
+// ③ 具体元素：每种元素在 accept 中调用 visitor 对应的 visit 方法
 class Student extends Visitable {
-  accept(visitor) { return visitor.visitStudent(this); }
+  accept(visitor) { return visitor.visitStudent(this); }  // 告诉访问者："我是学生，用 visitStudent 检查我"
 }
 class Elder extends Visitable {
-  accept(visitor) { return visitor.visitElder(this); }
+  accept(visitor) { return visitor.visitElder(this); }    // 告诉访问者："我是老人，用 visitElder 检查我"
+}
+class Athlete extends Visitable {
+  accept(visitor) { return visitor.visitAthlete(this); }  // 告诉访问者："我是运动员，用 visitAthlete 检查我"
 }
 
+// ④ 具体访问者：实现每种元素的访问逻辑
 class HealthCheck extends Visitor {
-  visitStudent(s) { return '学生：视力检查'; }
-  visitElder(e) { return '老人：血压检查'; }
+  visitStudent(s) { return '学生：视力检查'; }  // 学生查视力
+  visitElder(e) { return '老人：血压检查'; }      // 老人查血压
+  visitAthlete(a) { return '运动员：心肺功能检查'; }  // 运动员查心肺
 }
 
+// ⑤ 客户端：遍历所有元素，统一调用 accept(visitor)
 const checker = new HealthCheck();
-const people = [new Student(), new Elder()];
-people.forEach(p =&gt; console.log(p.accept(checker)));</code></pre>
+const people = [new Student(), new Elder(), new Athlete()];
+people.forEach(p => console.log(p.accept(checker)));
+// 执行过程：Student → accept(HealthCheck) → HealthCheck.visitStudent(Student) → "学生：视力检查"
+//           Elder   → accept(HealthCheck) → HealthCheck.visitElder(Elder)     → "老人：血压检查"
+//           Athlete → accept(HealthCheck) → HealthCheck.visitAthlete(Athlete) → "运动员：心肺功能检查"</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2629,25 +2825,33 @@ people.forEach(p =&gt; console.log(p.accept(checker)));</code></pre>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class GameState {
+    <pre><code>// ① 原发器：创建状态，有 save() 和 restore()
+class GameState {
   constructor(hp, level) { this.hp = hp; this.level = level; }
-  save() { return new Memento({ hp: this.hp, level: this.level }); }
-  restore(m) { this.hp = m.state.hp; this.level = m.state.level; }
-}
-class Memento {
-  constructor(state) { this.state = state; }
-}
-class Caretaker {
-  constructor() { this.saves = []; }
-  add(m) { this.saves.push(m); }
-  get(i) { return this.saves[i]; }
+  save() { return new Memento({ hp: this.hp, level: this.level }); }  // 保存状态
+  restore(m) { this.hp = m.state.hp; this.level = m.state.level; }    // 恢复状态
 }
 
+// ② 备忘录：只存状态，不暴露内部细节
+class Memento {
+  constructor(state) { this.state = state; }  // 封装状态快照
+}
+
+// ③ 负责人：管理备忘录列表，不访问备忘录内容
+class Caretaker {
+  constructor() { this.saves = []; }
+  add(m) { this.saves.push(m); }  // 保存备忘录
+  get(i) { return this.saves[i]; } // 获取备忘录
+}
+
+// ④ 客户端：保存 → 修改 → 恢复
 const game = new GameState(100, 5);
 const keeper = new Caretaker();
-keeper.add(game.save()); // 存档
-// ... 打BOSS输了 ...
-game.restore(keeper.get(0)); // 读档</code></pre>
+keeper.add(game.save());  // 存档：保存当前状态
+
+// ... 打BOSS输了，状态变化 ...
+
+game.restore(keeper.get(0));  // 读档：恢复到存档时的状态</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
@@ -2700,7 +2904,7 @@ game.restore(keeper.get(0)); // 读档</code></pre>
   <div class="steps-section">
     <h4>🔨 搭建步骤：从零开始写</h4>
     <p class="steps-intro">按照以下步骤，一步步把这个模式搭起来：</p>
-    <ol class="steps-list"><li>① 定义 Expression 接口，包含 interpret(context) 方法</li><li>② 写 TerminalExpression（如 NumberExpression），直接返回值</li><li>③ 写 NonterminalExpression（如 AddExpression），组合两个 Expression</li><li>④ 非终结符的 interpret：解释左右子表达式，然后做运算</li><li>⑤ 写 Context，提供全局数据（如变量值、环境变量）</li><li>⑥ 使用时：组装 AST（树），然后调用 root.interpret(context)</li></ol>
+    <ol class="steps-list"><li>① 定义 Expression 接口，包含 interpret(context) 方法</li><li>② 写 TerminalExpression（如 GreaterThan、Equals），直接比较值，返回 true/false</li><li>③ 写 NonterminalExpression（如 AndExpression），组合两个 Expression，递归调用它们的 interpret</li><li>④ 非终结符的 interpret：解释左右子表达式，然后做 AND/OR 运算</li><li>⑤ 写 Context，提供全局数据（如变量值、环境变量）</li><li>⑥ 使用时：把规则组装成<strong>树</strong>，然后调用 root.interpret(context)，递归逐层执行</li></ol>
   </div>
 
   <div class="when-to-use">
@@ -2710,45 +2914,57 @@ game.restore(keeper.get(0)); // 读档</code></pre>
   </div>
 
   <h4>📖 核心思想</h4>
-  <p>给定语言，定义文法表示，并定义解释器解释该语言中的句子。</p>
+  <p>把一条规则/语句拆成一棵<strong>树</strong>，每个节点负责解释自己的部分，然后<strong>递归执行</strong>，最终得到结果。</p>
 
   <div class="story-box">
     <span class="story-label">🎬 生活故事</span>
-    <p>你写简单规则引擎：&quot;age &gt; 18 AND city == 北京&quot;。解释器读取字符串，解析规则，判断人是否符合条件。</p>
+    <p>面试官筛选简历：规则是"年龄大于18岁 并且 城市是北京"。把这个规则拆成一棵树：先判断年龄，再判断城市，最后把两个结果用"并且"合并。每个判断点都是一个节点，面试官按树结构逐个执行，最终得出"是否通过"。</p>
   </div>
 
   <div class="code-section">
     <h4>💻 极简代码</h4>
-    <pre><code>class Context {
+    <pre><code>// ① 上下文：存储解释器需要的全局数据
+class Context {
   constructor(data) { this.data = data; }
-  get(key) { return this.data[key]; }
+  get(key) { return this.data[key]; }  // 获取变量值
 }
 
+// ② 抽象表达式：定义 interpret 方法
 class Expression {
   interpret(ctx) { throw new Error('abstract'); }
 }
 
+// ③ 终结符表达式：叶子节点，直接比较值
 class Equals extends Expression {
   constructor(key, value) { super(); this.key = key; this.value = value; }
-  interpret(ctx) { return ctx.get(this.key) === this.value; }
+  interpret(ctx) { return ctx.get(this.key) === this.value; }  // 相等比较
 }
 
 class GreaterThan extends Expression {
   constructor(key, value) { super(); this.key = key; this.value = value; }
-  interpret(ctx) { return ctx.get(this.key) &gt; this.value; }
+  interpret(ctx) { return ctx.get(this.key) > this.value; }  // 大于比较
 }
 
+// ④ 非终结符表达式：组合其他表达式（如 AND）
 class AndExpression extends Expression {
   constructor(left, right) { super(); this.left = left; this.right = right; }
-  interpret(ctx) { return this.left.interpret(ctx) && this.right.interpret(ctx); }
+  interpret(ctx) { return this.left.interpret(ctx) && this.right.interpret(ctx); }  // 两边都为 true
 }
 
+// ⑤ 客户端：组装规则树，然后解释执行
 const ctx = new Context({ age: 20, city: '北京' });
 const rule = new AndExpression(
-  new GreaterThan('age', 18),
-  new Equals('city', '北京')
+  new GreaterThan('age', 18),      // age > 18
+  new Equals('city', '北京')       // city == '北京'
 );
-console.log(rule.interpret(ctx)); // true</code></pre>
+console.log(rule.interpret(ctx)); // true ← 两个条件都满足
+// 执行过程（逐层递归）：
+// rule.interpret(ctx)
+// ├── rule.left: GreaterThan('age', 18)
+// │      └── ctx.get('age') > 18 → 20 > 18 → true
+// └── rule.right: Equals('city', '北京')
+//        └── ctx.get('city') == '北京' → '北京' == '北京' → true
+// true && true → true</code></pre>
   </div>
 
   <h4>🎯 典型应用场景</h4>
